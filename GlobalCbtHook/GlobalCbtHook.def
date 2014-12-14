@@ -1,0 +1,11 @@
+LIBRARY	SystemHookCore
+
+EXPORTS
+	InitializeCbtHook
+	UninitializeCbtHook
+	InitializeShellHook
+	UninitializeShellHook
+    InitializeCallWndProcHook
+    UninitializeCallWndProcHook
+    InitializeGetMsgHook
+    UninitializeGetMsgHook
