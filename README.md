@@ -28,8 +28,8 @@ Indeed if you launch a software from a desktop shortcut, shortcut better be on e
 Both ShivaQE Master and ShivaQE Viewer should be launched on different computers.
 
 Computers with ShivaQE Master, Viewer and any other computer that will be used as slave needs to have the dot net framework 4.5 installed.
-Also ShivaQE Viewer needs software paexec.exe (in the same folder as ShivaQEviewer.exe).
-Paexec is not packaged here. You can find it here: http://www.poweradmin.com/paexec/
+Also ShivaQE Viewer needs software PsExec.exe (in the same folder as ShivaQEviewer.exe).
+PsExec is not packaged here. You can find it here: http://download.sysinternals.com/files/PSTools.zip
 
 
 
