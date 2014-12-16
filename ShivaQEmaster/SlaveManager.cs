@@ -9,6 +9,8 @@ using System.Runtime.InteropServices;
 using System.Linq;
 using System.Threading.Tasks;
 using ShivaQEcommon.Eventdata;
+using System.IO;
+using System.Net;
 
 namespace ShivaQEmaster
 {
@@ -60,6 +62,7 @@ namespace ShivaQEmaster
         public ObservableCollection<Slave> slaveList;
 
         UdpClient broadcastChannel;
+        private string slaveList_save_path = "slavelist.json";
 
         public slaveManager(ObservableCollection<Slave> slaves)
         {
@@ -67,6 +70,24 @@ namespace ShivaQEmaster
             broadcastChannel = new UdpClient(AddressFamily.InterNetworkV6);
             broadcastChannel.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
             //broadcastChannel.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
+
+            if (File.Exists(slaveList_save_path))
+            {
+                try
+                {
+                    string slaveListJson = File.ReadAllText(slaveList_save_path);
+                    ObservableCollection<Slave> slaveListFromJson = JsonConvert.DeserializeObject<ObservableCollection<Slave>>(slaveListJson);
+                    foreach (var item in slaveListFromJson)
+                    {
+                        slaveList.Add(new Slave(item.ipAddress, item.port) { name = item.name });
+                    }
+                    slaveListFromJson = null;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(string.Format("load json {0}", slaveList_save_path), ex);
+                }
+            }
         }
 
         /// <summary>
@@ -119,6 +140,10 @@ namespace ShivaQEmaster
 
                 //add slave to list
                 slaveList.Add(slave);
+
+                //save list to file to be reloaded at next startup
+                string slaveListJson = JsonConvert.SerializeObject(slaveList, Formatting.Indented);
+                File.WriteAllText(slaveList_save_path, slaveListJson);
 
                 //set language on slave
                 ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(response.Remove(response.LastIndexOf("<EOF>")));
@@ -207,35 +232,20 @@ namespace ShivaQEmaster
                     }
                     slave.client.Close();
                     slaveList.Remove(slave);
+                    string slaveListJson = JsonConvert.SerializeObject(slaveList);
+                    File.WriteAllText("serverlist.json", slaveListJson);
                     break;
                 }
             }
         }
 
-        public async void reconnectAll()
-        {
-            foreach (var slave in slaveList)
-            {
-                if (!slave.client.Connected)
-                {
-                    try
-                    {
-                        slave.Renew();
-                        await slave.client.ConnectAsync(slave.ipAddress, port);
-                    }
-                    catch (ObjectDisposedException odex)
-                    {
-                        log.Warn("Can't reconnect", odex);
-                        MessageBox.Show("Can't reconnect, maybe slave is not launched or has been terminated!?");
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error("Exception while reconnecting", ex);
-                    }
-                    log.Info("[Client] re-Connected to server");
-                }
-            }
-        }
+        //public async void reconnectAll()
+        //{
+        //    foreach (var slave in slaveList)
+        //    {
+        //        reconnect(slave);
+        //    }
+        //}
 
         public void disconnectAll()
         {
@@ -245,6 +255,28 @@ namespace ShivaQEmaster
                 {
                     slave.client.Close();
                 }
+            }
+        }
+
+        public async void reconnect(Slave slave)
+        {
+            if (!slave.client.Connected)
+            {
+                try
+                {
+                    slave.Renew();
+                    await slave.client.ConnectAsync(IPAddress.Parse(slave.ipAddress), slave.port);
+                }
+                catch (ObjectDisposedException odex)
+                {
+                    log.Warn("Can't reconnect", odex);
+                    MessageBox.Show("Can't reconnect, maybe slave is not launched or has been terminated!?");
+                }
+                catch (Exception ex)
+                {
+                    log.Error("Exception while reconnecting", ex);
+                }
+                log.Info("[Client] re-Connected to server");
             }
         }
     }

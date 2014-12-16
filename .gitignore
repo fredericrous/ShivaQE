@@ -188,4 +188,4 @@ MicrosoftPublicSymbols/
 *.pdb/
 
 #Specific to this project
-paexec.exe
+PsExec.exe

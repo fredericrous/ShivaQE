@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Net.Sockets;
 using MahApps.Metro.Controls;
 using log4net;
+using System.Linq;
 
 namespace ShivaQEmaster
 {
@@ -117,11 +118,11 @@ namespace ShivaQEmaster
                         {
                             case "F5":
 
-                                bt_livebroadcast_on_Click(null, null);
+                                _mouseNKeyListener.Active(true);
                                 return;
                             case "F6":
 
-                                bt_livebroadcast_off_Click(null, null);
+                                _mouseNKeyListener.DeactiveAll();
                                 return;
                             case "F7": //should be useless because now it's automatic & systematic
 
@@ -238,7 +239,7 @@ namespace ShivaQEmaster
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void bt_add_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void bt_add_add_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             string hostname = _bindings.newSlaveIP.Trim();
             string friendlyname = _bindings.newSlaveName.Trim();
@@ -277,37 +278,6 @@ namespace ShivaQEmaster
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void bt_livebroadcast_on_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            if (!_mouseNKeyListener.isActive)
-            {
-                _mouseNKeyListener.Active(_bindings.broadcastMouseMovement);
-            }
-            bt_livebroadcast_on.Visibility = Visibility.Hidden;
-            lb_livebroadcast_on.Visibility = Visibility.Visible;
-            bt_livebroadcast_off.Visibility = Visibility.Visible;
-            lb_livebroadcast_off.Visibility = Visibility.Hidden;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_livebroadcast_off_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            _mouseNKeyListener.DeactiveAll();
-            bt_livebroadcast_on.Visibility = Visibility.Visible;
-            lb_livebroadcast_on.Visibility = Visibility.Hidden;
-            bt_livebroadcast_off.Visibility = Visibility.Hidden;
-            lb_livebroadcast_off.Visibility = Visibility.Visible;
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
         private void cb_broadcast_movement_Checked(object sender, System.Windows.RoutedEventArgs e)
         {
             if (_bindings == null)
@@ -322,38 +292,18 @@ namespace ShivaQEmaster
         }
 
         /// <summary>
-        /// check if there's a slave in the list. if there's at least one and it's not selected already, select it
-        /// </summary>
-        /// <returns></returns>
-        private bool hasSelectedSlave()
-        {
-            if (_bindings.slaveSelected == null && _bindings.slaves.Count == 1)
-            {
-                _bindings.slaveSelected = _bindings.slaves[0];
-            }
-            else if (_bindings.slaveSelected == null)
-            {
-                MessageBox.Show("add a slave first");
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
         /// reconnect slaves
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void bt_reconnect_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            // TODO: reconnect only one
-
-            if (!hasSelectedSlave())
+            foreach (Slave slave in _bindings.selectedSlaves)
             {
-                return;
+               // _slaveManager.reconnectAll();
+                _slaveManager.reconnect(slave);
             }
-
-            _slaveManager.reconnectAll();
+            
 
             lv_slaves.Items.Refresh();
         }
@@ -397,13 +347,10 @@ namespace ShivaQEmaster
         /// <param name="e"></param>
         private void bt_remove_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-        	// TODO: Add event handler implementation here.
-            if (!hasSelectedSlave())
+            foreach (var slave in _bindings.selectedSlaves)
             {
-                return;
+                _slaveManager.remove(slave.ipAddress);
             }
-
-            _slaveManager.remove(_bindings.slaveSelected.ipAddress);
         }
 
         /// <summary>
@@ -421,7 +368,7 @@ namespace ShivaQEmaster
         {
             if (e.Key == Key.Enter)
             {
-                tb_name.Focus();
+                tb_host.Focus();
             }
         }
 
@@ -429,7 +376,32 @@ namespace ShivaQEmaster
         {
             if (e.Key == Key.Enter)
             {
-                bt_add_Click(sender, e);
+                bt_add_add_Click(sender, e);
+            }
+        }
+
+        private void bt_close_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _bindings.window_add = Visibility.Collapsed;
+        }
+
+        private void bt_add_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _bindings.window_add = Visibility.Visible;
+        }
+
+        private void ts_broadcast_Checked(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (_bindings.checked_broadcast)
+            {
+                if (!_mouseNKeyListener.isActive)
+                {
+                    _mouseNKeyListener.Active(true);
+                }
+            }
+            else
+            {
+                _mouseNKeyListener.DeactiveAll();
             }
         }
 

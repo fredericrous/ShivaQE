@@ -96,58 +96,58 @@ namespace ShivaQEviewer
             }
         }
 
-        private Visibility _add_window = Visibility.Hidden;
-        public Visibility add_window
+        private Visibility _window_add = Visibility.Collapsed;
+        public Visibility window_add
         {
-            get { return _add_window; }
+            get { return _window_add; }
             set
             {
-                if (value != _add_window)
+                if (value != _window_add)
                 {
-                    _add_window = value;
-                    NotifyPropertyChanged("add_window");
+                    _window_add = value;
+                    NotifyPropertyChanged("window_add");
                 }
             }
         }
 
-        private Visibility _list_window = Visibility.Visible;
-        public Visibility list_window
+        private Visibility _window_list = Visibility.Visible;
+        public Visibility window_list
         {
-            get { return _list_window; }
+            get { return _window_list; }
             set
             {
-                if (value != _list_window)
+                if (value != _window_list)
                 {
-                    _list_window = value;
-                    NotifyPropertyChanged("list_window");
+                    _window_list = value;
+                    NotifyPropertyChanged("window_list");
                 }
             }
         }
 
-        private Visibility _resolution_window = Visibility.Hidden;
-        public Visibility resolution_window
+        private Visibility _window_resolution = Visibility.Collapsed;
+        public Visibility window_resolution
         {
-            get { return _resolution_window; }
+            get { return _window_resolution; }
             set
             {
-                if (value != _resolution_window)
+                if (value != _window_resolution)
                 {
-                    _resolution_window = value;
-                    NotifyPropertyChanged("resolution_window");
+                    _window_resolution = value;
+                    NotifyPropertyChanged("window_resolution");
                 }
             }
         }
 
-        private Visibility _done_window = Visibility.Hidden;
-        public Visibility done_window
+        private Visibility _window_done = Visibility.Collapsed;
+        public Visibility window_done
         {
-            get { return _done_window; }
+            get { return _window_done; }
             set
             {
-                if (value != _done_window)
+                if (value != _window_done)
                 {
-                    _done_window = value;
-                    NotifyPropertyChanged("done_window");
+                    _window_done = value;
+                    NotifyPropertyChanged("window_done");
                 }
             }
         }

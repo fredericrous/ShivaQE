@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -10,10 +11,17 @@ namespace ShivaQEviewer
     /// A slave is a computer that follow master's instructions (execute clicks / keystrokes)
     /// This class looks like the one described in master but doesn't intenciate tcpclient
     /// </summary>
+    [JsonObject(MemberSerialization.OptIn)]
     public class Slave
     {
         private IPAddress _ipAddress;
         private string _hostname;
+
+        [JsonConstructor]
+        public Slave()
+        {
+
+        }
 
         public Slave(string hostname)
         {
@@ -24,7 +32,15 @@ namespace ShivaQEviewer
             }
             else // else it's a host
             {
-                IPHostEntry ipHostInfo = Dns.GetHostEntry(hostname);
+                IPHostEntry ipHostInfo;
+                try
+                {
+                    ipHostInfo = Dns.GetHostEntry(hostname);
+                }
+                catch
+                {
+                    throw new Exception("Could not find host");
+                }
                 foreach (var addr in ipHostInfo.AddressList) //look for first valid ip
                 {
                     if (addr.AddressFamily == AddressFamily.InterNetwork || addr.AddressFamily == AddressFamily.InterNetworkV6)
@@ -42,14 +58,27 @@ namespace ShivaQEviewer
             _ipAddress = ipAddress;
         }
 
-        public string ipAddress { get { return _ipAddress.ToString(); } }
+        [JsonProperty]
+        public string ipAddress
+        {
+            get { return _ipAddress.ToString(); }
+            set { _ipAddress = IPAddress.Parse(value); }
+        }
 
+        [JsonProperty]
         public string friendlyName { get; set; }
 
-        public string hostname { get { return _hostname; } }
+        [JsonProperty]
+        public string hostname
+        {
+            get { return _hostname; }
+            set { _hostname = value; }
+        }
 
+        [JsonProperty]
         public string login { get; set; }
 
+        [JsonProperty]
         public string password { get; set; }
 
         //public string status

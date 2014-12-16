@@ -44,6 +44,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\packages\MahApps.Metro.1.0.0.0\lib\net45\MahApps.Metro.dll</HintPath>
     </Reference>
+    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.6.0.6\lib\net45\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="SimpleImpersonation">
       <HintPath>..\packages\SimpleImpersonation.1.0.1\lib\net40-Client\SimpleImpersonation.dll</HintPath>
     </Reference>
@@ -103,6 +106,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="..\ShivaQEslave\bin\Debug\ShivaQEslave.exe.config">
       <Link>slave\ShivaQEslave.exe.config</Link>
@@ -162,9 +166,13 @@
     <Resource Include="shivaqe_logo_viewer.ico" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\paexec.exe">
-      <Link>paexec.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <None Include="..\PsExec.exe">
+      <Link>PsExec.exe</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Include="..\ShivaQEslave\bin\Debug\log4net.dll">
+      <Link>slave\log4net.dll</Link>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

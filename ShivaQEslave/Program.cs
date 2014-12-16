@@ -13,6 +13,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Interop;
 using ShivaQEcommon.Hook;
+using log4net;
+using System.Reflection;
 
 namespace ShivaQEslave
 {
@@ -20,8 +22,7 @@ namespace ShivaQEslave
     {
         private static ServerInfo serverInfo;
 
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private static int port = 1142;
 

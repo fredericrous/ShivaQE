@@ -19,6 +19,8 @@ using System.Windows.Shapes;
 using System.Windows.Forms;
 using MessageBox = System.Windows.MessageBox;
 using Microsoft.Win32;
+using Newtonsoft.Json;
+using System.Collections.ObjectModel;
 
 namespace ShivaQEviewer
 {
@@ -32,6 +34,8 @@ namespace ShivaQEviewer
 
         MainWindowBindings _bindings;
 
+        private string slaveList_save_path = "slavelist.json";
+
         public MainWindow()
         {
             InitializeComponent();
@@ -44,36 +48,61 @@ namespace ShivaQEviewer
             _bindings.height = resolution.Height.ToString();
 
             //remove rdp certificat warning
-            string key = @"SOFTWARE\Microsoft\Terminal Server Client\AuthenticationLevelOverride";
+            string key = @"Software\Microsoft\Terminal Server Client\AuthenticationLevelOverride";
             if (Registry.CurrentUser.OpenSubKey(key) == null)
             {
                 var registryKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Terminal Server Client");
                 registryKey.SetValue("AuthenticationLevelOverride", 0x00, RegistryValueKind.DWord);
             }
 
+            //load serverlist json save
+            if (File.Exists(slaveList_save_path))
+            {
+                try
+                {
+                    string slaveListJson = File.ReadAllText(slaveList_save_path);
+                    ObservableCollection<Slave> slaveListFromJson = JsonConvert.DeserializeObject<ObservableCollection<Slave>>(slaveListJson);
+                   
+                    foreach (var slave in slaveListFromJson)
+                    {
+                        Slave newSlave = new Slave(slave.hostname)
+                        {
+                            login = slave.login,
+                            password = slave.password,
+                            friendlyName = slave.friendlyName,
+                            ipAddress = slave.ipAddress
+                        };
+                        _bindings.slaves.Add(slave);
+                    }
+                    slaveListFromJson = null;
+                }
+                catch (Exception ex)
+                {
+                    log.Error(string.Format("load json {0}", slaveList_save_path), ex);
+                }
+            }
         }
 
         private void bt_add_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-           _bindings.list_window = Visibility.Hidden;
-           _bindings.add_window = Visibility.Visible;
+           _bindings.window_add = Visibility.Visible;
         }
 
         private void bt_remove_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             _bindings.slaves.Remove(_bindings.slaveSelected);
+            string slaveListJson = JsonConvert.SerializeObject(_bindings.slaves, Formatting.Indented);
+            File.WriteAllText(slaveList_save_path, slaveListJson);
         }
 
         private void bt_view_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _bindings.resolution_window = Visibility.Visible;
-            _bindings.list_window = Visibility.Hidden;
+            _bindings.window_resolution = Visibility.Visible;
         }
 
         private void bt_add_cancel_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _bindings.add_window = Visibility.Hidden;
-            _bindings.list_window = Visibility.Visible;
+            _bindings.window_add = Visibility.Collapsed;
         }
 
         private void bt_add_add_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -86,7 +115,8 @@ namespace ShivaQEviewer
             }
 
             string friendlyname = string.IsNullOrEmpty(_bindings.add_friendlyname) && Char.IsLetter(hostname[0])
-                ? hostname.Substring(0, hostname.IndexOf('.')) : _bindings.add_friendlyname;
+                ? hostname.Substring(0, (hostname.IndexOf('.') == 0? hostname.Length : hostname.IndexOf('.')))
+                : _bindings.add_friendlyname;
             string login = _bindings.add_login;
             string password = pb_add_password.Password; //binding secure way is long to implement for not so much uses
 
@@ -97,6 +127,11 @@ namespace ShivaQEviewer
                 friendlyName = friendlyname
             };
             _bindings.slaves.Add(slave);
+
+            //save list to file to be reloaded at next startup
+            string slaveListJson = JsonConvert.SerializeObject(_bindings.slaves, Formatting.Indented);
+            File.WriteAllText(slaveList_save_path, slaveListJson);
+
             bt_add_cancel_Click(null, e);
         }
 
@@ -122,7 +157,7 @@ namespace ShivaQEviewer
             // option i 2 tells psexec our software wants a ui
             // d tells not to wait for end of execution
             _bindings.status += string.Format("{0} : launch slave on this server {1}", slave.hostname, Environment.NewLine);
-            executeCmd(executablePath + "paexec.exe",
+            executeCmd(executablePath + "PsExec.exe",
                 string.Format(@"\\{0} -u ""{1}"" -p ""{2}"" -i 2 -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe""",
                 slave.ipAddress, slave.login, slave.password), true);
 
@@ -131,8 +166,8 @@ namespace ShivaQEviewer
 
         private void bt_resolution_ok_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _bindings.resolution_window = Visibility.Hidden;
-            _bindings.done_window = Visibility.Visible;
+            _bindings.window_resolution = Visibility.Collapsed;
+            _bindings.window_done = Visibility.Visible;
 
             AppDomain.CurrentDomain.SetPrincipalPolicy(PrincipalPolicy.WindowsPrincipal); //for copy paste purpose
 
@@ -252,10 +287,21 @@ namespace ShivaQEviewer
 
         private void Window_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            if (_bindings.resolution_window == Visibility.Visible && e.Key == Key.Enter)
+            if (_bindings.window_resolution == Visibility.Visible && e.Key == Key.Enter)
             {
                 bt_resolution_ok_Click(null, e);
             }
+        }
+
+        private void bt_resolution_cancel_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _bindings.window_resolution = Visibility.Collapsed;
+        }
+
+        private void bt_done_cancel_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            _bindings.window_done = Visibility.Collapsed;
+            _bindings.status = string.Empty;
         }
     }
 }
