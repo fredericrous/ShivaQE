@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Net.Sockets;
 using MahApps.Metro.Controls;
 using log4net;
+using System.Reflection;
 using System.Linq;
 
 namespace ShivaQEmaster
@@ -27,11 +28,12 @@ namespace ShivaQEmaster
         slaveManager _slaveManager;
         UIChangeListener _uichange;
 
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-                (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         static string lastKey = string.Empty; //there's a time out to reset lastKey 3sec after a press key
         static Timer doubleClickReset = new Timer() { Interval = 3000, AutoReset = false };
+        
+        int[] activeWindowInfo;
 
         public MainWindow()
         {
@@ -47,20 +49,17 @@ namespace ShivaQEmaster
                 _uichange = new UIChangeListener(this);
 
                 //on window creation, sync slaves to be sure all slaves have the same size of window as master
-                _uichange.WindowCreated += async () =>
+                _uichange.WindowCreated += () =>
                     {
-                        ActionType actionMethod = ActionType.None;
-                        string actionValue = null;
-
-                        actionMethod = ActionType.SetWindowPos;
-                        actionValue = String.Join(".", _uichange.getActiveWindowInfo());
-
-                        ActionMethod action = new ActionMethod()
+                        try
                         {
-                            method = actionMethod,
-                            value = actionValue
-                        };
-                        await _slaveManager.Send<ActionMethod>(action);
+                            activeWindowInfo = _uichange.getActiveWindowInfo();
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Warn("error getting active window info", ex);
+                            return;
+                        }
                     };
             };
 
@@ -87,6 +86,26 @@ namespace ShivaQEmaster
             _mouseNKeyListener.Active();
             _mouseNKeyListener.MouseClick += async(s, ev) =>
             {
+                //send winpos before click
+                if (activeWindowInfo != null)
+                {
+                    ActionMethod action = new ActionMethod()
+                    {
+                        method = ActionType.SetWindowPos,
+                        value = String.Join(".", activeWindowInfo)
+                    };
+                    try
+                    {
+                        await _slaveManager.Send<ActionMethod>(action);
+                        activeWindowInfo = null;
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("error send window created", ex);
+                    }
+                }
+
+                //send click
                 try
                 {
                     await _slaveManager.Send<MouseNKeyEventArgs>(ev);
@@ -119,10 +138,12 @@ namespace ShivaQEmaster
                             case "F5":
 
                                 _mouseNKeyListener.Active(true);
+                                _bindings.checked_broadcast = true;
                                 return;
                             case "F6":
 
                                 _mouseNKeyListener.DeactiveAll();
+                                _bindings.checked_broadcast = false;
                                 return;
                             case "F7": //should be useless because now it's automatic & systematic
 
@@ -207,7 +228,14 @@ namespace ShivaQEmaster
                         method = actionMethod,
                         value = actionValue
                     };
-                    await _slaveManager.Send<ActionMethod>(action);
+                    try
+                    {
+                        await _slaveManager.Send<ActionMethod>(action);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error("can't send clipboard update", ex);
+                    }
                 };
         }
 
@@ -347,9 +375,15 @@ namespace ShivaQEmaster
         /// <param name="e"></param>
         private void bt_remove_Click(object sender, System.Windows.RoutedEventArgs e)
         {
+            _slaveManager.remove(_bindings.selectedSlaves);
+        }
+
+
+        private void bt_disconnect_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
             foreach (var slave in _bindings.selectedSlaves)
             {
-                _slaveManager.remove(slave.ipAddress);
+                _slaveManager.disconnect(slave);
             }
         }
 
@@ -390,7 +424,7 @@ namespace ShivaQEmaster
             _bindings.window_add = Visibility.Visible;
         }
 
-        private void ts_broadcast_Checked(object sender, System.Windows.RoutedEventArgs e)
+        private void ts_broadcast_IsCheckedChanged(object sender, System.EventArgs e)
         {
             if (_bindings.checked_broadcast)
             {
@@ -398,18 +432,19 @@ namespace ShivaQEmaster
                 {
                     _mouseNKeyListener.Active(true);
                 }
+
             }
             else
             {
                 _mouseNKeyListener.DeactiveAll();
+
             }
         }
 
         
         /* 
          * TODO:
-         * recorder
-         * special key to deactivate current computer but not distant ones
+         * recorder - behavior testing
          * analytics, zones les plus cliqués
          * 
          */

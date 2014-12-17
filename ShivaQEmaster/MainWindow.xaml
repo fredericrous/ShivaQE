@@ -47,7 +47,7 @@
 				</GridView>
 			</ListView.View>
 		</ListView>
-        <Controls:ToggleSwitch x:Name="ts_broadcast" Header="Send mouse/keys" Margin="27.663,240.928,525.11,10" SwitchForeground="#FFFBA92C" Checked="ts_broadcast_Checked" Cursor="Hand" IsChecked="{Binding checked_broadcast}" />
+        <Controls:ToggleSwitch x:Name="ts_broadcast" Header="Send mouse/keys" Margin="27.663,240.928,525.11,10" SwitchForeground="#FFFBA92C" Cursor="Hand" IsChecked="{Binding checked_broadcast}" IsCheckedChanged="ts_broadcast_IsCheckedChanged" />
 		<Button x:Name="bt_remove" Margin="586,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Click="bt_remove_Click" Content="Remove" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" />
 		<Button x:Name="bt_reconnect" Margin="586,28,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Click="bt_reconnect_Click" Content="Reconnect" Cursor="Hand" FontSize="18.667" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" />
 		<Button x:Name="bt_record" Margin="621.356,222.312,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="{x:Null}" Click="bt_record_Click" Visibility="Hidden">
@@ -67,7 +67,7 @@
 				</Canvas>
 			</Viewbox>
 		</Grid>
-		<Button x:Name="bt_disconnect" Margin="586,89,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Click="bt_remove_Click" Content="Disconnect" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" />
+		<Button x:Name="bt_disconnect" Margin="586,89,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Content="Disconnect" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" Click="bt_disconnect_Click" />
 		<Button x:Name="bt_add" Margin="586,265,0,0" Click="bt_add_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Black" Height="36.839" Width="121" Content="Add" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" />
 		<Grid x:Name="gd_add" Visibility="{Binding window_add}">
 			<Rectangle Fill="Black" HorizontalAlignment="Left" Height="312" Stroke="Black" VerticalAlignment="Top" Width="726" Opacity="0.56" Margin="0,0,-9,0"/>

@@ -32,19 +32,30 @@ namespace ShivaQEmaster
             //get char of key. if key is a special key such as shift, because it doesn't have any char, we set it's name 
             KeyEventArgsExt eExt = e as KeyEventArgsExt;
             string key = (eExt.UnicodeChar == 0) ? e.KeyData.ToString() : eExt.UnicodeChar.ToString();
-
+            
             // override UnicodeChar for keys: backspace, space, enter, tab (ommiting capslock on purpose)
             if (e.KeyData == Keys.Return || e.KeyData == Keys.Space || e.KeyData == Keys.Back || e.KeyData == Keys.Tab)
             {
                 key = e.KeyData.ToString();
             }
 
-            //Debug.WriteLine(string.Format("KeyDown: \t{0}; \t data: \t{1}", key, e.KeyData));
+            // workaround. win+key not working
+            int keyCode = key.Length == 1 && char.IsLetter(key[0]) ? (int)char.ToUpper(key[0]) : (int)e.KeyCode;
+
+            string keyData = e.KeyData.ToString();
+            if (keyData.Contains(","))
+            {
+                string keyFromData = keyData.Split()[0];
+                if (keyFromData.Length == 2)
+                    keyCode = (int)char.ToUpper(keyFromData[0]);
+            }
+            
+            Console.WriteLine(string.Format("KeyDown: \t{0}; \t data: \t{1}\t code: {2}\tvalue: {3}", key, e.KeyData, keyCode, e.KeyValue));
 
             //raise key event
             OnEvent(KeyboadDown, new MouseNKeyEventArgs() {
                 key = key,
-                keyCode = (int)e.KeyCode,
+                keyCode = keyCode,
                 keyData = e.KeyData.ToString(),
                 timestamp = DateTime.Now.Ticks
             });
@@ -191,7 +202,7 @@ namespace ShivaQEmaster
         public void DeactiveAll()
         {
             m_mouseListener.Dispose();
-            //k_keyboardListener.Dispose();
+            // k_keyboardListener.Dispose(); --if we deactivate this, shortcut wont work
 
             _isActive = false;
         }

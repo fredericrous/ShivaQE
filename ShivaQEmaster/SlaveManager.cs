@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using ShivaQEcommon.Eventdata;
 using System.IO;
 using System.Net;
+using System.Collections.Generic;
 
 namespace ShivaQEmaster
 {
@@ -31,7 +32,8 @@ namespace ShivaQEmaster
     /// Send uses TCP, it's a safer way to transmit keystrockes and clicks but also actions
     /// in ShivaQE, actions are like web services
     /// </summary>
-    public class slaveManager {
+    public class slaveManager
+    {
         private int port;
 
         private static readonly log4net.ILog log = log4net.LogManager.GetLogger
@@ -165,7 +167,7 @@ namespace ShivaQEmaster
                     }
 
                 }
-            
+
             }
             catch (Exception ex)
             {
@@ -192,7 +194,7 @@ namespace ShivaQEmaster
                 if (slave.status == "Connected")
                 {
                     var networkStream = slave.client.GetStream();
-                    log.Info(string.Format("[Master] Writing request {0}", byteData));
+                    log.Info(string.Format("[Master] Writing request {0}", json));
                     try
                     {
                         await networkStream.WriteAsync(byteData, 0, byteData.Length);
@@ -206,37 +208,24 @@ namespace ShivaQEmaster
                     log.Info("[Master] Written");
                 }
             }
-            return ;
+            return;
         }
 
-        public async void remove(string hostname)
+        public void remove(IEnumerable<Slave> slaves)
         {
             ActionMethod data = new ActionMethod() { method = ActionType.Disconnect };
             string json = JsonConvert.SerializeObject(data);
             json += "<EOF>"; //used serverside to know string has been received entirely
             byte[] byteData = Encoding.UTF8.GetBytes(json);
 
-            foreach (var slave in slaveList)
+            foreach (var slave in slaves.ToList())
             {
-                if (slave.ipAddress == hostname)
-                {
-                    var networkStream = slave.client.GetStream();
-                    try
-                    {
-                        await networkStream.WriteAsync(byteData, 0, byteData.Length);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error(string.Format("Error requesting disconnect from {0}", slave.name), ex);
-                        //throw;
-                    }
-                    slave.client.Close();
-                    slaveList.Remove(slave);
-                    string slaveListJson = JsonConvert.SerializeObject(slaveList);
-                    File.WriteAllText("serverlist.json", slaveListJson);
-                    break;
-                }
+                disconnect(slave);
+                slaveList.Remove(slave);
             }
+
+            string slaveListJson = JsonConvert.SerializeObject(slaveList);
+            File.WriteAllText(slaveList_save_path, slaveListJson);
         }
 
         //public async void reconnectAll()
@@ -266,18 +255,39 @@ namespace ShivaQEmaster
                 {
                     slave.Renew();
                     await slave.client.ConnectAsync(IPAddress.Parse(slave.ipAddress), slave.port);
-                }
-                catch (ObjectDisposedException odex)
-                {
-                    log.Warn("Can't reconnect", odex);
-                    MessageBox.Show("Can't reconnect, maybe slave is not launched or has been terminated!?");
+                    log.Info("[Client] re-Connected to server");
                 }
                 catch (Exception ex)
                 {
-                    log.Error("Exception while reconnecting", ex);
+                    log.Error("Exception while reconnecting (could be timeout)", ex);
+                    MessageBox.Show("Can't reconnect, maybe slave is not launched or has been terminated!?");
                 }
-                log.Info("[Client] re-Connected to server");
+            }
+            else
+            {
+                MessageBox.Show(slave.name + " already connected");
             }
         }
+
+        internal async void disconnect(Slave slave)
+        {
+            ActionMethod data = new ActionMethod() { method = ActionType.Disconnect };
+            string json = JsonConvert.SerializeObject(data);
+            json += "<EOF>"; //used serverside to know string has been received entirely
+            byte[] byteData = Encoding.UTF8.GetBytes(json);
+
+            try
+            {
+                var networkStream = slave.client.GetStream();
+                await networkStream.WriteAsync(byteData, 0, byteData.Length);
+                slave.client.Close();
+            }
+            catch (Exception ex)
+            {
+                string error = string.Format("Error requesting disconnect from {0}", slave.name);
+                log.Error(error, ex);
+            }
+        }
+
     }
 }

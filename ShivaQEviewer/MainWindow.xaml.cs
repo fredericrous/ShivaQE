@@ -34,7 +34,8 @@ namespace ShivaQEviewer
 
         MainWindowBindings _bindings;
 
-        private string slaveList_save_path = "slavelist.json";
+        private string _slaveList_save_path = "slavelist.json";
+        private string _path_cmd_launcher = "PsExec.exe";
 
         public MainWindow()
         {
@@ -42,6 +43,11 @@ namespace ShivaQEviewer
 
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
+
+            if (!File.Exists(_path_cmd_launcher))
+            {
+                MessageBox.Show(string.Format("ShivaQE Viewer requires {0}. Copy it in same folder as ShivaQEViewer.exe", _path_cmd_launcher));
+            }
 
             System.Drawing.Rectangle resolution = Screen.PrimaryScreen.Bounds;
             _bindings.width = resolution.Width.ToString();
@@ -56,11 +62,11 @@ namespace ShivaQEviewer
             }
 
             //load serverlist json save
-            if (File.Exists(slaveList_save_path))
+            if (File.Exists(_slaveList_save_path))
             {
                 try
                 {
-                    string slaveListJson = File.ReadAllText(slaveList_save_path);
+                    string slaveListJson = File.ReadAllText(_slaveList_save_path);
                     ObservableCollection<Slave> slaveListFromJson = JsonConvert.DeserializeObject<ObservableCollection<Slave>>(slaveListJson);
                    
                     foreach (var slave in slaveListFromJson)
@@ -78,7 +84,7 @@ namespace ShivaQEviewer
                 }
                 catch (Exception ex)
                 {
-                    log.Error(string.Format("load json {0}", slaveList_save_path), ex);
+                    log.Error(string.Format("load json {0}", _slaveList_save_path), ex);
                 }
             }
         }
@@ -92,7 +98,7 @@ namespace ShivaQEviewer
         {
             _bindings.slaves.Remove(_bindings.slaveSelected);
             string slaveListJson = JsonConvert.SerializeObject(_bindings.slaves, Formatting.Indented);
-            File.WriteAllText(slaveList_save_path, slaveListJson);
+            File.WriteAllText(_slaveList_save_path, slaveListJson);
         }
 
         private void bt_view_Click(object sender, System.Windows.RoutedEventArgs e)
@@ -115,24 +121,33 @@ namespace ShivaQEviewer
             }
 
             string friendlyname = string.IsNullOrEmpty(_bindings.add_friendlyname) && Char.IsLetter(hostname[0])
-                ? hostname.Substring(0, (hostname.IndexOf('.') == 0? hostname.Length : hostname.IndexOf('.')))
+                ? hostname.Substring(0, (hostname.IndexOf('.') == -1? hostname.Length : hostname.IndexOf('.')))
                 : _bindings.add_friendlyname;
             string login = _bindings.add_login;
             string password = pb_add_password.Password; //binding secure way is long to implement for not so much uses
 
-            Slave slave = new Slave(hostname)
+            try
             {
-                login = login,
-                password = password,
-                friendlyName = friendlyname
-            };
-            _bindings.slaves.Add(slave);
+                Slave slave = new Slave(hostname)
+                {
+                    login = login,
+                    password = password,
+                    friendlyName = friendlyname
+                };
+                _bindings.slaves.Add(slave);
+
+                bt_add_cancel_Click(null, e);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
 
             //save list to file to be reloaded at next startup
             string slaveListJson = JsonConvert.SerializeObject(_bindings.slaves, Formatting.Indented);
-            File.WriteAllText(slaveList_save_path, slaveListJson);
+            File.WriteAllText(_slaveList_save_path, slaveListJson);
 
-            bt_add_cancel_Click(null, e);
         }
 
         string executablePath = System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath).ToString() + "\\";
@@ -146,20 +161,34 @@ namespace ShivaQEviewer
             _bindings.status += string.Format("{0} : openning rdp for this server {1}", slave.hostname, Environment.NewLine);
             executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
                 string.Format("/v:{0} /h:{1} /w:{2}",
-                slave.ipAddress, _bindings.height, _bindings.width), false, slave);
+                slave.ipAddress, _bindings.height, _bindings.width), false, false, slave);
 
             // wait rdp connection is done before executing psexec.
             // Psexec needs that rdp connection in order to gain access rights
-            await Task.Delay(6000); 
+            await Task.Delay(6000);
+
+            string username = slave.login;
+            if (username.IndexOf('\\') != -1)
+            {
+                string[] domainNlogin = username.Split('\\');
+                username = domainNlogin[1];
+            }
+
+            //get graphical session id
+            //executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmd.exe"),
+            //    string.Format(@"/C "" ""{0}"" \\{1} -u ""{2}"" -p ""{3}"" -accepteula query session ""{4}"" """,
+            //    executablePath + _path_cmd_launcher,
+            //    slave.ipAddress, slave.login, slave.password, username), true, true);
+
 
             //start slave with psexec
             // option accepteula remove license warning
             // option i 2 tells psexec our software wants a ui
             // d tells not to wait for end of execution
             _bindings.status += string.Format("{0} : launch slave on this server {1}", slave.hostname, Environment.NewLine);
-            executeCmd(executablePath + "PsExec.exe",
+            executeCmd(executablePath + _path_cmd_launcher,
                 string.Format(@"\\{0} -u ""{1}"" -p ""{2}"" -i 2 -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe""",
-                slave.ipAddress, slave.login, slave.password), true);
+                slave.ipAddress, slave.login, slave.password), true, true);
 
             return true;
         }
@@ -247,7 +276,7 @@ namespace ShivaQEviewer
             }
         }
 
-        private void executeCmd(string filename, string argument, bool hidden = false, Slave slave = null)
+        private void executeCmd(string filename, string argument, bool hidden = false, bool redirectOutput = false, Slave slave = null)
         {
             Process process = new Process();
 
@@ -255,6 +284,8 @@ namespace ShivaQEviewer
             {
                 process.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
                 process.StartInfo.Arguments = string.Format("/generic:TERMSRV/{0} /user:{1} /pass:{2}", slave.ipAddress, slave.login, slave.password);
+                process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+                process.StartInfo.CreateNoWindow = true;
                 process.Start();
             }
 
@@ -264,10 +295,38 @@ namespace ShivaQEviewer
                 startInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 startInfo.CreateNoWindow = true;
             }
+
+            if (redirectOutput)
+            {
+                startInfo.UseShellExecute = false;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                process.EnableRaisingEvents = true;
+                process.OutputDataReceived += (s, e) =>
+                    {
+                        log.Info(e.Data);
+                    };
+                process.ErrorDataReceived += (s, e) =>
+                    {
+                        log.Info("error: " + e.Data);
+                    };
+            }
+
+            log.Info(string.Format("execute: {0} {1}", filename, argument));
+
             startInfo.FileName = filename;
             startInfo.Arguments = argument;
             process.StartInfo = startInfo;
             process.Start();
+
+
+            if (redirectOutput)
+            {
+                process.BeginOutputReadLine();
+                process.BeginErrorReadLine();
+            }
+
+            process.WaitForExit();
 
             //if (slave != null)
             //{

@@ -105,7 +105,7 @@ namespace ShivaQEslave
                     }
                     break;
                 default:
-                    if (mouseNkey.keyData.Contains(","))
+                    if (mouseNkey.keyData.Contains(",") || !mouseNkey.keyData.Equals(mouseNkey.key))
                     {
                         List<VirtualKeyCode> modifierKey = new List<VirtualKeyCode>();
 
@@ -125,11 +125,11 @@ namespace ShivaQEslave
                         {
                             modifierKey.Add(VirtualKeyCode.RWIN);
                         }
-                        if (mouseNkey.keyData.Contains("LWIN"))
+                        if (mouseNkey.keyData.Contains("LWin"))
                         {
                             modifierKey.Add(VirtualKeyCode.LWIN);
                         }
-                        if (mouseNkey.keyData.Contains("RWIN"))
+                        if (mouseNkey.keyData.Contains("RWin"))
                         {
                             modifierKey.Add(VirtualKeyCode.RWIN);
                         }
