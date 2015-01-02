@@ -213,7 +213,7 @@ namespace ShivaQEslave
                     {
                         string data = content.Substring(0, content.Length - eof_tag.Length);
 
-                        log.Info(string.Format("Received broadcast says: {0}", data));
+                        //log.Info(string.Format("Received broadcast says: {0}", data)); -- too many to be interesting to log
                         sb = new StringBuilder(); //seems to correct a bug? where 2 sent strings with <EOF> where concatenated
 
                         //callback

@@ -1,0 +1,35 @@
+﻿<Page
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:Custom="http://metro.mahapps.com/winfx/xaml/controls"
+	xmlns:local="clr-namespace:ShivaQEmaster" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:Languages="clr-namespace:ShivaQEmaster.Languages" mc:Ignorable="d"
+	x:Class="ShivaQEmaster.SettingsPage"
+	x:Name="Page"
+	WindowTitle="Page"
+	FlowDirection="LeftToRight"
+	Width="717" Height="350"
+	WindowWidth="725" WindowHeight="380">
+
+	<Page.Resources>
+		<Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
+		<local:SettingsPageBindings x:Key="SettingsPageBindingsDataSource" d:IsDataSource="True"/>
+	</Page.Resources>
+
+	<Grid x:Name="LayoutRoot" Background="White" DataContext="{Binding Source={StaticResource SettingsPageBindingsDataSource}}">
+
+		<TextBox Custom:TextBoxHelper.Watermark="{Binding settingspage_wm_key, Source={StaticResource language_en_USDataSource}}" x:Name="tb_key_send_on" HorizontalAlignment="Left" Height="23" Margin="575.672,121.991,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="96" Text="{Binding key_sendmousekey_on, Mode=TwoWay}" BorderBrush="#FFFBA92C"/>
+		<Label x:Name="lb_key_send_on" Content="{Binding settingspage_lb_key_broadcast_on, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,120.991,166.016,0" VerticalAlignment="Top"/>
+		<TextBox Custom:TextBoxHelper.Watermark="{Binding settingspage_wm_key, Source={StaticResource language_en_USDataSource}}" x:Name="tb_key_send_off" HorizontalAlignment="Left" Height="23" Margin="575.672,161.991,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="96" Text="{Binding key_sendmousekey_off, Mode=TwoWay}" BorderBrush="#FFFBA92C"/>
+		<Label x:Name="lb_key_send_off" Content="{Binding settingspage_lb_key_broadcast_off, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,160.991,166.016,0" VerticalAlignment="Top"/>
+		<TextBox Custom:TextBoxHelper.Watermark="{Binding settingspage_wm_key, Source={StaticResource language_en_USDataSource}}" x:Name="tb_key_hide" HorizontalAlignment="Left" Height="23" Margin="576.396,201.951,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="96" Text="{Binding key_window_hide_toggle, Mode=TwoWay}" BorderBrush="#FFFBA92C"/>
+		<Label x:Name="lb_key_hide" Content="{Binding settingspage_lb_key_hide_window, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,200.951,166.016,0" VerticalAlignment="Top"/>
+		<TextBlock x:Name="subtitle_shortcuts" HorizontalAlignment="Left" Margin="405,81.201,0,0" TextWrapping="Wrap" Text="{Binding settingspage_lb_shortcuts, Source={StaticResource language_en_USDataSource}}" VerticalAlignment="Top" FontSize="14.667" Foreground="Black"/>
+		<TextBlock x:Name="subtitle_general" HorizontalAlignment="Left" Margin="70,81.201,0,0" TextWrapping="Wrap" Text="{Binding settingspage_lb_general, Source={StaticResource language_en_USDataSource}}" VerticalAlignment="Top" FontSize="14.667" Foreground="Black"/>
+		<CheckBox x:Name="cb_analytics" Content="{Binding settingspage_cb_tracking, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10,209.951,0,0" VerticalAlignment="Top" IsChecked="{Binding anonymous_tracking}"/>
+		<CheckBox Content="{Binding settingspage_cb_trace, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10,178.991,0,0" VerticalAlignment="Top" IsChecked="{Binding trace_status}"/>
+		<Button x:Name="bt_close" Margin="22,304.17,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Content="{Binding global_bt_close, Source={StaticResource language_en_USDataSource}}" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" Click="bt_close_Click" />
+		<TextBlock HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="SETTINGS"/></Span></TextBlock>
+		<Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="1" VerticalAlignment="Top" Width="717" Margin="0,41,0,0"/>
+		
+	</Grid>
+</Page>

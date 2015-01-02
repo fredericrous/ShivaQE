@@ -1,0 +1,28 @@
+﻿<Page
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+	xmlns:local="clr-namespace:ShivaQEmaster" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:Languages="clr-namespace:ShivaQEmaster.Languages" mc:Ignorable="d"
+	x:Class="ShivaQEmaster.AddServerPage"
+	x:Name="Page"
+	WindowTitle="Page"
+	FlowDirection="LeftToRight"
+	Width="717" Height="350"
+	WindowWidth="725" WindowHeight="380">
+
+	<Page.Resources>
+		<Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
+		<local:AddServerPageBindings x:Key="AddServerPageBindingsDataSource" d:IsDataSource="True"/>
+	</Page.Resources>
+
+	<Grid x:Name="LayoutRoot" Background="White" DataContext="{StaticResource AddServerPageBindingsDataSource}">
+		<TextBox Controls:TextBoxHelper.Watermark="{Binding addserverpage_tb_host, Source={StaticResource language_en_USDataSource}}" x:Name="tb_host" HorizontalAlignment="Left" Height="23" Margin="293.672,131.991,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="243" Text="{Binding newSlaveIP}" KeyDown="tb_host_KeyDown" BorderBrush="#FFFBA92C"/>
+		<Label x:Name="lb_host" Content="{Binding addserverpage_lb_host, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,132.031,430.458,0" VerticalAlignment="Top"/>
+		<TextBox Controls:TextBoxHelper.Watermark="{Binding addserverpage_tb_name, Source={StaticResource language_en_USDataSource}}" x:Name="tb_name" HorizontalAlignment="Left" Height="23" Margin="293.672,165.031,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="243" Text="{Binding newSlaveName}" KeyDown="tb_name_KeyDown" BorderBrush="#FFFBA92C"/>
+		<Label x:Name="lb_friend" Content="{Binding addserverpage_lb_name, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,164.031,430.458,0" VerticalAlignment="Top"/>
+		<Button x:Name="bt_close" Content="{Binding global_bt_close, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="45,287.428,0,0" VerticalAlignment="Top" Width="121" Height="36.839" Background="Black" Foreground="White" Click="bt_close_Click" Cursor="Hand" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold"/>
+		<TextBlock x:Name="tb_header" HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="{Binding addserverpage_header, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Span></TextBlock>
+		<Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="1" VerticalAlignment="Top" Width="717" Margin="0,41,0,0"/>
+		<Button x:Name="bt_add_add" Margin="552.672,287.428,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Black" Height="36.839" Width="121" Content="{Binding addserverpage_bt_add, Source={StaticResource language_en_USDataSource}}" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Click="bt_add_add_Click" BorderBrush="#FFFBA92C" BorderThickness="1" />
+	</Grid>
+</Page>

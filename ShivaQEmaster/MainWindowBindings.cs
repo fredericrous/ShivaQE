@@ -8,20 +8,11 @@ using System.Collections.Generic;
 
 namespace ShivaQEmaster
 {
-    public class MainWindowBindings : INotifyPropertyChanged
+    public class MainWindowBindings : BindingsBase
     {
         public MainWindowBindings()
         {
 
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        public void NotifyPropertyChanged(String propertyName = "")
-        {
-            if (PropertyChanged != null)
-            {
-                PropertyChanged(this, new PropertyChangedEventArgs(propertyName));
-            }
         }
 
         private ObservableCollection<Slave> _slaves = new ObservableCollection<Slave>();
@@ -59,48 +50,6 @@ namespace ShivaQEmaster
             }
         }
 
-        private string _newSlaveIP = string.Empty;
-        public string newSlaveIP
-        {
-            get { return _newSlaveIP; }
-            set
-            {
-                if (value != _newSlaveIP)
-                {
-                    _newSlaveIP = value;
-                    NotifyPropertyChanged("newSlaveIP");
-                }
-            }
-        }
-
-        private string _newSlaveName = string.Empty;
-        public string newSlaveName
-        {
-            get { return _newSlaveName; }
-            set
-            {
-                if (value != _newSlaveName)
-                {
-                    _newSlaveName = value;
-                    NotifyPropertyChanged("newSlaveName");
-                }
-            }
-        }
-
-        private Visibility _window_add = Visibility.Collapsed;
-        public Visibility window_add
-        {
-            get { return _window_add; }
-            set
-            {
-                if (value != _window_add)
-                {
-                    _window_add = value;
-                    NotifyPropertyChanged("window_add");
-                }
-            }
-        }
-
         private bool _checked_broadcast = true;
         public bool checked_broadcast
         {
@@ -111,6 +60,28 @@ namespace ShivaQEmaster
                 {
                     _checked_broadcast = value;
                     NotifyPropertyChanged("checked_broadcast");
+                    _checked_broadcast_txt = value ? Languages.language_en_US.homepage_ts_broadcast_on : Languages.language_en_US.homepage_ts_broadcast_off;
+                    NotifyPropertyChanged("checked_broadcast_txt");
+                }
+            }
+        }
+
+        private string _checked_broadcast_txt = Languages.language_en_US.homepage_ts_broadcast_on;
+        public string checked_broadcast_txt
+        {
+            get { return _checked_broadcast_txt; }
+        }
+
+        private bool _checked_record = false;
+        public bool checked_record
+        {
+            get { return _checked_record; }
+            set
+            {
+                if (value != _checked_record)
+                {
+                    _checked_record = value;
+                    NotifyPropertyChanged("checked_record");
                 }
             }
         }

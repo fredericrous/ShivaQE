@@ -21,6 +21,9 @@ using MessageBox = System.Windows.MessageBox;
 using Microsoft.Win32;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
+using log4net;
+using System.Reflection;
+using ShivaQEcommon;
 
 namespace ShivaQEviewer
 {
@@ -29,13 +32,11 @@ namespace ShivaQEviewer
     /// </summary>
     public partial class MainWindow
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         MainWindowBindings _bindings;
 
         private string _slaveList_save_path = "slavelist.json";
-        private string _path_cmd_launcher = "PsExec.exe";
 
         public MainWindow()
         {
@@ -44,10 +45,10 @@ namespace ShivaQEviewer
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
 
-            if (!File.Exists(_path_cmd_launcher))
-            {
-                MessageBox.Show(string.Format("ShivaQE Viewer requires {0}. Copy it in same folder as ShivaQEViewer.exe", _path_cmd_launcher));
-            }
+            //Analytics analytics = new Analytics("ShivaQE Viewer", "1.0");
+            //analytics.Exception(new IOException());
+
+            Deployer.CmdLauncherExists();
 
             System.Drawing.Rectangle resolution = Screen.PrimaryScreen.Bounds;
             _bindings.width = resolution.Width.ToString();
@@ -150,49 +151,6 @@ namespace ShivaQEviewer
 
         }
 
-        string executablePath = System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath).ToString() + "\\";
-        private async Task<bool> deploy_display_launch(Slave slave)
-        {
-            _bindings.status += string.Format("{0} : copying slave to this server {1}", slave.hostname, Environment.NewLine);
-            if (!copy_files(executablePath + "slave", String.Format(@"\\{0}\c$\ShivaQEslave", slave.hostname), slave.login, slave.password))
-                return false;
-
-            //open rdp
-            _bindings.status += string.Format("{0} : openning rdp for this server {1}", slave.hostname, Environment.NewLine);
-            executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
-                string.Format("/v:{0} /h:{1} /w:{2}",
-                slave.ipAddress, _bindings.height, _bindings.width), false, false, slave);
-
-            // wait rdp connection is done before executing psexec.
-            // Psexec needs that rdp connection in order to gain access rights
-            await Task.Delay(6000);
-
-            string username = slave.login;
-            if (username.IndexOf('\\') != -1)
-            {
-                string[] domainNlogin = username.Split('\\');
-                username = domainNlogin[1];
-            }
-
-            //get graphical session id
-            //executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmd.exe"),
-            //    string.Format(@"/C "" ""{0}"" \\{1} -u ""{2}"" -p ""{3}"" -accepteula query session ""{4}"" """,
-            //    executablePath + _path_cmd_launcher,
-            //    slave.ipAddress, slave.login, slave.password, username), true, true);
-
-
-            //start slave with psexec
-            // option accepteula remove license warning
-            // option i 2 tells psexec our software wants a ui
-            // d tells not to wait for end of execution
-            _bindings.status += string.Format("{0} : launch slave on this server {1}", slave.hostname, Environment.NewLine);
-            executeCmd(executablePath + _path_cmd_launcher,
-                string.Format(@"\\{0} -u ""{1}"" -p ""{2}"" -i 2 -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe""",
-                slave.ipAddress, slave.login, slave.password), true, true);
-
-            return true;
-        }
-
         private void bt_resolution_ok_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             _bindings.window_resolution = Visibility.Collapsed;
@@ -208,132 +166,18 @@ namespace ShivaQEviewer
 
                     foreach (var slave in _bindings.slaves)
                     {
-                        tasks.Add(deploy_display_launch(slave));
+                        var deploy = new Deployer(slave, _bindings.height, _bindings.width);
+                        deploy.UpdateStatus += (status) =>
+                            {
+                                _bindings.status += status;
+                            };
+                        tasks.Add(deploy.Run());
                     }
 
                     Task.WaitAll(tasks.ToArray());
                     _bindings.status += string.Format("{0} DONE !!!", Environment.NewLine);
                 });
 
-        }
-
-        private bool copy_files(string source_dir, string destination_dir, string login, string password)
-        {
-            string[] directories = Directory.GetDirectories(source_dir, "*", SearchOption.AllDirectories);
-            string[] files = Directory.GetFiles(source_dir, "*", SearchOption.AllDirectories);
-
-            ////doesn't work !?
-            //if (destination_dir.Contains(':'))
-            //{
-            //    destination_dir = destination_dir.Replace(':', '-');
-            //    destination_dir = destination_dir.Substring(0, destination_dir.IndexOf('\\', 2)) + ".ipv6-literal.net"
-            //        + destination_dir.Substring(destination_dir.IndexOf('\\', 2));
-            //}
-
-            string domain = "localhost";
-            if (login.IndexOf('\\') != -1)
-            {
-                string[] domainNlogin = login.Split('\\');
-                domain = domainNlogin[0];
-                login = domainNlogin[1];
-            }
-
-            //log user for distant copy paste
-            using (Impersonation.LogonUser(domain, login, password, LogonType.NewCredentials)) // warning static
-            {
-                try
-                {
-                    if (Directory.Exists(destination_dir))
-                    {
-                        Directory.Delete(destination_dir, true);
-                    }
-
-                    Directory.CreateDirectory(destination_dir);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Error deleting files: " + ex.Message);
-                }
-
-                foreach (string dir in directories)
-                {
-                    Directory.CreateDirectory(destination_dir + dir.Substring(source_dir.Length));
-                }
-
-                foreach (string file_name in files)
-                {
-                    try
-                    {
-                        File.Copy(file_name, destination_dir + file_name.Substring(source_dir.Length), true);
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error(string.Format("can't copy {0}", file_name), ex);
-                    }
-                }
-
-                return true;
-            }
-        }
-
-        private void executeCmd(string filename, string argument, bool hidden = false, bool redirectOutput = false, Slave slave = null)
-        {
-            Process process = new Process();
-
-            if (slave != null)
-            {
-                process.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-                process.StartInfo.Arguments = string.Format("/generic:TERMSRV/{0} /user:{1} /pass:{2}", slave.ipAddress, slave.login, slave.password);
-                process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                process.StartInfo.CreateNoWindow = true;
-                process.Start();
-            }
-
-            ProcessStartInfo startInfo = new ProcessStartInfo();
-            if (hidden)
-            {
-                startInfo.WindowStyle = ProcessWindowStyle.Hidden;
-                startInfo.CreateNoWindow = true;
-            }
-
-            if (redirectOutput)
-            {
-                startInfo.UseShellExecute = false;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.RedirectStandardError = true;
-                process.EnableRaisingEvents = true;
-                process.OutputDataReceived += (s, e) =>
-                    {
-                        log.Info(e.Data);
-                    };
-                process.ErrorDataReceived += (s, e) =>
-                    {
-                        log.Info("error: " + e.Data);
-                    };
-            }
-
-            log.Info(string.Format("execute: {0} {1}", filename, argument));
-
-            startInfo.FileName = filename;
-            startInfo.Arguments = argument;
-            process.StartInfo = startInfo;
-            process.Start();
-
-
-            if (redirectOutput)
-            {
-                process.BeginOutputReadLine();
-                process.BeginErrorReadLine();
-            }
-
-            process.WaitForExit();
-
-            //if (slave != null)
-            //{
-            //    process.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-            //    process.StartInfo.Arguments = string.Format("/delete:TERMSRV/{0}", slave.ipAddress);
-            //    process.Start();
-            //}
         }
 
         private void pb_add_password_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)

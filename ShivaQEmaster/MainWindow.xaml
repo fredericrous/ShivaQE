@@ -5,82 +5,33 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:ShivaQEmaster" mc:Ignorable="d" x:Class="ShivaQEmaster.MainWindow"
-        Title="ShivaQE" Height="342" Width="725" ResizeMode="CanMinimize" BorderThickness="1" BorderBrush="DarkOrange" WindowTitleBrush="#FF020202" WindowTransitionsEnabled="False">
+        Title="ShivaQE"
+		Height="380" Width="725"
+		ResizeMode="CanMinimize"
+		BorderThickness="1" BorderBrush="DarkOrange" WindowTitleBrush="#FF020202" WindowTransitionsEnabled="False">
     <Controls:MetroWindow.Resources>
         <local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>
     </Controls:MetroWindow.Resources>
 	<Controls:MetroWindow.RightWindowCommands>
 		<Controls:WindowCommands>
 		    <Button x:Name="bt_help" Click="bt_help_Click" Content="Help" />
+			<Button x:Name="bt_settings" Content="Settings" Click="bt_settings_Click" />
 		</Controls:WindowCommands>		
 	</Controls:MetroWindow.RightWindowCommands>
+	<Controls:MetroWindow.Flyouts>
+		<Controls:FlyoutsControl>
+			<Controls:Flyout Header="Record" Position="Bottom" Height="200" IsOpen="{Binding checked_record, Source={StaticResource MainWindowBindingsDataSource}}">
+				<DockPanel HorizontalAlignment="Left" LastChildFill="False" VerticalAlignment="Top">
+					<Frame Source="RecorderFlyout.xaml" />
+				</DockPanel>
+			</Controls:Flyout>
+		</Controls:FlyoutsControl>
+	</Controls:MetroWindow.Flyouts>
     <Grid DataContext="{Binding Source={StaticResource MainWindowBindingsDataSource}}">
-		<ListView BorderBrush="#FFFBA92C" BorderThickness="1" x:Name="lv_slaves" HorizontalAlignment="Left" Height="276.009" Margin="216.551,25.83,0,0" VerticalAlignment="Top" Width="342.812" ItemsSource="{Binding slaves, Mode=TwoWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Multiple">
-            <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem" >
-                    <Setter Property="IsSelected" Value="{Binding IsSelected}"/>
-                </Style>
-            </ListView.ItemContainerStyle>
-            <ListView.View>
-				<GridView>
-					<GridViewColumn Header="Ip" Width="95">
-						<GridViewColumn.CellTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding ipAddress}" />
-							</DataTemplate>
-						</GridViewColumn.CellTemplate>
-					</GridViewColumn>
-					<GridViewColumn Header="Name" Width="145">
-						<GridViewColumn.CellTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding name}" />
-							</DataTemplate>
-						</GridViewColumn.CellTemplate>
-					</GridViewColumn>
-					<GridViewColumn Header="Status" Width="90">
-						<GridViewColumn.CellTemplate>
-							<DataTemplate>
-								<TextBlock Text="{Binding status}" />
-							</DataTemplate>
-						</GridViewColumn.CellTemplate>
-					</GridViewColumn>
-				</GridView>
-			</ListView.View>
-		</ListView>
-        <Controls:ToggleSwitch x:Name="ts_broadcast" Header="Send mouse/keys" Margin="27.663,240.928,525.11,10" SwitchForeground="#FFFBA92C" Cursor="Hand" IsChecked="{Binding checked_broadcast}" IsCheckedChanged="ts_broadcast_IsCheckedChanged" />
-		<Button x:Name="bt_remove" Margin="586,150,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Click="bt_remove_Click" Content="Remove" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" />
-		<Button x:Name="bt_reconnect" Margin="586,28,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Click="bt_reconnect_Click" Content="Reconnect" Cursor="Hand" FontSize="18.667" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" />
-		<Button x:Name="bt_record" Margin="621.356,222.312,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="{x:Null}" Click="bt_record_Click" Visibility="Hidden">
-			<Button.Template>
-				<ControlTemplate TargetType="{x:Type Button}">
-					<ContentPresenter />
-				</ControlTemplate>
-			</Button.Template>
-			<TextBlock HorizontalAlignment="Left" Margin="0" TextWrapping="Wrap" Text="Record" VerticalAlignment="Top" FontSize="18.667" Grid.RowSpan="2" Background="White" />
-		</Button>
-		<Grid x:Name="gd_logo" Margin="10,10,502.282,105.006">
-			<Label Content="ShivaQE" HorizontalAlignment="Left" Height="57.83" Margin="39.334,129.164,0,0" VerticalAlignment="Top" Width="136" FontSize="32" FontWeight="Bold"/>
-			<Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" x:Name="svg_logo" Stretch="Uniform" Margin="0,0,0,40.164">
-				<Canvas x:Name="Layer_1" Width="146.575" Height="92.068" Canvas.Left="0" Canvas.Top="0">
-					<!--Unknown tag: metadata-->
-					<Canvas.RenderTransform><TranslateTransform X="0" Y="0"/></Canvas.RenderTransform><!--Unknown tag: sodipodi:namedview--><Canvas x:Name="g3029"><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3031" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M29.96 78.026c0 0 0.681-6.375 0.891-9.617c4.584-0.188 8.202-0.371 15.902 3.611   c6.106 10.088-3.717 9.558-6.903 9.558s-9.89 0-9.89 0V78.026z" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3033" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M28.656 81.583v-3.685l0.581-4.418l-8.55-0.161c0 0-0.648 2.881-0.294 4.778   c0.1 1.792 0.299 2.99 0.299 2.99L28.656 81.583z" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3035" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M20.9 72.621l8.336 0.161l0.524-4.183c0 0-5.874-0.359-8.263 0.636C20.9 70.53 20.9 72.621 20.9 72.621z" FillRule="NonZero"/></Path.Data></Path></Canvas><Canvas x:Name="g3037"><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3039" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M34.436 39.264c0 0 0.68-6.374 0.891-9.615c4.584-0.189 8.202-0.373 15.901 3.61   c6.107 10.089-3.717 9.558-6.903 9.558s-9.89 0-9.89 0V39.264z" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3041" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M33.131 42.82v-3.684l0.581-4.418l-8.55-0.161c0 0-0.649 2.881-0.294 4.779   c0.1 1.792 0.298 2.989 0.298 2.989L33.131 42.82z" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3043" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M25.376 33.859l8.336 0.162l0.524-4.182c0 0-5.874-0.36-8.264 0.635   C25.376 31.768 25.376 33.859 25.376 33.859z" FillRule="NonZero"/></Path.Data></Path></Canvas><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3045" Fill="#000000"><Path.Data><PathGeometry Figures="M137.823 67.036c2.389 2.39-2.437-26.241-2.788-27.933c-2.986-0.255-16.527 19.569-21.106 25.532  c-7.367-1.207-41.814 4.81-41.814 4.81s-10.155-1.812-15.332-1.812c-3.783-2.39-13.938-2.788-19.45-2.987  c-5.512-0.199-14.998 2.19-15.11 3.982s3.954 1.102 4.892 0.816c-1.792 0.021-6.969 4.958-3.982 4.759s6.571-2.588 6.571-2.588  s8.96 0.397 14.137 1.593c5.177 1.194 8.363 4.182 5.775 6.182c-2.589 2.001-5.576 0.787-8.762 0.189  c-3.186-0.597-8.562 0.199-6.571 2.665c4.58 2.468 19.713 0.721 22.5 0.123s10.354 1.194 10.354 1.194s46.195 4.182 54.957-1.991  C127.668 83.165 137.823 67.036 137.823 67.036" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3047" Fill="#000000"><Path.Data><PathGeometry Figures="M106.218 57.776c0.783-1.275-5.014-5.924-14.724-7.845c-14.444-4.79-18.429-6.555-19.707-7.618  c-9.55-5.377-7.539-4.615-13.952-6.611c-2.902-3.406-12.48-6.804-17.684-8.633c-5.202-1.828-14.971-2.366-15.61-0.688  c-0.59 1.547 2.838 2.134 4.145 2.222c0.111 0.008 6.359 1.112 6.436 1.113c-1.717-0.513-12.755-0.395-11.369 2.259  c0.99 1.897 7.112 1.062 7.112 1.062s2.619-0.144 4.7 0.363c2.83 0.689 5.613 2.236 8.257 3.78c4.588 2.679 6.742 6.478 3.676 7.619  c-3.065 1.14-5.557-0.906-8.421-2.423s-8.235-2.354-7.067 0.592c3.64 3.716 18.609 6.545 21.448 6.804  c2.84 0.259 3.481 1.099 3.481 1.099c0.597 1.601 10.206 4.406 20.107 11.154C77.045 62.024 97.377 58.096 106.218 57.776z" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3049" Stroke="#FFFBA92C" StrokeMiterLimit="10"><Path.Data><PathGeometry Figures="M23.421 33.799c-7.404-1.078-14.698 6.998-16.307 18.052" FillRule="NonZero"/></Path.Data></Path><Canvas x:Name="g3051"><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3053" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M67.669 22.654c0 0 0.681-6.374 0.892-9.615c4.584-0.189 8.201-0.373 15.901 3.61   c6.107 10.089-3.718 9.558-6.904 9.558s-9.889 0-9.889 0V22.654z" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3055" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M66.365 26.211v-3.684l0.581-4.418l-8.551-0.161c0 0-0.648 2.881-0.294 4.779   c0.1 1.792 0.299 2.989 0.299 2.989L66.365 26.211z" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3057" Fill="#FFFBA92C"><Path.Data><PathGeometry Figures="M58.609 17.25l8.337 0.162l0.524-4.182c0 0-5.874-0.36-8.263 0.635   C58.609 15.159 58.609 17.25 58.609 17.25z" FillRule="NonZero"/></Path.Data></Path></Canvas><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3059" Fill="#000000"><Path.Data><PathGeometry Figures="M123 42.125c-2.288-1.504-7.792-6.219-10.179-7.728c-2.706-2.135-2.744-1.51-3.843-2.757  c-8.605-6.787-6.735-5.723-12.766-8.686c-2.341-3.812-11.28-8.647-16.139-11.258c-4.859-2.609-14.426-4.648-15.318-3.089  c-0.822 1.438 2.475 2.546 3.752 2.835c0.108 0.024 6.111 2.08 6.186 2.092c-1.617-0.771-12.541-2.357-11.581 0.478  c0.686 2.027 6.863 2.146 6.863 2.146c0.001 0 2.609 0.263 4.587 1.083c2.69 1.118 5.201 3.075 7.574 5.009  c4.121 3.355 5.664 7.44 2.457 8.095c-3.205 0.653-5.351-1.752-7.946-3.694c-2.596-1.941-7.772-3.597-7.073-0.505  c3.022 4.232 17.375 9.338 20.141 10.032c2.765 0.693 3.27 1.622 3.27 1.622c0.341 1.674 11.452 7.741 20.193 15.937" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3061" Stroke="#FFFBA92C" StrokeMiterLimit="10"><Path.Data><PathGeometry Figures="M56.654 17.19c-5.535-0.806-10.452 1.557-10.993 5.282" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path3063" Stroke="#FFFBA92C" StrokeMiterLimit="10"><Path.Data><PathGeometry Figures="M19.336 73.92C12.263 72.89 6.299 73.714 6 75.763" FillRule="NonZero"/></Path.Data></Path>
-				</Canvas>
-			</Viewbox>
-		</Grid>
-		<Button x:Name="bt_disconnect" Margin="586,89,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Content="Disconnect" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" Click="bt_disconnect_Click" />
-		<Button x:Name="bt_add" Margin="586,265,0,0" Click="bt_add_Click" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Black" Height="36.839" Width="121" Content="Add" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" />
-		<Grid x:Name="gd_add" Visibility="{Binding window_add}">
-			<Rectangle Fill="Black" HorizontalAlignment="Left" Height="312" Stroke="Black" VerticalAlignment="Top" Width="726" Opacity="0.56" Margin="0,0,-9,0"/>
-			<GroupBox Header="Computer address on network" HorizontalAlignment="Left" VerticalAlignment="Top" Height="164" Width="430" Background="Black" BorderBrush="DarkOrange" Margin="151,71.928,0,0" Foreground="White">
-				<Grid Margin="-4.837,-5.007,-4.996,-4.953" Background="White">
-					<TextBox Controls:TextBoxHelper.Watermark="mypc.net or 10.42.4.2" x:Name="tb_host" HorizontalAlignment="Left" Height="23" Margin="162.672,8.991,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="243" Text="{Binding newSlaveIP}" KeyDown="tb_host_KeyDown" BorderBrush="#FFFBA92C"/>
-					<Label Content="Hosname (or IP) :" HorizontalAlignment="Left" Margin="54.571,6.991,0,0" VerticalAlignment="Top"/>
-					<TextBox Controls:TextBoxHelper.Watermark="mypc" x:Name="tb_name" HorizontalAlignment="Left" Height="23" Margin="162.672,42.031,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="243" Text="{Binding newSlaveName}" KeyDown="tb_name_KeyDown" BorderBrush="#FFFBA92C"/>
-					<Label Content="Friendly name (optional) :" HorizontalAlignment="Left" Margin="10.655,40.031,0,0" VerticalAlignment="Top"/>
-					<Button x:Name="bt_add_add" Margin="284.672,88.161,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="Black" Height="36.839" Width="121" Content="Add" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Click="bt_add_add_Click" BorderBrush="#FFFBA92C" BorderThickness="1" />
-				</Grid>
-			</GroupBox>
-			<Button x:Name="bt_close" Content="X" HorizontalAlignment="Left" Margin="550,72.928,0,0" VerticalAlignment="Top" Width="29.75" Height="25.62" Background="Black" Foreground="White" Click="bt_close_Click"/>
-		</Grid>
+        <Frame x:Name="_NavigationFrame" RenderTransformOrigin="0.5,0.5" NavigationUIVisibility="Hidden">
+            <Frame.RenderTransform>
+                <ScaleTransform />
+            </Frame.RenderTransform>
+        </Frame>
 	</Grid>
 </Controls:MetroWindow>

@@ -113,7 +113,7 @@ namespace ShivaQEslave
                         {
                             modifierKey.Add(VirtualKeyCode.CONTROL);
                         }
-                        if (mouseNkey.keyData.Contains("Alt"))
+                        if (mouseNkey.keyData.Contains("Alt") || mouseNkey.keyData.Contains("LMenu") || mouseNkey.keyData.Contains("RMenu"))
                         {
                             modifierKey.Add(VirtualKeyCode.MENU);
                         }

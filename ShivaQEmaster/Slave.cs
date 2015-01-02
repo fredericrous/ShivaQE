@@ -33,7 +33,7 @@ namespace ShivaQEmaster
                 {
                     ipAddress = IPAddress.Parse(hostname);
                 }
-                catch (Exception ex) //may be just a subdomain.domain.com
+                catch //may be just a subdomain.domain.com
                 {
                     ipAddress = getAddress(hostname);
                 }
@@ -86,7 +86,7 @@ namespace ShivaQEmaster
                 {
                     address = IPAddress.Parse(value);
                 }
-                catch (Exception ex)
+                catch
                 {
                     address = getAddress(value);
                 }

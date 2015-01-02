@@ -7,6 +7,9 @@ using System.Windows.Interop;
 using System.Diagnostics;
 using System.Windows;
 using ShivaQEcommon.Eventdata;
+using System.Text;
+using log4net;
+using System.Reflection;
 
 namespace ShivaQEcommon.Hook
 {
@@ -16,8 +19,7 @@ namespace ShivaQEcommon.Hook
     /// </summary>
     public class UIChangeListener
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         [DllImport("user32.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
         public static extern IntPtr GetForegroundWindow();
@@ -52,6 +54,10 @@ namespace ShivaQEcommon.Hook
 
         public delegate void WindowCreatedEvent();
         public event WindowCreatedEvent WindowCreated;
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
 
         private GlobalHooks _globalHook;
 
@@ -91,15 +97,27 @@ namespace ShivaQEcommon.Hook
                 WindowCreated();
             };
             _globalHook.CBT.DestroyWindow += (IntPtr ptr) => { _eventCalls.Add(Enum.GetName(typeof(HookEvent.CbtCalls), HookEvent.CbtCalls.CBTDestroyWindow)); };
-            _globalHook.CBT.MinMax += (IntPtr ptr) => { _eventCalls.Add(Enum.GetName(typeof(HookEvent.CbtCalls), HookEvent.CbtCalls.CBTMinMax)); };
-            _globalHook.CBT.SetFocus += (IntPtr ptr) => { _eventCalls.Add(Enum.GetName(typeof(HookEvent.CbtCalls), HookEvent.CbtCalls.CBTSetFocus)); };
+            _globalHook.CBT.MinMax += (IntPtr ptr) =>
+            {
+                _eventCalls.Add(Enum.GetName(typeof(HookEvent.CbtCalls), HookEvent.CbtCalls.CBTMinMax));
+                WindowCreated();
+            };
+            _globalHook.CBT.SetFocus += (IntPtr ptr) =>
+            {
+                _eventCalls.Add(Enum.GetName(typeof(HookEvent.CbtCalls), HookEvent.CbtCalls.CBTSetFocus));
+                WindowCreated();
+            };
             _globalHook.CBT.MoveSize += (IntPtr ptr) => { _eventCalls.Add(Enum.GetName(typeof(HookEvent.CbtCalls), HookEvent.CbtCalls.CBTMoveSize)); };
             
             //globalHook.Shell.ActivateShellWindow += () => { eventCalls.Add("SHELLActivateShellWindow"); };
             //globalHook.Shell.GetMinRect += (IntPtr ptr) => { eventCalls.Add("SHELLGetMinRect"); };
             _globalHook.Shell.Redraw += (IntPtr ptr) => { _eventCalls.Add(Enum.GetName(typeof(HookEvent.ShellCalls), HookEvent.ShellCalls.HSHELL_REDRAW)); };
             //globalHook.Shell.WindowActivated += (IntPtr ptr) => { eventCalls.Add("SHELLWindowActivated"); };
-            _globalHook.Shell.WindowCreated += (IntPtr ptr) => { _eventCalls.Add(Enum.GetName(typeof(HookEvent.ShellCalls), HookEvent.ShellCalls.HSHELL_WINDOWCREATED)); };
+            _globalHook.Shell.WindowCreated += (IntPtr ptr) =>
+            {
+                _eventCalls.Add(Enum.GetName(typeof(HookEvent.ShellCalls), HookEvent.ShellCalls.HSHELL_WINDOWCREATED));
+                WindowCreated();
+            };
             _globalHook.Shell.WindowDestroyed += (IntPtr ptr) => { _eventCalls.Add(Enum.GetName(typeof(HookEvent.ShellCalls), HookEvent.ShellCalls.HSHELL_WINDOWDESTROYED)); };
 
 
@@ -132,11 +150,12 @@ namespace ShivaQEcommon.Hook
             SetWindowPos(GetForegroundWindow(), HWND_TOP, Left, Top, Width, Heigh, SWP_ASYNCWINDOWPOS);
         }
 
-        public int[] getActiveWindowInfo()
+        public Tuple<string, int[]> getActiveWindowInfo()
         {
             RECT rct;
+            IntPtr foregroundWindow = GetForegroundWindow();
 
-            if (!GetWindowRect(GetForegroundWindow(), out rct))
+            if (!GetWindowRect(foregroundWindow, out rct))
             {
                 log.Warn("error getting active window");
                 return null;
@@ -146,7 +165,21 @@ namespace ShivaQEcommon.Hook
             int height = rct.Bottom - rct.Top + 1;
 
             int[] rcValues = { rct.Left, rct.Top, width, height };
-            return rcValues;
+
+            string windowName = GetProcessByHandle(foregroundWindow).ProcessName;
+
+            return new Tuple<string, int[]>(windowName, rcValues);
+        }
+
+        private static Process GetProcessByHandle(IntPtr hwnd)
+        {
+            try
+            {
+                uint processID;
+                GetWindowThreadProcessId(hwnd, out processID);
+                return Process.GetProcessById((int)processID);
+            }
+            catch { return null; }
         }
     }
 }

@@ -13,6 +13,9 @@ using MahApps.Metro.Controls;
 using log4net;
 using System.Reflection;
 using System.Linq;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using System.Text;
 
 namespace ShivaQEmaster
 {
@@ -21,19 +24,23 @@ namespace ShivaQEmaster
     /// </summary>
     public partial class MainWindow
     {
-        private const int port = 1142;
-
-        MainWindowBindings _bindings;
+        static MainWindowBindings _bindings;
         MouseNKeyListener _mouseNKeyListener;
-        slaveManager _slaveManager;
+        SlaveManager _slaveManager;
         UIChangeListener _uichange;
+        Recorder _recorder;
+
+        public static MainWindowBindings getBindings
+        {
+            get { return _bindings; }
+        }
 
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         static string lastKey = string.Empty; //there's a time out to reset lastKey 3sec after a press key
         static Timer doubleClickReset = new Timer() { Interval = 3000, AutoReset = false };
         
-        int[] activeWindowInfo;
+        Tuple<string, int[]> _activeWindowInfo = null;
 
         public MainWindow()
         {
@@ -41,6 +48,8 @@ namespace ShivaQEmaster
 
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
+
+            _NavigationFrame.Navigate(new HomePage());
 
             //wait window is loaded to subscribe to uichangelistener
             this.Loaded += (s, e) =>
@@ -53,7 +62,7 @@ namespace ShivaQEmaster
                     {
                         try
                         {
-                            activeWindowInfo = _uichange.getActiveWindowInfo();
+                            _activeWindowInfo = _uichange.getActiveWindowInfo();
                         }
                         catch (Exception ex)
                         {
@@ -63,12 +72,15 @@ namespace ShivaQEmaster
                     };
             };
 
+            _recorder = Recorder.Instance;
+            _recorder.Init();
+
             //disconnect slaves and remove listerner
             this.Closed += (object sender, EventArgs e) =>
             {
                 try
                 {
-                    _slaveManager.disconnectAll();
+                    _slaveManager.DisconnectAll();
                     _uichange.StopListener();
                     _mouseNKeyListener.DeactiveAll();
                     _uichange = null;
@@ -80,42 +92,48 @@ namespace ShivaQEmaster
                 }
             };
 
-            _mouseNKeyListener = new MouseNKeyListener();
-            _slaveManager = new slaveManager(_bindings.slaves);
+            _mouseNKeyListener = MouseNKeyListener.Instance;
+            _slaveManager = SlaveManager.Instance;
+            _slaveManager.Init(_bindings.slaves);
 
             _mouseNKeyListener.Active();
-            _mouseNKeyListener.MouseClick += async(s, ev) =>
+            _mouseNKeyListener.MouseClick += (s, ev) =>
             {
                 //send winpos before click
-                if (activeWindowInfo != null)
-                {
-                    ActionMethod action = new ActionMethod()
-                    {
-                        method = ActionType.SetWindowPos,
-                        value = String.Join(".", activeWindowInfo)
-                    };
-                    try
-                    {
-                        await _slaveManager.Send<ActionMethod>(action);
-                        activeWindowInfo = null;
-                    }
-                    catch (Exception ex)
-                    {
-                        log.Error("error send window created", ex);
-                    }
-                }
 
-                //send click
-                try
-                {
-                    await _slaveManager.Send<MouseNKeyEventArgs>(ev);
-                    //checkIdentical();
-                }
-                catch (IOException ex)
-                {
-                    log.Error("refresh list because", ex);
-                    lv_slaves.Items.Refresh();
-                }
+                Task.Run( async () =>
+                    {
+                        //should be raised by windowcreated event but it doesn't work weel so it's a workaround...
+                        try
+                        {
+                            _activeWindowInfo = _uichange.getActiveWindowInfo();
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Warn("error getting active window info", ex);
+                            _activeWindowInfo = null;
+                        }
+                        if (_activeWindowInfo != null)
+                        {
+                            sendWindowPos(_activeWindowInfo);
+                        }
+
+                        //record click
+                        _recorder.Record(ev);
+
+                        //send click
+                        try
+                        {
+                            await _slaveManager.Send<MouseNKeyEventArgs>(ev);
+                            //checkIdentical();
+                        }
+                        catch (IOException ex)
+                        {
+                            log.Error("refresh list because", ex);
+                            //404 lv_slaves.Items.Refresh();
+                        }
+                    });
+
             };
             //reset last key pressed to none after 3 seconds
             doubleClickReset.Elapsed += (_s, _e) =>
@@ -133,38 +151,50 @@ namespace ShivaQEmaster
 
                     if (ev.key == lastKey)
                     {
-                        switch (ev.keyData)
+                        string key_sendmousekey_on = SettingsManager.ReadSetting("key_sendmousekey_on");
+                        string key_sendmousekey_off = SettingsManager.ReadSetting("key_sendmousekey_off");
+                        string key_window_hide_toggle = SettingsManager.ReadSetting("key_window_hide_toggle"); //should be useless because now it's automatic & systematic
+                        string key_force_resize = SettingsManager.ReadSetting("key_force_resize");
+                        
+                        if (ev.keyData == key_sendmousekey_on)
                         {
-                            case "F5":
-
-                                _mouseNKeyListener.Active(true);
-                                _bindings.checked_broadcast = true;
+                            _mouseNKeyListener.Active(true);
+                            _bindings.checked_broadcast = true;
+                            return;
+                        }
+                        else if (ev.keyData == key_sendmousekey_off)
+                        {
+                            _mouseNKeyListener.DeactiveAll();
+                            _bindings.checked_broadcast = false;
+                            return;
+                        }
+                        else if (ev.keyData == key_force_resize)
+                        {
+                            actionMethod = ActionType.SetWindowPos;
+                            Tuple<string, int[]> activeWindowInfo = null;
+                            try
+                            {
+                                activeWindowInfo = _uichange.getActiveWindowInfo();
+                            }
+                            catch (Exception ex)
+                            {
+                                log.Warn("error getting active window info", ex);
                                 return;
-                            case "F6":
-
-                                _mouseNKeyListener.DeactiveAll();
-                                _bindings.checked_broadcast = false;
-                                return;
-                            case "F7": //should be useless because now it's automatic & systematic
-
-                                actionMethod = ActionType.SetWindowPos;
-                                actionValue = String.Join(".", _uichange.getActiveWindowInfo());
-
-                                break;
-                            case "F8":
-                                this.ShowInTaskbar = _windowInTaskbarState;
-                                _windowInTaskbarState = !_windowInTaskbarState;
-                                if (_windowInTaskbarState)
-                                {
-                                    this.Hide();
-                                }
-                                else
-                                {
-                                    this.Show();
-                                }
-                                break;
-                            default:
-                                break;
+                            }
+                            actionValue = activeWindowInfo.Item1 + "." + String.Join(".", activeWindowInfo.Item2);
+                        }
+                        else if (ev.keyData == key_window_hide_toggle)
+                        {
+                            this.ShowInTaskbar = _windowInTaskbarState;
+                            _windowInTaskbarState = !_windowInTaskbarState;
+                            if (_windowInTaskbarState)
+                            {
+                                this.Hide();
+                            }
+                            else
+                            {
+                                this.Show();
+                            }
                         }
 
                         doubleClickReset.Stop();
@@ -188,7 +218,12 @@ namespace ShivaQEmaster
                     }
                     else if (_mouseNKeyListener.isActive)
                     {
+                        //record
+                        _recorder.Record(ev);
+
+                        //send input
                         await _slaveManager.Send<MouseNKeyEventArgs>(ev);
+
                         //checkIdentical();
                     }
 
@@ -196,7 +231,7 @@ namespace ShivaQEmaster
                 catch (IOException ex)
                 {
                     log.Error("refresh list because", ex);
-                    lv_slaves.Items.Refresh();
+                    //404 lv_slaves.Items.Refresh();
                 }
             };
             _mouseNKeyListener.MouseMove += (s, ev) =>
@@ -211,7 +246,7 @@ namespace ShivaQEmaster
                 catch (Exception ex)
                 {
                     log.Error("refresh list because", ex);
-                    lv_slaves.Items.Refresh();
+                    // 404 lv_slaves.Items.Refresh();
                 }
             };
 
@@ -239,6 +274,25 @@ namespace ShivaQEmaster
                 };
         }
 
+        private async void sendWindowPos(Tuple<string, int[]> activeWindowInfo)
+        {
+            ActionMethod action = new ActionMethod()
+            {
+                method = ActionType.SetWindowPos,
+                value = activeWindowInfo.Item1 + "." + String.Join(".", activeWindowInfo.Item2)
+            };
+            try
+            {
+                await _slaveManager.Send<ActionMethod>(action);
+                activeWindowInfo = null;
+                System.Threading.Thread.Sleep(1000);
+            }
+            catch (Exception ex)
+            {
+                log.Error("error send window created", ex);
+            }
+        }
+
         private async void checkIdentical()
         {
             ActionType actionMethod = ActionType.None;
@@ -263,184 +317,19 @@ namespace ShivaQEmaster
         }
 
         /// <summary>
-        /// add slave to the list and autoconnect to it.
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_add_add_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            string hostname = _bindings.newSlaveIP.Trim();
-            string friendlyname = _bindings.newSlaveName.Trim();
-
-            //hostname is needed as an identifier on the network
-            if (hostname == string.Empty)
-            {
-                MessageBox.Show("ip (or hostname) must be specified");
-                return;
-            }
-
-            //a friendly name is otional and takes the name of the hostname if not specified
-            if (friendlyname == string.Empty)
-            {
-                friendlyname = hostname;
-            }
-
-            //warning if you try to connect to slave a master
-            if (hostname == "localhost" || hostname == "127.0.0.1" || hostname == "::1")
-            {
-                var dialogResult = System.Windows.Forms.MessageBox.Show("You're about to add your master computer as a slave. It will result in infinite loop when you click or press a key.\n"
-                    + "Are you sure you want to do that?", "Warning", System.Windows.Forms.MessageBoxButtons.YesNo);
-
-                if (dialogResult == System.Windows.Forms.DialogResult.No)
-                {
-                    return;
-                }
-            }
-
-            //add new slave to list of slaves
-            _slaveManager.add(hostname, port, friendlyname);
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void cb_broadcast_movement_Checked(object sender, System.Windows.RoutedEventArgs e)
-        {
-            if (_bindings == null)
-                return;
-            _mouseNKeyListener.ActivateMouseMove();
-        }
-
-
-        private void cb_broadcast_movement_Unchecked(object sender, System.Windows.RoutedEventArgs e)
-        {
-            _mouseNKeyListener.DeactiveMouseMove();
-        }
-
-        /// <summary>
-        /// reconnect slaves
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_reconnect_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            foreach (Slave slave in _bindings.selectedSlaves)
-            {
-               // _slaveManager.reconnectAll();
-                _slaveManager.reconnect(slave);
-            }
-            
-
-            lv_slaves.Items.Refresh();
-        }
-
-        ///// <summary>
-        ///// open a RDP connection with selected slave
-        ///// </summary>
-        ///// <param name="sender"></param>
-        ///// <param name="e"></param>
-        //private void bt_viewer_Click(object sender, System.Windows.RoutedEventArgs e)
-        //{
-        //    if (!hasSelectedSlave())
-        //    {
-        //        return;
-        //    }
-
-        //    System.Diagnostics.Process process = new System.Diagnostics.Process();
-        //    System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
-        //    startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
-        //    startInfo.FileName = "cmd.exe";
-        //    startInfo.Arguments = string.Format("/C mstsc /v:{0}", _bindings.slaveSelected.ipAddress);
-        //    process.StartInfo = startInfo;
-        //    process.Start();
-        //}
-
-        /// <summary>
         /// open help window
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void bt_help_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            HelpWindow helpWindhow = new HelpWindow();
-            helpWindhow.Show();
+            _NavigationFrame.Navigate(new HelpPage());
         }
 
-        /// <summary>
-        /// remove selected slave
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_remove_Click(object sender, System.Windows.RoutedEventArgs e)
+        private void bt_settings_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _slaveManager.remove(_bindings.selectedSlaves);
+            _NavigationFrame.Navigate(new SettingsPage());
         }
-
-
-        private void bt_disconnect_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            foreach (var slave in _bindings.selectedSlaves)
-            {
-                _slaveManager.disconnect(slave);
-            }
-        }
-
-        /// <summary>
-        /// open recorder
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void bt_record_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            RecorderWindow recorderWindow = new RecorderWindow();
-            recorderWindow.Show();
-        }
-
-        private void tb_host_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                tb_host.Focus();
-            }
-        }
-
-        private void tb_name_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                bt_add_add_Click(sender, e);
-            }
-        }
-
-        private void bt_close_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            _bindings.window_add = Visibility.Collapsed;
-        }
-
-        private void bt_add_Click(object sender, System.Windows.RoutedEventArgs e)
-        {
-            _bindings.window_add = Visibility.Visible;
-        }
-
-        private void ts_broadcast_IsCheckedChanged(object sender, System.EventArgs e)
-        {
-            if (_bindings.checked_broadcast)
-            {
-                if (!_mouseNKeyListener.isActive)
-                {
-                    _mouseNKeyListener.Active(true);
-                }
-
-            }
-            else
-            {
-                _mouseNKeyListener.DeactiveAll();
-
-            }
-        }
-
         
         /* 
          * TODO:

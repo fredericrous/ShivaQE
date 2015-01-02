@@ -22,7 +22,7 @@ namespace ShivaQEslave
         /// <param name="status">true = Log Active: the  detected the client and is active.</param>
         public static void Status_DelegateMethod(bool status)
         {
-            notifyIcon.Text = String.Format("{0}\nstatus: {1}", _name, status ? "on" : "off");
+            notifyIcon.Text = String.Format("{0}\nstatus: {1}", _name, status ? "Connected" : "Disconnected");
 
             string nameIcon = status ? "shivaqe_logo_slave.ico" : "shivaqe_logo_slave_off.ico";
 

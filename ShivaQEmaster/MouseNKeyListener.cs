@@ -6,7 +6,7 @@ using System.Windows.Forms;
 
 namespace ShivaQEmaster
 {
-    class MouseNKeyListener
+    public class MouseNKeyListener
     {
         private MouseHookListener m_mouseListener;
         private KeyboardHookListener k_keyboardListener;
@@ -14,6 +14,18 @@ namespace ShivaQEmaster
         public event EventHandler<MouseNKeyEventArgs> KeyboadDown;
         public event EventHandler<MouseNKeyEventArgs> MouseClick;
         public event EventHandler<MouseNKeyEventArgs> MouseMove;
+
+        private static readonly MouseNKeyListener _instance = new MouseNKeyListener();
+
+        private MouseNKeyListener() { }
+
+        public static MouseNKeyListener Instance
+        {
+            get
+            {
+                return _instance; 
+            }
+        }
 
         // Subroutine for activating the hook
         public void ActivateKeyboard()

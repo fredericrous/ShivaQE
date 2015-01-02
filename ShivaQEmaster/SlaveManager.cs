@@ -12,6 +12,8 @@ using ShivaQEcommon.Eventdata;
 using System.IO;
 using System.Net;
 using System.Collections.Generic;
+using System.Reflection;
+using log4net;
 
 namespace ShivaQEmaster
 {
@@ -32,22 +34,18 @@ namespace ShivaQEmaster
     /// Send uses TCP, it's a safer way to transmit keystrockes and clicks but also actions
     /// in ShivaQE, actions are like web services
     /// </summary>
-    public class slaveManager
+    public class SlaveManager
     {
         private int port;
 
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
-        (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         const int KL_NAMELENGTH = 9;
-        const uint KLF_ACTIVATE = 1;
 
-        [DllImport("user32.dll")]
-        public static extern long LoadKeyboardLayout(string pwszKLID, uint Flags);
         [DllImport("user32.dll")]
         public static extern long GetKeyboardLayoutName(System.Text.StringBuilder pwszKLID);
 
-        private string lang
+        private string Lang
         {
             get
             {
@@ -66,7 +64,19 @@ namespace ShivaQEmaster
         UdpClient broadcastChannel;
         private string slaveList_save_path = "slavelist.json";
 
-        public slaveManager(ObservableCollection<Slave> slaves)
+        private static readonly SlaveManager _instance = new SlaveManager();
+
+        private SlaveManager() { }
+
+        public static SlaveManager Instance
+        {
+            get
+            {
+                return _instance; 
+            }
+        }
+
+        public void Init(ObservableCollection<Slave> slaves)
         {
             slaveList = slaves;
             broadcastChannel = new UdpClient(AddressFamily.InterNetworkV6);
@@ -117,7 +127,7 @@ namespace ShivaQEmaster
         /// </summary>
         /// <param name="hostname"></param>
         /// <param name="friendlyname"></param>
-        public async void add(string hostname, int port, string friendlyname)
+        public async void Add(string hostname, int port, string friendlyname)
         {
             this.port = port;
             // Connect to a remote device.
@@ -149,9 +159,9 @@ namespace ShivaQEmaster
 
                 //set language on slave
                 ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(response.Remove(response.LastIndexOf("<EOF>")));
-                if (serverInfo.lang != lang)
+                if (serverInfo.lang != Lang)
                 {
-                    ActionMethod action = new ActionMethod() { method = ActionType.SetLang, value = lang };
+                    ActionMethod action = new ActionMethod() { method = ActionType.SetLang, value = Lang };
                     string json = JsonConvert.SerializeObject(action);
                     json += "<EOF>";
                     byte[] byteData = Encoding.UTF8.GetBytes(json);
@@ -211,18 +221,20 @@ namespace ShivaQEmaster
             return;
         }
 
-        public void remove(IEnumerable<Slave> slaves)
+        public void Remove(IEnumerable<Slave> slaves)
         {
             ActionMethod data = new ActionMethod() { method = ActionType.Disconnect };
             string json = JsonConvert.SerializeObject(data);
             json += "<EOF>"; //used serverside to know string has been received entirely
             byte[] byteData = Encoding.UTF8.GetBytes(json);
 
+            List<Task> tasks = new List<Task>();
             foreach (var slave in slaves.ToList())
             {
-                disconnect(slave);
+                tasks.Add(Disconnect(slave));
                 slaveList.Remove(slave);
             }
+            Task.WaitAll(tasks.ToArray());
 
             string slaveListJson = JsonConvert.SerializeObject(slaveList);
             File.WriteAllText(slaveList_save_path, slaveListJson);
@@ -236,7 +248,7 @@ namespace ShivaQEmaster
         //    }
         //}
 
-        public void disconnectAll()
+        public void DisconnectAll()
         {
             foreach (var slave in slaveList)
             {
@@ -247,8 +259,9 @@ namespace ShivaQEmaster
             }
         }
 
-        public async void reconnect(Slave slave)
+        public async Task<bool> Reconnect(Slave slave)
         {
+            bool result = true;
             if (!slave.client.Connected)
             {
                 try
@@ -261,16 +274,21 @@ namespace ShivaQEmaster
                 {
                     log.Error("Exception while reconnecting (could be timeout)", ex);
                     MessageBox.Show("Can't reconnect, maybe slave is not launched or has been terminated!?");
+                    result = false;
                 }
             }
             else
             {
                 MessageBox.Show(slave.name + " already connected");
+                result = false;
             }
+            return result;
         }
 
-        internal async void disconnect(Slave slave)
+        internal async Task<bool> Disconnect(Slave slave)
         {
+            bool result = true;
+
             ActionMethod data = new ActionMethod() { method = ActionType.Disconnect };
             string json = JsonConvert.SerializeObject(data);
             json += "<EOF>"; //used serverside to know string has been received entirely
@@ -286,7 +304,9 @@ namespace ShivaQEmaster
             {
                 string error = string.Format("Error requesting disconnect from {0}", slave.name);
                 log.Error(error, ex);
+                result = false;
             }
+            return result;
         }
 
     }

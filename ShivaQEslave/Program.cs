@@ -42,6 +42,9 @@ namespace ShivaQEslave
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
 
         [STAThread]
         static void Main(string[] args)
@@ -94,7 +97,7 @@ namespace ShivaQEslave
                     SetParent(hwndSource.Handle, (IntPtr)HWND_MESSAGE);
                 }
 
-              
+
                 //on data received (after TCP connection was accepted and client sent message), do..
                 AsynchronousSlave.TCPdataReceived += (string data, NetworkStream networkStream) =>
                     {
@@ -112,12 +115,18 @@ namespace ShivaQEslave
                                         break;
                                     case ActionType.SetWindowPos:
                                         string[] windowPos = action.value.Split('.');
-                                        int Left = int.Parse(windowPos[0]);
-                                        int Top = int.Parse(windowPos[1]);
-                                        int Width = int.Parse(windowPos[2]);
-                                        int Heigh = int.Parse(windowPos[3]);
+                                        int Left = int.Parse(windowPos[1]);
+                                        int Top = int.Parse(windowPos[2]);
+                                        int Width = int.Parse(windowPos[3]);
+                                        int Heigh = int.Parse(windowPos[4]);
 
-                                        SetWindowPos(GetForegroundWindow(), HWND_TOP, Left, Top, Width, Heigh, SWP_ASYNCWINDOWPOS);
+                                        IntPtr foregroundWindow = GetForegroundWindow();
+
+                                        string windowName = GetProcessByHandle(foregroundWindow).ProcessName;
+                                        if (windowName == windowPos[0])
+                                        {
+                                            SetWindowPos(foregroundWindow, HWND_TOP, Left, Top, Width, Heigh, SWP_ASYNCWINDOWPOS);
+                                        }
                                         break;
                                     case ActionType.UpdateClipboard:
                                         IDataObject clipboardObject = JsonConvert.DeserializeObject<IDataObject>(action.value);
@@ -144,7 +153,7 @@ namespace ShivaQEslave
                                             }
                                         }
                                         break;
-                                    case ActionType.Disconnect:                                        
+                                    case ActionType.Disconnect:
                                         AsynchronousSlave.StopListening();
                                         NotifyIconSystray.ChangeStatus(false);
                                         break;
@@ -194,8 +203,22 @@ namespace ShivaQEslave
             }
             catch (Exception ex)
             {
+                MessageBox.Show("Error: " + ex.Message);
                 log.Error("somewhere", ex);
             }
         }
+
+        private static Process GetProcessByHandle(IntPtr hwnd)
+        {
+            try
+            {
+                uint processID;
+                GetWindowThreadProcessId(hwnd, out processID);
+                return Process.GetProcessById((int)processID);
+            }
+            catch { return null; }
+        }
+
     }
 }
+
