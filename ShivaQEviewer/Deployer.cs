@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -14,7 +15,23 @@ namespace ShivaQEviewer
 {
     class Deployer
     {
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        [DllImport("WtsApi32.dll")]
+        public static extern bool WTSWaitSystemEvent(IntPtr hServer, int EventMask, out IntPtr pEventFlags);
+
+        [DllImport("WtsApi32.dll")]
+        public static extern IntPtr WTSOpenServer(string server);
+
+        [DllImport("wtsapi32.dll")]
+        static extern int WTSEnumerateSessions(
+                        IntPtr hServer,
+                        int Reserved,
+                        int Version,
+                        ref IntPtr ppSessionInfo,
+                        ref int pCount);
+
+        int WTS_EVENT_LOGON = 0x00000020;
 
         private string executablePath = System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath).ToString() + "\\";
         private static string _path_cmd_launcher = "PsExec.exe";
@@ -31,6 +48,76 @@ namespace ShivaQEviewer
             this._resolution_width = resolution_width;
         }
 
+        [DllImport("wtsapi32.dll")]
+        static extern void WTSCloseServer(IntPtr hServer);
+
+        [DllImport("wtsapi32.dll")]
+        static extern void WTSFreeMemory(IntPtr pMemory);
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct WTS_SESSION_INFO
+        {
+            public Int32 SessionID;
+
+            [MarshalAs(UnmanagedType.LPStr)]
+            public String pWinStationName;
+
+            public WTS_CONNECTSTATE_CLASS State;
+        }
+
+        public enum WTS_CONNECTSTATE_CLASS
+        {
+            WTSActive,
+            WTSConnected,
+            WTSConnectQuery,
+            WTSShadow,
+            WTSDisconnected,
+            WTSIdle,
+            WTSListen,
+            WTSReset,
+            WTSDown,
+            WTSInit
+        } 
+
+        public static int CountActiveSessions(String ServerName)
+        {
+            IntPtr server = IntPtr.Zero;
+            int ret = 0;
+            server = WTSOpenServer(ServerName);
+
+            try
+            {
+                IntPtr ppSessionInfo = IntPtr.Zero;
+
+                Int32 count = 0;
+                Int32 retval = WTSEnumerateSessions(server, 0, 1, ref ppSessionInfo, ref count);
+                Int32 dataSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
+
+                Int64 current = (int)ppSessionInfo;
+
+                if (retval != 0)
+                {
+                    for (int i = 0; i < count; i++)
+                    {
+                        WTS_SESSION_INFO si = (WTS_SESSION_INFO)Marshal.PtrToStructure((System.IntPtr)current, typeof(WTS_SESSION_INFO));
+                        current += dataSize;
+                        if (si.State == WTS_CONNECTSTATE_CLASS.WTSActive)
+                        {
+                            ret++;
+                        }
+                    }
+
+                    WTSFreeMemory(ppSessionInfo);
+                }
+            }
+            finally
+            {
+                WTSCloseServer(server);
+            }
+
+            return ret;
+        }
+
         public delegate void UpdateStatusEvent(string status);
         public event UpdateStatusEvent UpdateStatus;
 
@@ -38,15 +125,15 @@ namespace ShivaQEviewer
         {
             string status;
 
+            int activeSessionNumber = CountActiveSessions(_slave.ipAddress);
 
             status = string.Format("{0} : openning rdp for this server {1}", _slave.hostname, Environment.NewLine);
             UpdateStatus(status);
 
             //open rdp
-            executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
+            IntPtr hServer = executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
                 string.Format("/v:{0} /h:{1} /w:{2}",
                 _slave.ipAddress, _resolution_height, _resolution_width), false, false, _slave);
-
 
             status = string.Format("{0} : copying slave to this server {1}", _slave.hostname, Environment.NewLine);
             UpdateStatus(status);
@@ -57,7 +144,17 @@ namespace ShivaQEviewer
 
             // wait rdp connection is done before executing psexec.
             // Psexec needs that rdp connection in order to gain access rights
-            await Task.Delay(10000);
+            int timeoutCounter = 0;
+            int timeoutLimit = 120; //after 2min lets consider this a fail
+            while (activeSessionNumber + 1 != CountActiveSessions(_slave.ipAddress))
+            {
+                await Task.Delay(1000);
+                if (timeoutCounter >= timeoutLimit)
+                {
+                    break;
+                }
+                timeoutCounter++;
+            }
 
             string username = _slave.login;
             if (username.IndexOf('\\') != -1)
@@ -141,7 +238,7 @@ namespace ShivaQEviewer
                     }
                     catch (Exception ex)
                     {
-                        log.Error(string.Format("can't copy {0}", file_name), ex);
+                        _log.Error(string.Format("can't copy {0}", file_name), ex);
                     }
                 }
 
@@ -149,7 +246,7 @@ namespace ShivaQEviewer
             }
         }
 
-        private void executeCmd(string filename, string argument, bool hidden = false, bool redirectOutput = false, Slave slave = null)
+        private IntPtr executeCmd(string filename, string argument, bool hidden = false, bool redirectOutput = false, Slave slave = null)
         {
             Process process = new Process();
 
@@ -177,15 +274,15 @@ namespace ShivaQEviewer
                 process.EnableRaisingEvents = true;
                 process.OutputDataReceived += (s, e) =>
                 {
-                    log.Info(e.Data);
+                    _log.Info(e.Data);
                 };
                 process.ErrorDataReceived += (s, e) =>
                 {
-                    log.Info("error: " + e.Data);
+                    _log.Info("error: " + e.Data);
                 };
             }
 
-            log.Info(string.Format("execute: {0} {1}", filename, argument));
+            _log.Info(string.Format("execute: {0} {1}", filename, argument));
 
             startInfo.FileName = filename;
             startInfo.Arguments = argument;
@@ -207,6 +304,7 @@ namespace ShivaQEviewer
             //    process.StartInfo.Arguments = string.Format("/delete:TERMSRV/{0}", slave.ipAddress);
             //    process.Start();
             //}
+            return process.Handle;
         }
 
 
