@@ -135,6 +135,12 @@
   <data name="addserverpage_tb_name" xml:space="preserve">
     <value>mypc</value>
   </data>
+  <data name="flyout_ts_record_off" xml:space="preserve">
+    <value>Not Recording</value>
+  </data>
+  <data name="flyout_ts_record_on" xml:space="preserve">
+    <value>Recording</value>
+  </data>
   <data name="global_bt_close" xml:space="preserve">
     <value>Close</value>
   </data>

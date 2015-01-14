@@ -1,39 +1,28 @@
 ﻿using log4net;
-using System;
+using ShivaQEcommon;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace ShivaQEmaster
 {
 	public partial class HomePage
 	{
-
         MainWindowBindings _bindings;
         MouseNKeyListener _mouseNKeyListener;
         SlaveManager _slaveManager;
-        Recorder _recorder;
 
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public HomePage()
 		{
 			this.InitializeComponent();
 
             //_bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
-            _bindings = MainWindow.getBindings;
+            _bindings = MainWindow.Bindings;
             this._mouseNKeyListener = MouseNKeyListener.Instance;
             this._slaveManager = SlaveManager.Instance;
-            this._recorder = Recorder.Instance;
 		}
 
         /// <summary>
@@ -148,21 +137,9 @@ namespace ShivaQEmaster
             }
         }
 
-        private void ts_record_IsCheckedChanged(object sender, System.EventArgs e)
-        {
-            if (_bindings.checked_record)
-            {
-                _recorder.Init();
-            }
-            else
-            {
-                _recorder.Save();
-            }
-        }
-
         private void bt_show_record_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _bindings.checked_record = true;
+            _bindings.flyout_record = true;
         }
 
 	}

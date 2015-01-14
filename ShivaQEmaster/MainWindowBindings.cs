@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using ShivaQEcommon;
-using System.Windows;
+﻿using System.Collections.ObjectModel;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -72,16 +68,17 @@ namespace ShivaQEmaster
             get { return _checked_broadcast_txt; }
         }
 
-        private bool _checked_record = false;
-        public bool checked_record
+		
+		private bool _flyout_record = false;
+        public bool flyout_record
         {
-            get { return _checked_record; }
+            get { return _flyout_record; }
             set
             {
-                if (value != _checked_record)
+                if (value != _flyout_record)
                 {
-                    _checked_record = value;
-                    NotifyPropertyChanged("checked_record");
+                    _flyout_record = value;
+                    NotifyPropertyChanged("flyout_record");
                 }
             }
         }

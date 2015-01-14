@@ -1,16 +1,9 @@
 ﻿using log4net;
+using ShivaQEcommon;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace ShivaQEmaster
 {
@@ -18,7 +11,7 @@ namespace ShivaQEmaster
 	{
         const int _default_port = 1142;
 
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         AddServerPageBindings _bindings;
         SlaveManager _slaveManager;
@@ -96,7 +89,7 @@ namespace ShivaQEmaster
             }
             catch (Exception ex)
             {
-                log.Error("cant parse port, using default " + _default_port, ex);
+                _log.Error("cant parse port, using default " + _default_port, ex);
             }
             _slaveManager.Add(hostname, port, friendlyname);
         }

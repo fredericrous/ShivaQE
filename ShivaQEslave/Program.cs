@@ -75,6 +75,7 @@ namespace ShivaQEslave
                         await networkStream.WriteAsync(ServerResponseBytes, 0, ServerResponseBytes.Length);
                     };
 
+                //global ui change listener behind an hidden window
                 UIChangeListener _uichange = null;
 
                 var hiddenWindow = new Window()

@@ -29,7 +29,7 @@ namespace ShivaQEmaster.Languages {
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal language_en_US() {
+        public language_en_US() {
         }
         
         /// <summary>
@@ -111,6 +111,24 @@ namespace ShivaQEmaster.Languages {
         public static string addserverpage_tb_name {
             get {
                 return ResourceManager.GetString("addserverpage_tb_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Not Recording.
+        /// </summary>
+        public static string flyout_ts_record_off {
+            get {
+                return ResourceManager.GetString("flyout_ts_record_off", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recording.
+        /// </summary>
+        public static string flyout_ts_record_on {
+            get {
+                return ResourceManager.GetString("flyout_ts_record_on", resourceCulture);
             }
         }
         

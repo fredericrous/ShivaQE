@@ -1,38 +1,102 @@
 ﻿using log4net;
+using ShivaQEcommon;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Windows.Forms;
+using System.Windows.Media.Animation;
 
 namespace ShivaQEmaster
 {
 	public partial class RecorderFlyout
 	{
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        RecorderFlyoutBindings _bindings;
+        Storyboard _sb_beginRecord;
+        Storyboard _sb_stopRecord;
+        Recorder _recorder;
 
 		public RecorderFlyout()
 		{
 			this.InitializeComponent();
 
-			// Insert code required on object creation below this point.
+            _bindings = this.Resources["RecorderFlyoutBindingsDataSource"] as RecorderFlyoutBindings;
+            _sb_beginRecord = this.FindResource("sb_beginRecord") as Storyboard;
+            _sb_stopRecord = this.FindResource("sb_stopRecord") as Storyboard;
+            _recorder = Recorder.Instance;
+            _recorder.TimeElapsed += (elapsed) =>
+            {
+                _bindings.time_elapsed = elapsed;
+            };
 		}
 
-		private void ts_broadcast_IsCheckedChanged(object sender, System.EventArgs e)
+		private void ts_record_IsCheckedChanged(object sender, System.EventArgs e)
 		{
-			// TODO: Add event handler implementation here.
+            if (_bindings.checked_record)
+            {
+                //animation
+                _sb_stopRecord.Remove();
+                _sb_beginRecord.Begin();
+
+                _recorder.Start();
+
+            }
+            else
+            {
+                _sb_beginRecord.Stop();
+                _sb_stopRecord.Begin();
+
+                SaveFileDialog saveFileDialog = new SaveFileDialog();
+                saveFileDialog.Filter = "Recorded Scenario|*.zip|All Files|*.*";
+                saveFileDialog.Title = "Save a record";
+                saveFileDialog.ShowDialog();
+                if (saveFileDialog.FileName != "")
+                {
+                    _recorder.Save(saveFileDialog.FileName);
+                }
+
+                _bindings.time_elapsed = new TimeSpan();
+            }
 		}
+		
 
 		private void rec_time_bar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
 		{
-			log.Info("test");
+			_log.Info("test");
+		}
+
+		private void bt_load_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+            OpenFileDialog openFileDialog_Load = new OpenFileDialog();
+            openFileDialog_Load.Filter = "Recorded Scenario|*.zip|All Files|*.*";
+            openFileDialog_Load.FilterIndex = 1;
+
+            DialogResult userClickedOK = openFileDialog_Load.ShowDialog();
+
+            if (userClickedOK == DialogResult.OK)
+            {
+                _recorder.Load(openFileDialog_Load.FileName);
+            }
+		}
+
+        //private void bt_play_Click(object sender, System.Windows.RoutedEventArgs e)
+        //{
+        //    _recorder.Play();
+        //}
+
+		private void bt_save_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+            _recorder.Save();
+		}
+
+		private void bt_execute_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+            _recorder.Play();
+		}
+
+		private void bt_preview_Click(object sender, System.Windows.RoutedEventArgs e)
+		{
+            _recorder.Preview();
 		}
 	}
 }

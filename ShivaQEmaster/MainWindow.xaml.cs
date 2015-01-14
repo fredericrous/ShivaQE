@@ -2,20 +2,15 @@
 using ShivaQEcommon.Eventdata;
 using System;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Timers;
 using System.Windows;
-using System.Windows.Input;
-using System.Diagnostics;
 using Newtonsoft.Json;
 using System.Net.Sockets;
-using MahApps.Metro.Controls;
+using System.Threading.Tasks;
+using ShivaQEcommon;
+using System.Drawing;
 using log4net;
 using System.Reflection;
-using System.Linq;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Text;
 
 namespace ShivaQEmaster
 {
@@ -30,12 +25,12 @@ namespace ShivaQEmaster
         UIChangeListener _uichange;
         Recorder _recorder;
 
-        public static MainWindowBindings getBindings
+        public static MainWindowBindings Bindings
         {
             get { return _bindings; }
         }
 
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         static string lastKey = string.Empty; //there's a time out to reset lastKey 3sec after a press key
         static Timer doubleClickReset = new Timer() { Interval = 3000, AutoReset = false };
@@ -45,6 +40,8 @@ namespace ShivaQEmaster
         public MainWindow()
         {
             InitializeComponent();
+
+            //new Analytics()  .Init("ShivaQE Viewer", "1.0");
 
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
@@ -66,7 +63,7 @@ namespace ShivaQEmaster
                         }
                         catch (Exception ex)
                         {
-                            log.Warn("error getting active window info", ex);
+                            _log.Warn("error getting active window info", ex);
                             return;
                         }
                     };
@@ -88,7 +85,7 @@ namespace ShivaQEmaster
                 }
                 catch (Exception ex)
                 {
-                    log.Error("cant clean properly", ex);
+                    _log.Error("cant clean properly", ex);
                 }
             };
 
@@ -110,7 +107,7 @@ namespace ShivaQEmaster
                         }
                         catch (Exception ex)
                         {
-                            log.Warn("error getting active window info", ex);
+                            _log.Warn("error getting active window info", ex);
                             _activeWindowInfo = null;
                         }
                         if (_activeWindowInfo != null)
@@ -119,7 +116,21 @@ namespace ShivaQEmaster
                         }
 
                         //record click
-                        _recorder.Record(ev);
+                        _recorder.Write(ev);
+
+                        //save picture of click in order to compare
+                        string comparatorName = string.Format("camparator.{0}.png", 1);
+                        int rect_size = 64;
+                        Rectangle rect = new Rectangle()
+                        {
+                            Height = rect_size,
+                            Width = rect_size,
+                            X = ev.position_x - (rect_size / 2),
+                            Y = ev.position_y - (rect_size / 2)
+                        };
+                        Bitmap comparatorCapture = ScreenCapturePInvoke.CaptureScreen(rect, false);
+                        comparatorCapture.Save(comparatorName);
+
 
                         //send click
                         try
@@ -129,7 +140,7 @@ namespace ShivaQEmaster
                         }
                         catch (IOException ex)
                         {
-                            log.Error("refresh list because", ex);
+                            _log.Error("refresh list because", ex);
                             //404 lv_slaves.Items.Refresh();
                         }
                     });
@@ -178,7 +189,7 @@ namespace ShivaQEmaster
                             }
                             catch (Exception ex)
                             {
-                                log.Warn("error getting active window info", ex);
+                                _log.Warn("error getting active window info", ex);
                                 return;
                             }
                             actionValue = activeWindowInfo.Item1 + "." + String.Join(".", activeWindowInfo.Item2);
@@ -219,7 +230,7 @@ namespace ShivaQEmaster
                     else if (_mouseNKeyListener.isActive)
                     {
                         //record
-                        _recorder.Record(ev);
+                        _recorder.Write(ev);
 
                         //send input
                         await _slaveManager.Send<MouseNKeyEventArgs>(ev);
@@ -230,7 +241,7 @@ namespace ShivaQEmaster
                 }
                 catch (IOException ex)
                 {
-                    log.Error("refresh list because", ex);
+                    _log.Error("refresh list because", ex);
                     //404 lv_slaves.Items.Refresh();
                 }
             };
@@ -245,7 +256,7 @@ namespace ShivaQEmaster
                 }
                 catch (Exception ex)
                 {
-                    log.Error("refresh list because", ex);
+                    _log.Error("refresh list because", ex);
                     // 404 lv_slaves.Items.Refresh();
                 }
             };
@@ -269,7 +280,7 @@ namespace ShivaQEmaster
                     }
                     catch (Exception ex)
                     {
-                        log.Error("can't send clipboard update", ex);
+                        _log.Error("can't send clipboard update", ex);
                     }
                 };
         }
@@ -289,7 +300,7 @@ namespace ShivaQEmaster
             }
             catch (Exception ex)
             {
-                log.Error("error send window created", ex);
+                _log.Error("error send window created", ex);
             }
         }
 
@@ -331,11 +342,5 @@ namespace ShivaQEmaster
             _NavigationFrame.Navigate(new SettingsPage());
         }
         
-        /* 
-         * TODO:
-         * recorder - behavior testing
-         * analytics, zones les plus cliqués
-         * 
-         */
     }
 }

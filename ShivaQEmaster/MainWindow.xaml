@@ -20,7 +20,7 @@
 	</Controls:MetroWindow.RightWindowCommands>
 	<Controls:MetroWindow.Flyouts>
 		<Controls:FlyoutsControl>
-			<Controls:Flyout Header="Record" Position="Bottom" Height="200" IsOpen="{Binding checked_record, Source={StaticResource MainWindowBindingsDataSource}}">
+			<Controls:Flyout Header="Record" Position="Bottom" Height="200" IsOpen="{Binding flyout_record, Source={StaticResource MainWindowBindingsDataSource}}">
 				<DockPanel HorizontalAlignment="Left" LastChildFill="False" VerticalAlignment="Top">
 					<Frame Source="RecorderFlyout.xaml" />
 				</DockPanel>

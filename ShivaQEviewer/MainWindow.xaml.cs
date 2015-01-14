@@ -50,6 +50,7 @@ namespace ShivaQEviewer
 
             Deployer.CmdLauncherExists();
 
+            //auto fill textboxes width/height, for opening computers to view, to the size of the current computer
             System.Drawing.Rectangle resolution = Screen.PrimaryScreen.Bounds;
             _bindings.width = resolution.Width.ToString();
             _bindings.height = resolution.Height.ToString();
@@ -60,6 +61,14 @@ namespace ShivaQEviewer
             {
                 var registryKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Terminal Server Client");
                 registryKey.SetValue("AuthenticationLevelOverride", 0x00, RegistryValueKind.DWord);
+            }
+
+            //prevent rdp to go in GUI-Less mode
+            key = @"Software\Microsoft\Terminal Server Client\RemoteDesktop_SuppressWhenMinimized";
+            if (Registry.CurrentUser.OpenSubKey(key) == null)
+            {
+                var registryKey = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\Microsoft\Terminal Server Client");
+                registryKey.SetValue("RemoteDesktop_SuppressWhenMinimized", 0x02, RegistryValueKind.DWord);
             }
 
             //load serverlist json save

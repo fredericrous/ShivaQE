@@ -13,135 +13,6 @@
 	<Page.Resources>
 		<Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
 		<local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>
-		<Style x:Key="ToggleSwitchStyle1" TargetType="{x:Type Controls:ToggleSwitch}">
-			<Setter Property="IsTabStop" Value="True"/>
-			<Setter Property="SwitchForeground" Value="{DynamicResource AccentColorBrush}"/>
-			<Setter Property="HorizontalContentAlignment" Value="Left"/>
-			<Setter Property="VerticalContentAlignment" Value="Center"/>
-			<Setter Property="Foreground" Value="{DynamicResource BlackBrush}"/>
-			<Setter Property="FontFamily" Value="Segoe UI Semibold"/>
-			<Setter Property="FontSize" Value="14.667"/>
-			<Setter Property="HeaderTemplate">
-				<Setter.Value>
-					<DataTemplate>
-						<TextBlock FontWeight="Normal" FontSize="16" HorizontalAlignment="Left" Margin="0,0,0,5" Opacity="0.65" TextWrapping="Wrap" Text="{Binding Mode=OneWay}" VerticalAlignment="Top"/>
-					</DataTemplate>
-				</Setter.Value>
-			</Setter>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Controls:ToggleSwitch}">
-						<Border BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" Padding="{TemplateBinding Padding}">
-							<VisualStateManager.VisualStateGroups>
-								<VisualStateGroup x:Name="CommonStates">
-									<VisualState x:Name="Normal"/>
-									<VisualState x:Name="Disabled">
-										<Storyboard>
-											<DoubleAnimation Duration="0" To="0.3" Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="Header"/>
-											<DoubleAnimation Duration="0" To="0.3" Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="Content"/>
-											<DoubleAnimation Duration="0" To="0.75" Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="Switch"/>
-										</Storyboard>
-									</VisualState>
-								</VisualStateGroup>
-							</VisualStateManager.VisualStateGroups>
-							<Grid>
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition x:Name="firstCol" Width="*"/>
-									<ColumnDefinition x:Name="secCol" Width="Auto"/>
-								</Grid.ColumnDefinitions>
-								<Grid.RowDefinitions>
-									<RowDefinition Height="Auto"/>
-									<RowDefinition Height="Auto"/>
-								</Grid.RowDefinitions>
-								<ContentControl x:Name="Header" Grid.ColumnSpan="2" ContentTemplate="{TemplateBinding HeaderTemplate}" Content="{TemplateBinding Header}" IsTabStop="False"/>
-								<ContentControl x:Name="Content" ContentTemplate="{TemplateBinding ContentTemplate}" Content="{TemplateBinding Content}" FontSize="{TemplateBinding FontSize}" FontFamily="{TemplateBinding FontFamily}" HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" IsTabStop="False" Grid.Row="1" VerticalAlignment="{TemplateBinding VerticalContentAlignment}"/>
-								<Controls:ToggleSwitchButton x:Name="Switch" Background="{TemplateBinding Background}" Grid.Column="1" IsChecked="{Binding IsChecked, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" SwitchForeground="{TemplateBinding SwitchForeground}" VerticalAlignment="Center" Style="{DynamicResource ToggleSwitchButtonStyle1}"/>
-							</Grid>
-						</Border>
-						<ControlTemplate.Triggers>
-							<DataTrigger Binding="{Binding Header, RelativeSource={RelativeSource Self}}" Value="{x:Null}">
-								<Setter Property="Visibility" TargetName="Header" Value="Collapsed"/>
-							</DataTrigger>
-							<Trigger Property="ContentDirection" Value="RightToLeft">
-								<Setter Property="HorizontalContentAlignment" Value="Right"/>
-								<Setter Property="Width" TargetName="firstCol" Value="Auto"/>
-								<Setter Property="Width" TargetName="secCol" Value="*"/>
-								<Setter Property="Grid.Column" TargetName="Content" Value="1"/>
-								<Setter Property="Grid.Column" TargetName="Switch" Value="0"/>
-							</Trigger>
-						</ControlTemplate.Triggers>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
-		<Style x:Key="ToggleSwitchButtonStyle1" TargetType="{x:Type Controls:ToggleSwitchButton}">
-			<Setter Property="IsTabStop" Value="False"/>
-			<Setter Property="SwitchForeground" Value="{DynamicResource AccentColorBrush}"/>
-			<Setter Property="Width" Value="70"/>
-			<Setter Property="Height" Value="35"/>
-			<Setter Property="Template">
-				<Setter.Value>
-					<ControlTemplate TargetType="{x:Type Controls:ToggleSwitchButton}">
-						<Grid>
-							<VisualStateManager.VisualStateGroups>
-								<VisualStateGroup x:Name="CommonStates">
-									<VisualState x:Name="Normal"/>
-									<VisualState x:Name="Disabled">
-										<Storyboard>
-											<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="PART_BackgroundOverlay">
-												<DiscreteDoubleKeyFrame KeyTime="0" Value="0.5"/>
-											</DoubleAnimationUsingKeyFrames>
-											<ObjectAnimationUsingKeyFrames Storyboard.TargetProperty="(Shape.Fill)" Storyboard.TargetName="PART_ThumbIndicator">
-												<DiscreteObjectKeyFrame KeyTime="0" Value="{DynamicResource GrayBrush4}"/>
-											</ObjectAnimationUsingKeyFrames>
-										</Storyboard>
-									</VisualState>
-									<VisualState x:Name="MouseOver">
-										<Storyboard>
-											<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="PART_BackgroundOverlay">
-												<DiscreteDoubleKeyFrame KeyTime="0" Value="0.2"/>
-											</DoubleAnimationUsingKeyFrames>
-										</Storyboard>
-									</VisualState>
-									<VisualState x:Name="Pressed">
-										<Storyboard>
-											<DoubleAnimationUsingKeyFrames Storyboard.TargetProperty="(UIElement.Opacity)" Storyboard.TargetName="PART_BackgroundOverlay">
-												<DiscreteDoubleKeyFrame KeyTime="0" Value="0.4"/>
-											</DoubleAnimationUsingKeyFrames>
-										</Storyboard>
-									</VisualState>
-								</VisualStateGroup>
-							</VisualStateManager.VisualStateGroups>
-							<Grid x:Name="PART_SwitchTrack" Margin="5">
-								<Border BorderBrush="#FFFBA92C" BorderThickness="2">
-									<Grid ClipToBounds="True" Margin="2">
-										<Rectangle Fill="{Binding SwitchForeground, RelativeSource={RelativeSource TemplatedParent}}"/>
-										<Rectangle Fill="#FFFBA92C" RenderTransformOrigin="0.5,0.5">
-											<Rectangle.RenderTransform>
-												<TranslateTransform/>
-											</Rectangle.RenderTransform>
-										</Rectangle>
-										<Rectangle x:Name="PART_BackgroundOverlay" Fill="{DynamicResource WhiteBrush}" Opacity="0"/>
-									</Grid>
-								</Border>
-								<Rectangle x:Name="PART_ThumbIndicator" Fill="{DynamicResource BlackBrush}" HorizontalAlignment="Left" Width="13">
-									<Rectangle.RenderTransform>
-										<TranslateTransform/>
-									</Rectangle.RenderTransform>
-								</Rectangle>
-							</Grid>
-							<Thumb x:Name="PART_DraggingThumb">
-								<Thumb.Template>
-									<ControlTemplate>
-										<Rectangle Fill="Transparent"/>
-									</ControlTemplate>
-								</Thumb.Template>
-							</Thumb>
-						</Grid>
-					</ControlTemplate>
-				</Setter.Value>
-			</Setter>
-		</Style>
 	</Page.Resources>
 
 	<Grid x:Name="LayoutRoot" Background="White" DataContext="{Binding Source={StaticResource MainWindowBindingsDataSource}}">
@@ -177,7 +48,7 @@
 				</GridView>
 			</ListView.View>
 		</ListView>
-		<Controls:ToggleSwitch x:Name="ts_broadcast" Margin="10,26.199,514.11,286.971" SwitchForeground="#FFFBA92C" Cursor="Hand" IsChecked="{Binding checked_broadcast}" IsCheckedChanged="ts_broadcast_IsCheckedChanged" Style="{DynamicResource ToggleSwitchStyle1}" Content="{Binding checked_broadcast_txt}" />
+		<Controls:ToggleSwitch x:Name="ts_broadcast" Margin="10,26.199,514.11,286.971" SwitchForeground="#FFFBA92C" Cursor="Hand" IsChecked="{Binding checked_broadcast, Mode=TwoWay}" IsCheckedChanged="ts_broadcast_IsCheckedChanged" Content="{Binding checked_broadcast_txt}" />
 		<Button x:Name="bt_remove" Margin="587,148.199,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Click="bt_remove_Click" Content="{Binding homepage_bt_remove, Source={StaticResource language_en_USDataSource}}" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" />
 		<Button x:Name="bt_reconnect" Margin="587,26.199,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Click="bt_reconnect_Click" Content="{Binding homepage_bt_reconnect, Source={StaticResource language_en_USDataSource}}" Cursor="Hand" FontSize="18.667" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" />
 		<Grid x:Name="gd_logo" Margin="1,97.889,501.282,74.472">

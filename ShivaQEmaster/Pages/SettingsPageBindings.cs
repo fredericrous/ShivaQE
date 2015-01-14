@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.ObjectModel;
-using System.ComponentModel;
-using ShivaQEcommon;
-using System.Windows;
-using System.Linq;
-using System.Collections.Generic;
-
+﻿
 namespace ShivaQEmaster
 {
     public class SettingsPageBindings : BindingsBase

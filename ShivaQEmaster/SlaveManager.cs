@@ -4,7 +4,6 @@ using System.Text;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
 using System.Windows;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,8 +11,9 @@ using ShivaQEcommon.Eventdata;
 using System.IO;
 using System.Net;
 using System.Collections.Generic;
-using System.Reflection;
+using ShivaQEcommon;
 using log4net;
+using System.Reflection;
 
 namespace ShivaQEmaster
 {
@@ -38,7 +38,7 @@ namespace ShivaQEmaster
     {
         private int port;
 
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         const int KL_NAMELENGTH = 9;
 
@@ -97,7 +97,7 @@ namespace ShivaQEmaster
                 }
                 catch (Exception ex)
                 {
-                    log.Error(string.Format("load json {0}", slaveList_save_path), ex);
+                    _log.Error(string.Format("load json {0}", slaveList_save_path), ex);
                 }
             }
         }
@@ -137,10 +137,10 @@ namespace ShivaQEmaster
                 slave.name = friendlyname;
 
                 // Connect to the remote endpoint.
-                log.Info("[Master] Connecting to slave");
+                _log.Info("[Master] Connecting to slave");
                 //IPAddress address = IPAddress.Parse(slave.ipAddress + IPAddress.Loopback.ToString());
                 await slave.client.ConnectAsync(slave.ipAddress, port);
-                log.Info("[Master] Connected to slave");
+                _log.Info("[Master] Connected to slave");
 
                 var networkStream = slave.client.GetStream();
 
@@ -148,7 +148,7 @@ namespace ShivaQEmaster
                 var buffer = new byte[4096]; //server should send which patform and which version it's on. buffer of 4096 is largely enough
                 var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
                 var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
-                log.Info(string.Format("[Master] Slave response was {0}", response));
+                _log.Info(string.Format("[Master] Slave response was {0}", response));
 
                 //add slave to list
                 slaveList.Add(slave);
@@ -165,14 +165,14 @@ namespace ShivaQEmaster
                     string json = JsonConvert.SerializeObject(action);
                     json += "<EOF>";
                     byte[] byteData = Encoding.UTF8.GetBytes(json);
-                    log.Info(string.Format("[Master] Writing request {0}", byteData));
+                    _log.Info(string.Format("[Master] Writing request {0}", byteData));
                     try
                     {
                         await networkStream.WriteAsync(byteData, 0, byteData.Length);
                     }
                     catch (Exception ex)
                     {
-                        log.Error("Error writting request", ex);
+                        _log.Error("Error writting request", ex);
                         throw new Exception("cant write"); //doesnt work
                     }
 
@@ -182,7 +182,7 @@ namespace ShivaQEmaster
             catch (Exception ex)
             {
                 MessageBox.Show("Can't add host");
-                log.Warn("error adding slave", ex);
+                _log.Warn("error adding slave", ex);
             }
         }
 
@@ -204,18 +204,18 @@ namespace ShivaQEmaster
                 if (slave.status == "Connected")
                 {
                     var networkStream = slave.client.GetStream();
-                    log.Info(string.Format("[Master] Writing request {0}", json));
+                    _log.Info(string.Format("[Master] Writing request {0}", json));
                     try
                     {
                         await networkStream.WriteAsync(byteData, 0, byteData.Length);
                     }
                     catch (Exception ex)
                     {
-                        log.Error("Error writing request tcp", ex);
+                        _log.Error("Error writing request tcp", ex);
                         slaveList.Where(x => x.ipAddress == slave.ipAddress).First().client.Close();
                         throw;
                     }
-                    log.Info("[Master] Written");
+                    _log.Info("[Master] Written");
                 }
             }
             return;
@@ -268,11 +268,11 @@ namespace ShivaQEmaster
                 {
                     slave.Renew();
                     await slave.client.ConnectAsync(IPAddress.Parse(slave.ipAddress), slave.port);
-                    log.Info("[Client] re-Connected to server");
+                    _log.Info("[Client] re-Connected to server");
                 }
                 catch (Exception ex)
                 {
-                    log.Error("Exception while reconnecting (could be timeout)", ex);
+                    _log.Error("Exception while reconnecting (could be timeout)", ex);
                     MessageBox.Show("Can't reconnect, maybe slave is not launched or has been terminated!?");
                     result = false;
                 }
@@ -303,7 +303,7 @@ namespace ShivaQEmaster
             catch (Exception ex)
             {
                 string error = string.Format("Error requesting disconnect from {0}", slave.name);
-                log.Error(error, ex);
+                _log.Error(error, ex);
                 result = false;
             }
             return result;

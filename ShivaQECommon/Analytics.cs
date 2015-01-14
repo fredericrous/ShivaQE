@@ -1,13 +1,9 @@
 ﻿using log4net;
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.IO;
-using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace ShivaQEcommon
 {
@@ -20,7 +16,7 @@ namespace ShivaQEcommon
         NameValueCollection _data;
         string _request_method = "POST";
 
-        public Analytics(string app_name, string app_version)
+        public void Init(string app_name, string app_version)
         {
             _data = new NameValueCollection();
             _data["v"] = "1"; //version
@@ -32,6 +28,12 @@ namespace ShivaQEcommon
 
         public void Event(string category, string action, string label, string value)
         {
+            if (SettingsManager.ReadSetting("analytics_status") != "true")
+            {
+                log.Info("analytics deactivated, event not sent");
+                return;
+            }
+
             using (var wb = new WebClient())
             {
                 var data = new NameValueCollection(_data);
@@ -55,6 +57,12 @@ namespace ShivaQEcommon
 
         public void Exception(Exception exception)
         {
+            if (SettingsManager.ReadSetting("analytics_status") != "true")
+            {
+                log.Info("analytics deactivated, exception not sent");
+                return;
+            }
+
             string exceptionType = exception.GetType().Name;
 
             using (var wb = new WebClient())

@@ -59,7 +59,9 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -78,6 +80,8 @@
     <Compile Include="Hook\GlobalHooks.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Hook\UIChangeListener.cs" />
+    <Compile Include="ScreenCapturePInvoke.cs" />
+    <Compile Include="SettingsManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\GlobalCbtHook\Debug\GlobalCbtHook.dll">

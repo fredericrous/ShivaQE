@@ -12,6 +12,7 @@ namespace ShivaQEcommon.Eventdata
         public string keyData { get; set; }
         public int position_x { get; set; }
         public int position_y { get; set; }
-        public long timestamp { get; set; }
+        public double timestamp { get; set; }
+        public string screenshot { get; set; }
     }
 }
