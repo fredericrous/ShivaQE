@@ -1,6 +1,7 @@
 /*******************************************************************************
 Slate Theme for GitHub Pages
 by Jason Costello, @jsncostello
+edited by Zougi
 *******************************************************************************/
 
 @import url(pygment_trac.css);
@@ -22,7 +23,7 @@ article, aside, canvas, details, embed,
 figure, figcaption, footer, header, hgroup,
 menu, nav, output, ruby, section, summary,
 time, mark, audio, video {
-  margin: 0;
+  margin: 0px;
   padding: 0;
   border: 0;
   font: inherit;
@@ -137,15 +138,10 @@ img {
   position: relative;
   margin: 0 auto;
   max-width: 739px;
+  width: 299px;
   padding: 5px;
   margin: 10px 0 10px 0;
-  border: 1px solid #ebebeb;
-
-  box-shadow: 0 0 5px #ebebeb;
-  -webkit-box-shadow: 0 0 5px #ebebeb;
-  -moz-box-shadow: 0 0 5px #ebebeb;
-  -o-box-shadow: 0 0 5px #ebebeb;
-  -ms-box-shadow: 0 0 5px #ebebeb;
+  border: none;
 }
 
 p img {
@@ -234,9 +230,11 @@ hr {
 }
 
 table {
-  border: 1px solid #373737;
+  border: none;
   margin-bottom: 20px;
   text-align: left;
+  width: 100%;
+  text-align: center;
  }
 
 th {
@@ -248,7 +246,6 @@ th {
 
 td {
   padding: 10px;
-  border: 1px solid #373737;
  }
 
 form {
@@ -266,7 +263,7 @@ Full-Width Styles
 
 .inner {
   position: relative;
-  max-width: 640px;
+  max-width: 900px;
   padding: 20px 10px;
   margin: 0 auto;
 }
@@ -279,7 +276,7 @@ Full-Width Styles
   z-index: 10;
   padding: 10px 50px 10px 10px;
   color: #fff;
-  background: url('../images/blacktocat.png') #0090ff no-repeat 95% 50%;
+  background: url('../images/blacktocat.png') #fba92c no-repeat 95% 50%;
   font-weight: 700;
   box-shadow: 0 0 10px rgba(0,0,0,.5);
   border-bottom-left-radius: 2px;
@@ -325,22 +322,29 @@ Full-Width Styles
   background: url('../images/icon_download.png') no-repeat 0% 90%;
 }
 
+#downloads > a > span {
+  bottom: 3px;
+  position: absolute;
+  right: 14px;
+  color: white;
+}
+
 .zip_download_link {
   display: block;
   float: right;
   width: 90px;
   height:70px;
-  text-indent: -5000px;
   overflow: hidden;
   background: url(../images/sprite_download.png) no-repeat bottom left;
+  font-weight: bold;
 }
 
 .tar_download_link {
   display: block;
   float: right;
   width: 90px;
+  position: relative;
   height:70px;
-  text-indent: -5000px;
   overflow: hidden;
   background: url(../images/sprite_download.png) no-repeat bottom right;
   margin-left: 10px;
@@ -354,14 +358,85 @@ Full-Width Styles
   background: url(../images/sprite_download.png) no-repeat top right;
 }
 
-#main_content_wrap {
+#section1_wrap {
   background: #f2f2f2;
-  border-top: 1px solid #111;
-  border-bottom: 1px solid #111;
 }
 
-#main_content {
+#section1 {
   padding-top: 40px;
+}
+
+#section2_wrap {
+  background: #373737;
+  color:#ebebeb;
+}
+
+#section2 {
+  padding-top: 40px;
+}
+
+#section2 > h2 {
+  color:white;
+}
+
+#section2 > img {
+    margin-left: 86px;
+}
+
+#section3_wrap {
+  background: #f2f2f2;
+}
+
+#section3 {
+  padding-top: 40px;
+}
+
+#section3 .imglogo {
+    width: 96px;
+}
+
+#section3 img {
+    width: 128px;
+}
+
+#section3 td {
+    width: 160px;
+}
+
+#section4_wrap {
+  background: #373737;
+  color:#ebebeb;
+}
+
+#section4 {
+  padding-top: 40px;
+}
+
+#section3 b {
+  font-size: 20pt;
+  font-weight: bold;
+}
+
+#section3 > table p {
+  text-align:left;
+}
+
+#section4 > h2 {
+  color:white;
+}
+
+#section5_wrap {
+  background: #f2f2f2;
+  color:#000000;
+}
+
+#section5 {
+  padding-top: 40px;
+}
+
+#section5 img {
+  width: 739px;
+  margin-left: 75px;
 }
 
 #footer_wrap {
