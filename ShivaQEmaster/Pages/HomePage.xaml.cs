@@ -3,15 +3,17 @@ using ShivaQEcommon;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Documents;
 
 namespace ShivaQEmaster
 {
 	public partial class HomePage
 	{
-        MainWindowBindings _bindings;
+        HomePageBindings _bindings;
         MouseNKeyListener _mouseNKeyListener;
         SlaveManager _slaveManager;
+        MainWindowBindings _bind_main;
 
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -19,8 +21,8 @@ namespace ShivaQEmaster
 		{
 			this.InitializeComponent();
 
-            //_bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
-            _bindings = MainWindow.Bindings;
+            _bindings = this.Resources["HomePageBindingsDataSource"] as HomePageBindings;
+            _bind_main = MainWindow.Bindings;
             this._mouseNKeyListener = MouseNKeyListener.Instance;
             this._slaveManager = SlaveManager.Instance;
 		}
@@ -57,7 +59,7 @@ namespace ShivaQEmaster
         {
             List<Task> tasks = new List<Task>();
 
-            foreach (Slave slave in _bindings.selectedSlaves)
+            foreach (Slave slave in _bind_main.selectedSlaves)
             {
                 tasks.Add(_slaveManager.Reconnect(slave));
             }
@@ -96,7 +98,7 @@ namespace ShivaQEmaster
         /// <param name="e"></param>
         private void bt_remove_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _slaveManager.Remove(_bindings.selectedSlaves);
+            _slaveManager.Remove(_bind_main.selectedSlaves);
         }
 
 
@@ -104,7 +106,7 @@ namespace ShivaQEmaster
         {
             List<Task> tasks = new List<Task>();
 
-            foreach (Slave slave in _bindings.selectedSlaves)
+            foreach (Slave slave in _bind_main.selectedSlaves)
             {
                 tasks.Add(_slaveManager.Disconnect(slave));
             }
@@ -117,14 +119,20 @@ namespace ShivaQEmaster
 
         private void bt_add_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            //_bindings.window_add = Visibility.Visible;
             //this.NavigationService.Navigate(new Uri("Pages/AddServerPage.xaml", UriKind.Relative));
-            this.NavigationService.Navigate(new AddServerPage());
+            AddServerPage page = new AddServerPage();
+            AddServerPage.ErrorMsg += (error_msg) =>
+                {
+                   // _bindings.error_msg = error_msg;
+                    MessageBox.Show(error_msg);
+                };
+            this.NavigationService.Navigate(page);
         }
 
         private void ts_broadcast_IsCheckedChanged(object sender, System.EventArgs e)
         {
-            if (_bindings.checked_broadcast)
+            //if (_bindings.checked_broadcast)
+            if (ts_broadcast.IsChecked == true)
             {
                 if (!_mouseNKeyListener.isActive)
                 {
@@ -139,7 +147,7 @@ namespace ShivaQEmaster
 
         private void bt_show_record_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            _bindings.flyout_record = true;
+            _bind_main.flyout_record = true;
         }
 
 	}

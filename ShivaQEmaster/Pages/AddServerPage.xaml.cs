@@ -2,6 +2,7 @@
 using ShivaQEcommon;
 using System;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 
@@ -45,6 +46,8 @@ namespace ShivaQEmaster
             this.NavigationService.Navigate(new Uri("Pages/HomePage.xaml", UriKind.Relative));
         }
 
+        private bool add_local_warning = false;
+
         /// <summary>
         /// add slave to the list and autoconnect to it.
         /// </summary>
@@ -58,7 +61,9 @@ namespace ShivaQEmaster
             //hostname is needed as an identifier on the network
             if (hostname == string.Empty)
             {
-                MessageBox.Show("ip (or hostname) must be specified");
+                _bindings.error_color = "Red";
+                string error_msg = "ip (or hostname) must be specified";
+                _bindings.error_msg = error_msg;
                 return;
             }
 
@@ -71,13 +76,20 @@ namespace ShivaQEmaster
             //warning if you try to connect to slave a master
             if (hostname == "localhost" || hostname == "127.0.0.1" || hostname == "::1")
             {
-                var dialogResult = System.Windows.Forms.MessageBox.Show("You're about to add your master computer as a slave. It will result in infinite loop when you click or press a key.\n"
-                    + "Are you sure you want to do that?", "Warning", System.Windows.Forms.MessageBoxButtons.YesNo);
+                _bindings.error_color = "#FF0062AE";
+                _bindings.error_msg = "You're about to add your master computer as a slave.\n"
+                    + "It will result in infinite loop when you click or press a key.\n"
+                    + "Click Add again to validate this choice?";
 
-                if (dialogResult == System.Windows.Forms.DialogResult.No)
+                if (!add_local_warning)
                 {
+                    add_local_warning = true;
                     return;
                 }
+                //if (dialogResult == System.Windows.Forms.DialogResult.No)
+                //{
+                //    return;
+                //}
             }
 
             //add new slave to list of slaves
@@ -89,9 +101,29 @@ namespace ShivaQEmaster
             }
             catch (Exception ex)
             {
-                _log.Error("cant parse port, using default " + _default_port, ex);
+                _log.Warn("cant parse port, using default " + _default_port, ex);
             }
-            _slaveManager.Add(hostname, port, friendlyname);
+
+            AddServer(hostname, port, friendlyname);
+
+            //go back to homepage
+            this.NavigationService.Navigate(new Uri("Pages/HomePage.xaml", UriKind.Relative));
+        }
+
+        public delegate void errorEventHandler(string text);
+        public static event errorEventHandler ErrorMsg;
+
+        private async void AddServer(string hostname, int port, string friendlyname)
+        {
+            try
+            {
+                await _slaveManager.Add(hostname, port, friendlyname);
+            }
+            catch (Exception ex)
+            {
+                ErrorMsg("Can't add host. Is slave activated?");
+               // _bindings.error_msg = ex.Message;
+            }
         }
 	}
 }

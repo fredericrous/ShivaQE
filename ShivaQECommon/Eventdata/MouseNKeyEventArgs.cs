@@ -14,5 +14,6 @@ namespace ShivaQEcommon.Eventdata
         public int position_y { get; set; }
         public double timestamp { get; set; }
         public string screenshot { get; set; }
+        public string windowPos { get; set; }
     }
 }

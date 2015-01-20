@@ -5,89 +5,31 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:ShivaQEviewer" mc:Ignorable="d" x:Class="ShivaQEviewer.MainWindow"
-        Title="ShivaQE Viewer" Height="342" Width="725" ResizeMode="CanMinimize" BorderThickness="1" BorderBrush="DarkOrange" WindowTitleBrush="#FF020202" WindowTransitionsEnabled="False" KeyDown="Window_KeyDown">
+        Title="ShivaQE Viewer" Height="342" Width="725"
+		ResizeMode="CanMinimize" BorderThickness="1" BorderBrush="DarkOrange" WindowTitleBrush="#FF020202"
+		WindowTransitionsEnabled="False">
     <Controls:MetroWindow.Resources>
 		<local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>
     </Controls:MetroWindow.Resources>
+	<Controls:MetroWindow.RightWindowCommands>
+		<Controls:WindowCommands>
+		    <Button x:Name="bt_help" Click="bt_help_Click" Content="Help" />
+		</Controls:WindowCommands>		
+	</Controls:MetroWindow.RightWindowCommands>
+	<Controls:MetroWindow.Flyouts>
+		<Controls:FlyoutsControl>
+			<Controls:Flyout x:Name="flyout_log" Header="Log" Position="Bottom" Height="200" IsOpen="{Binding flyout_log, Source={StaticResource MainWindowBindingsDataSource}}">
+				<DockPanel HorizontalAlignment="Left" LastChildFill="False" VerticalAlignment="Top">
+					<Frame Source="LogFlyout.xaml" />
+				</DockPanel>
+			</Controls:Flyout>
+		</Controls:FlyoutsControl>
+	</Controls:MetroWindow.Flyouts>
 	<Grid DataContext="{Binding Source={StaticResource MainWindowBindingsDataSource}}">
-		<Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" x:Name="logo" Stretch="Uniform" Margin="27,24,564,162"><Canvas Name="Layer_1" Width="39.008" Height="32.458" Canvas.Left="0" Canvas.Top="0"><Canvas.RenderTransform><TranslateTransform X="0" Y="0"/></Canvas.RenderTransform><Canvas.Resources/><!--Unknown tag: metadata--><!--Unknown tag: sodipodi:namedview--><Ellipse xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="2" Canvas.Top="8" Width="15.7" Height="15.7" Name="circle3050" StrokeThickness="2" Stroke="#FF000000" StrokeMiterLimit="10"/><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path3052" Fill="#000000"><Path.Data><PathGeometry Figures="M38.996 15.743c-0.62-0.308-1.358-0.667-2.283-1.122c-2.341-3.812-11.28-8.647-16.139-11.258  C15.714 0.754 5.726 0.439 4.834 1.999C4.012 3.436 7.309 4.544 8.586 4.833c0.108 0.024 6.533 0.356 6.608 0.368  C13.577 4.43 2.653 2.844 3.613 5.68c0.686 2.027 6.863 2.146 6.863 2.146c0.001 0 2.609 0.263 4.587 1.083  c2.69 1.118 5.201 3.075 7.574 5.009c4.121 3.355 3.52 6.739 0.863 8.65c-3.333 0.661-7.979 1.464-7.979 1.464  s-9.054-1.582-8.354 1.51c3.022 4.232 20.283 1.61 23.049 2.304c2.765 0.693 3.27 1.622 3.27 1.622  c0.555 0.865 2.31 1.213 5.521 2.99" FillRule="NonZero"/></Path.Data></Path><Canvas Name="g3054"><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path3056" Fill="#000000"><Path.Data><PathGeometry Figures="M13.016 13.169c-0.194 0.439-0.63 0.747-1.141 0.747c-0.69 0-1.25-0.56-1.25-1.25c0-0.331 0.134-0.628 0.344-0.851   c-0.372-0.109-0.758-0.186-1.165-0.186c-2.304 0-4.171 1.867-4.171 4.171c0 2.303 1.867 4.17 4.171 4.17s4.17-1.867 4.17-4.17   C13.975 14.797 13.606 13.889 13.016 13.169z" FillRule="NonZero"/></Path.Data></Path></Canvas></Canvas></Viewbox>
-		<TextBlock HorizontalAlignment="Left" Margin="42,140,0,0" TextWrapping="Wrap" Text="ShivaQE" VerticalAlignment="Top" Foreground="Black" FontSize="26.667" FontWeight="Bold"/>
-		<TextBlock HorizontalAlignment="Left" Margin="42,180.47,0,0" TextWrapping="Wrap" Text="viewer" VerticalAlignment="Top" Foreground="Black" FontSize="18.667" FontWeight="Bold"/>
-
-		<Grid x:Name="gd_list" Margin="10">
-			<ListView x:Name="lv_slaves" HorizontalAlignment="Left" Height="261.843" VerticalAlignment="Top" Width="373.002" ItemsSource="{Binding slaves, Mode=TwoWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding slaveSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="165.998,20.157,0,0" BorderBrush="#FFFBA92C" BorderThickness="1">
-				<ListView.View>
-					<GridView>
-						<GridViewColumn Header="Ip" Width="110">
-							<GridViewColumn.CellTemplate>
-								<DataTemplate>
-									<TextBlock Text="{Binding ipAddress}" />
-								</DataTemplate>
-							</GridViewColumn.CellTemplate>
-						</GridViewColumn>
-						<GridViewColumn Header="Name" Width="140">
-							<GridViewColumn.CellTemplate>
-								<DataTemplate>
-									<TextBlock Text="{Binding friendlyName}" />
-								</DataTemplate>
-							</GridViewColumn.CellTemplate>
-						</GridViewColumn>
-						<GridViewColumn Header="Login" Width="160">
-							<GridViewColumn.CellTemplate>
-								<DataTemplate>
-									<TextBlock Text="{Binding login}" />
-								</DataTemplate>
-							</GridViewColumn.CellTemplate>
-						</GridViewColumn>
-					</GridView>
-				</ListView.View>
-			</ListView>
-			<Button x:Name="bt_add" Content="Add" HorizontalAlignment="Left" Margin="566,245.17,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_add_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
-            <Button x:Name="bt_remove" Content="Remove" HorizontalAlignment="Left" Margin="566,177.333,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_remove_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
-            <Button x:Name="bt_view" Content="View" HorizontalAlignment="Left" Margin="566,20.157,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_view_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
-		</Grid>
-		<Grid x:Name="gd_add" Visibility="{Binding window_add}">
-			<Rectangle Fill="Black" HorizontalAlignment="Left" Height="322" Stroke="Black" VerticalAlignment="Top" Width="725" Opacity="0.56" Margin="0,0,0,0" StrokeThickness="0"/>
-			<GroupBox Header="Add a slave" HorizontalAlignment="Left" VerticalAlignment="Top" Height="246" Width="430" Background="#FF020202" BorderBrush="DarkOrange" Margin="140,34,0,0">
-				<Grid Margin="-5,-4.833,-4.833,-4.952" Background="White">
-					<Button x:Name="bt_add_add" Content="Add" HorizontalAlignment="Left" Margin="296.833,176.205,0,0" VerticalAlignment="Top" Width="121" CommandParameter="{Binding ElementName=pb_add_password}" Click="bt_add_add_Click" Background="#FF020202" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" />
-					<Button x:Name="bt_add_cancel" Content="X" HorizontalAlignment="Left" Margin="391.083,-27.059,0,0" VerticalAlignment="Top" Width="36.75" Click="bt_add_cancel_Click" Background="#FF020202" Foreground="White" Height="25.87" />
-					<TextBox Controls:TextBoxHelper.Watermark="mypc.net or 10.42.4.2" HorizontalAlignment="Left" Height="23" Margin="154.001,12.999,0,0" TextWrapping="NoWrap" Text="{Binding add_hostname}" VerticalAlignment="Top" Width="243" BorderBrush="#FFFBA92C"/>
-					<Label Content="Hosname (or IP) :" HorizontalAlignment="Left" Margin="45.913,10.999,0,0" VerticalAlignment="Top"/>
-					<TextBox Controls:TextBoxHelper.Watermark="mypc" HorizontalAlignment="Left" Height="23" Margin="154.001,46.039,0,0" TextWrapping="NoWrap" Text="{Binding add_friendlyname}" VerticalAlignment="Top" Width="243" BorderBrush="#FFFBA92C"/>
-					<Label Content="Friendly name (optional) :" HorizontalAlignment="Left" Margin="1.997,44.039,0,0" VerticalAlignment="Top"/>
-					<Label Content="Windows Login :" HorizontalAlignment="Left" Margin="49.497,91,0,0" VerticalAlignment="Top"/>
-					<TextBox Controls:TextBoxHelper.Watermark="domain\login" HorizontalAlignment="Left" Height="23" Margin="154.001,91,0,0" TextWrapping="NoWrap" Text="{Binding add_login}" VerticalAlignment="Top" Width="243" BorderBrush="#FFFBA92C"/>
-					<Label Content="Windows Password :" HorizontalAlignment="Left" Margin="28.983,126.043,0,0" VerticalAlignment="Top"/>
-					<PasswordBox x:Name="pb_add_password" HorizontalAlignment="Left" Margin="154.001,126.043,0,0" VerticalAlignment="Top" Width="243" KeyDown="pb_add_password_KeyDown" BorderBrush="#FFFBA92C"/>
-				</Grid>
-			</GroupBox>
-		</Grid>
-		<Grid x:Name="gd_resolution" Visibility="{Binding window_resolution}">
-			<Rectangle Fill="Black" HorizontalAlignment="Left" Height="312" Stroke="Black" VerticalAlignment="Top" Width="725" Opacity="0.56"/>
-			<GroupBox Header="Window resolution" VerticalAlignment="Top" Height="194.293" Margin="185.666,58.333,0,0" Background="#FF020202" BorderBrush="DarkOrange" HorizontalAlignment="Left" Width="353.812">
-				<Grid Margin="-5.125,-4.875,-5.855,-4.46" Background="White">
-					<Label x:Name="lb_width" Content="Width :" HorizontalAlignment="Left" Margin="49.99,30.636,0,0" VerticalAlignment="Top"/>
-					<TextBox  x:Name="tb_width" Controls:TextBoxHelper.ClearTextButton="True" HorizontalAlignment="Left" Height="23" Margin="109.477,32.682,0,0" TextWrapping="NoWrap" Text="{Binding width}" VerticalAlignment="Top" Width="120" BorderBrush="#FFFBA92C" SelectionBrush="#FFFBA92C"/>
-					<Label x:Name="lb_height" Content="Height :" HorizontalAlignment="Left" Margin="46.476,63.676,0,0" VerticalAlignment="Top"/>
-					<TextBox x:Name="tb_height" Controls:TextBoxHelper.ClearTextButton="True" HorizontalAlignment="Left" Height="23" Margin="110.138,65.676,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="120" Text="{Binding height}" BorderBrush="#FFFBA92C" SelectionBrush="#FFFBA92C"/>
-					<Button x:Name="bt_resolution_ok" Content="OK" HorizontalAlignment="Left" Margin="221.792,124.048,0,0" VerticalAlignment="Top" Width="121" CommandParameter="{Binding ElementName=pb_add_password}" Click="bt_resolution_ok_Click" Background="Black" BorderBrush="#FFFBA92C" BorderThickness="1" Foreground="White" Cursor="Hand" />
-					<Label Content="px" HorizontalAlignment="Left" Margin="235.138,30.636,0,0" VerticalAlignment="Top"/>
-					<Label Content="px" HorizontalAlignment="Left" Margin="235.138,63.676,0,0" VerticalAlignment="Top"/>
-					<Button x:Name="bt_resolution_cancel" Content="X" HorizontalAlignment="Left" Margin="314.999,-27.053,0,0" VerticalAlignment="Top" Width="36.891" Background="#FF020202" Foreground="White" Height="25.839" Click="bt_resolution_cancel_Click" />
-				</Grid>
-			</GroupBox>
-		</Grid>
-		<Grid x:Name="gd_done" HorizontalAlignment="Left" Height="312" VerticalAlignment="Top" Width="725" Visibility="{Binding window_done}">
-			<Rectangle Fill="Black" HorizontalAlignment="Left" Height="312.5" Stroke="Black" VerticalAlignment="Top" Width="719" Opacity="0.56" Margin="0,0,0,0"/>
-			<GroupBox Header="Status" HorizontalAlignment="Left" VerticalAlignment="Top" Height="246" Width="430" Background="#FF020202" BorderBrush="DarkOrange" Margin="141.666,31.333,0,0">
-				<Grid Margin="-5,-4.833,-4.833,-4.952" Background="White">
-					<ScrollViewer Margin="10,10,10,9.492">
-						<TextBlock TextWrapping="Wrap" Text="{Binding status}" />
-					</ScrollViewer>
-					<Button x:Name="bt_done_cancel" Content="X" HorizontalAlignment="Left" Margin="391.209,-27.08,-0.126,0" VerticalAlignment="Top" Width="36.75" Background="#FF020202" Foreground="White" Height="25.891" Click="bt_done_cancel_Click" />
-				</Grid>
-			</GroupBox>
-		</Grid>
+	    <Frame x:Name="_NavigationFrame" RenderTransformOrigin="0.5,0.5" NavigationUIVisibility="Hidden">
+            <Frame.RenderTransform>
+                <ScaleTransform />
+            </Frame.RenderTransform>
+        </Frame>
 	</Grid>
 </Controls:MetroWindow>

@@ -1,0 +1,32 @@
+﻿<Page x:Class="ShivaQEviewer.AddServerPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
+	  xmlns:local="clr-namespace:ShivaQEviewer"
+      xmlns:Languages="clr-namespace:ShivaQEviewer.Languages"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008" mc:Ignorable="d" 
+      d:DesignHeight="342" d:DesignWidth="725"
+	Title="AddServerPage">
+    
+    <Page.Resources>
+        <Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
+        <local:AddServerPageBindings x:Key="AddServerPageBindingsDataSource" d:IsDataSource="True"/>
+    </Page.Resources>
+    
+    <Grid Background="White" DataContext="{StaticResource AddServerPageBindingsDataSource}">
+        <Button x:Name="bt_add_add" Content="Add" HorizontalAlignment="Right" Margin="0,258.441,24,0" VerticalAlignment="Top" Width="121" CommandParameter="{Binding ElementName=pb_add_password}" Click="bt_add_add_Click" Background="#FF020202" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" />
+        <Button x:Name="bt_add_cancel" Content="{Binding global_bt_close, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="24,258.441,0,0" VerticalAlignment="Top" Width="121" Click="bt_add_cancel_Click" Background="#FF020202" Foreground="White" FontSize="18.667" FontWeight="Bold" Height="36.83" Cursor="Hand" />
+        <TextBox Controls:TextBoxHelper.Watermark="{Binding addserverpage_tb_host, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Height="23" Margin="299.001,62.999,0,0" TextWrapping="NoWrap" Text="{Binding add_hostname}" VerticalAlignment="Top" Width="243" BorderBrush="#FFFBA92C"/>
+        <Label Content="{Binding addserverpage_lb_host, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,63.079,433.117,0" VerticalAlignment="Top"/>
+        <TextBox Controls:TextBoxHelper.Watermark="{Binding addserverpage_tb_name, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Height="23" Margin="299.001,96.039,0,0" TextWrapping="NoWrap" Text="{Binding add_friendlyname}" VerticalAlignment="Top" Width="243" BorderBrush="#FFFBA92C"/>
+        <Label Content="{Binding addserverpage_lb_name, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,96.039,433.117,0" VerticalAlignment="Top"/>
+        <Label Content="{Binding addserverpage_lb_win_login, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,141,433.117,0" VerticalAlignment="Top"/>
+        <TextBox Controls:TextBoxHelper.Watermark="{Binding addserverpage_tb_win_login, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Height="23" Margin="299.001,141,0,0" TextWrapping="NoWrap" Text="{Binding add_login}" VerticalAlignment="Top" Width="243" BorderBrush="#FFFBA92C"/>
+        <Label Content="{Binding addserverpage_lb_win_password, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,176.043,433.117,0" VerticalAlignment="Top"/>
+        <PasswordBox x:Name="pb_add_password" HorizontalAlignment="Left" Margin="299.001,176.043,0,0" VerticalAlignment="Top" Width="243" KeyDown="pb_add_password_KeyDown" BorderBrush="#FFFBA92C"/>
+        <TextBlock HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="{Binding addserverpage_header, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Span></TextBlock>
+        <Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="1" VerticalAlignment="Top" Width="725" Margin="0,41,0,0"/>
+        <Label Content="{Binding error_msg, Mode=TwoWay}" HorizontalAlignment="Right" Margin="0,242.396,192.999,0" VerticalAlignment="Top" BorderBrush="Black" Foreground="{Binding error_color}" Width="306.158" FontSize="13.333"/>
+    </Grid>
+</Page>

@@ -2,7 +2,10 @@
 	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
 	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 	xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
-	xmlns:local="clr-namespace:ShivaQEmaster" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:Languages="clr-namespace:ShivaQEmaster.Languages" mc:Ignorable="d"
+	xmlns:local="clr-namespace:ShivaQEmaster"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d"
+	xmlns:Languages="clr-namespace:ShivaQEmaster.Languages"
 	x:Class="ShivaQEmaster.HomePage"
 	x:Name="Page"
 	WindowTitle="Page"
@@ -11,9 +14,10 @@
 	WindowWidth="725" WindowHeight="380">
 
 	<Page.Resources>
-		<Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
-		<local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>
-	</Page.Resources>
+        <Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
+        <local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>
+        <local:HomePageBindings x:Key="HomePageBindingsDataSource" d:IsDataSource="True"/>
+    </Page.Resources>
 
 	<Grid x:Name="LayoutRoot" Background="White" DataContext="{Binding Source={StaticResource MainWindowBindingsDataSource}}">
 		<ListView BorderBrush="#FFFBA92C" BorderThickness="1" x:Name="lv_slaves" HorizontalAlignment="Left" Height="308.962" Margin="217.551,24.029,0,0" VerticalAlignment="Top" Width="342.812" ItemsSource="{Binding slaves, Mode=TwoWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Multiple">
@@ -73,5 +77,6 @@
 			</Grid>
 		</Button>
 		<Path Data="M162,311 C162,311 172,312.75 170.75,324.75" HorizontalAlignment="Left" Height="14.547" Margin="146.625,298.527,0,0" Stretch="Fill" VerticalAlignment="Top" Width="12.608" Stroke="White" StrokeThickness="4"/>
+		<Label Content="{Binding error_msg, Mode=TwoWay, Source={StaticResource HomePageBindingsDataSource}}" HorizontalAlignment="Left" Height="68.528" Margin="587,207,0,0" VerticalAlignment="Top" Width="121" Foreground="Red"/>
 	</Grid>
 </Page>

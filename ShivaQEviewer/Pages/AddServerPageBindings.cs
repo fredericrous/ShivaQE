@@ -6,7 +6,7 @@ using System.Windows;
 using System.Linq;
 using System.Collections.Generic;
 
-namespace ShivaQEmaster
+namespace ShivaQEviewer
 {
     public class AddServerPageBindings : BindingsBase
     {
@@ -15,30 +15,44 @@ namespace ShivaQEmaster
 
         }
 
-        private string _newSlaveIP = string.Empty;
-        public string newSlaveIP
+        private string _add_hostname = string.Empty;
+        public string add_hostname
         {
-            get { return _newSlaveIP; }
+            get { return _add_hostname; }
             set
             {
-                if (value != _newSlaveIP)
+                if (value != _add_hostname)
                 {
-                    _newSlaveIP = value;
-                    NotifyPropertyChanged("newSlaveIP");
+                    _add_hostname = value;
+                    NotifyPropertyChanged("add_hostname");
                 }
             }
         }
 
-        private string _newSlaveName = string.Empty;
-        public string newSlaveName
+        private string _add_friendlyname = string.Empty;
+        public string add_friendlyname
         {
-            get { return _newSlaveName; }
+            get { return _add_friendlyname; }
             set
             {
-                if (value != _newSlaveName)
+                if (value != _add_friendlyname)
                 {
-                    _newSlaveName = value;
-                    NotifyPropertyChanged("newSlaveName");
+                    _add_friendlyname = value;
+                    NotifyPropertyChanged("add_friendlyname");
+                }
+            }
+        }
+
+        private string _add_login = string.Empty;
+        public string add_login
+        {
+            get { return _add_login; }
+            set
+            {
+                if (value != _add_login)
+                {
+                    _add_login = value;
+                    NotifyPropertyChanged("add_login");
                 }
             }
         }

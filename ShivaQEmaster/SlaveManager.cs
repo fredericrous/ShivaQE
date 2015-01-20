@@ -127,9 +127,11 @@ namespace ShivaQEmaster
         /// </summary>
         /// <param name="hostname"></param>
         /// <param name="friendlyname"></param>
-        public async void Add(string hostname, int port, string friendlyname)
+        public async Task<bool> Add(string hostname, int port, string friendlyname)
         {
             this.port = port;
+            bool ret = true;
+
             // Connect to a remote device.
             try
             {
@@ -173,17 +175,21 @@ namespace ShivaQEmaster
                     catch (Exception ex)
                     {
                         _log.Error("Error writting request", ex);
-                        throw new Exception("cant write"); //doesnt work
+                        throw;
                     }
 
                 }
 
             }
-            catch (Exception ex)
+            catch (SocketException ex)
             {
-                MessageBox.Show("Can't add host");
+                //MessageBox.Show("Can't add host");
                 _log.Warn("error adding slave", ex);
+                ret = false;
+                throw; 
             }
+
+            return ret;
         }
 
         /// <summary>

@@ -30,7 +30,8 @@ namespace ShivaQEmaster
         public delegate void TimeElapsedEvent(TimeSpan elapsed);
         public event TimeElapsedEvent TimeElapsed;
 
-        string sourceRecordedImageDirectory = Environment.ExpandEnvironmentVariables("%tmp%");
+        static string _sourceDirectory = Environment.ExpandEnvironmentVariables("%tmp%");
+        string recordFile = string.Format("{0}\\record.json", _sourceDirectory);
 
         private static readonly Recorder _instance = new Recorder();
 
@@ -68,6 +69,14 @@ namespace ShivaQEmaster
         {
             _isActive = true;
 
+            if (_eventList != null)
+            {
+                File.Delete(recordFile);
+                foreach (var item in _eventList)
+                {
+                    File.Delete(string.Format("{0}\\{1}", _sourceDirectory, item.screenshot));
+                }
+            }
             _watchRecording = Stopwatch.StartNew();
 
             //if (_eventList == null)
@@ -111,7 +120,7 @@ namespace ShivaQEmaster
                 EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);
                 myEncoderParameters.Param[0] = myEncoderParameter;
 
-                reducedCapture.Save(sourceRecordedImageDirectory + "\\" + screenName, GetEncoder(ImageFormat.Jpeg), myEncoderParameters);
+                reducedCapture.Save(_sourceDirectory + "\\" + screenName, GetEncoder(ImageFormat.Jpeg), myEncoderParameters);
 
                 ev.screenshot = screenName;
             }
@@ -149,8 +158,6 @@ namespace ShivaQEmaster
 
             string json = JsonConvert.SerializeObject(_eventList);
 
-            string recordFile = string.Format("{0}\\record.json", sourceRecordedImageDirectory);
-
             using (MemoryStream memorystream = new MemoryStream())
             {
                 using (StreamWriter streamWriter = new StreamWriter(memorystream, Encoding.UTF8))
@@ -174,17 +181,11 @@ namespace ShivaQEmaster
 
                     foreach (var item in _eventList)
                     {
-                        file = string.Format("{0}\\{1}", sourceRecordedImageDirectory, item.screenshot);
+                        file = string.Format("{0}\\{1}", _sourceDirectory, item.screenshot);
 
                         archive.CreateEntryFromFile(file, file.Substring(file.LastIndexOf("\\") + 1));
                     }
                 }
-            }
-
-            File.Delete(recordFile);
-            foreach (var item in _eventList)
-            {
-                File.Delete(string.Format("{0}\\{1}", sourceRecordedImageDirectory, item.screenshot));
             }
 
             _isActive = false;
@@ -197,13 +198,13 @@ namespace ShivaQEmaster
 
 
             //clean just in case
-            string recordFile = string.Format("{0}\\record.json", sourceRecordedImageDirectory);
+            string recordFile = string.Format("{0}\\record.json", _sourceDirectory);
             try
             {
                 File.Delete(recordFile);
             }
             catch { }
-            List<string> recordImages = Directory.EnumerateFiles(sourceRecordedImageDirectory, "record.*.jpg").ToList();
+            List<string> recordImages = Directory.EnumerateFiles(_sourceDirectory, "record.*.jpg").ToList();
             foreach (var item in recordImages)
             {
                 File.Delete(item);
@@ -214,7 +215,7 @@ namespace ShivaQEmaster
             {
                 using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
                 {
-                    archive.ExtractToDirectory(sourceRecordedImageDirectory);
+                    archive.ExtractToDirectory(_sourceDirectory);
                 }
             }
 
@@ -236,7 +237,7 @@ namespace ShivaQEmaster
                     List<Task> taskList = new List<Task>();
                     for (var i = 0; i < _eventList.Count; i++)
                     {
-                        string fileName = string.Format("{0}\\{1}", sourceRecordedImageDirectory, _eventList[i].screenshot);
+                        string fileName = string.Format("{0}\\{1}", _sourceDirectory, _eventList[i].screenshot);
                         TimeSpan ts = TimeSpan.FromMilliseconds(_eventList[i].timestamp);
                         taskList.Add(
                             recordViewer.UpdateImg(ts, fileName,
@@ -260,7 +261,26 @@ namespace ShivaQEmaster
             try
             {
                 await Task.Delay((int)ev.timestamp);
-                /*await*/ slaveManager.Send<MouseNKeyEventArgs>(ev);
+                if (ev.windowPos != null)
+                {
+                    ActionMethod action = new ActionMethod()
+                    {
+                        method = ActionType.SetWindowPos,
+                        value = ev.windowPos
+                    };
+                    try
+                    {
+                        await slaveManager.Send<ActionMethod>(action);
+                        await Task.Delay(1000); //await position is set before sending click
+                    }
+                    catch (Exception ex)
+                    {
+                        _log.Error("error send window created", ex);
+                    }
+                }
+
+                await slaveManager.Send<MouseNKeyEventArgs>(ev);
+                
                 result = true;
             }
             catch (TaskCanceledException ex)
@@ -286,5 +306,6 @@ namespace ShivaQEmaster
                 }
             }
         }
+
     }
 }

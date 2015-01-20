@@ -125,6 +125,9 @@ namespace ShivaQEviewer
         {
             string status;
 
+            status = string.Format("{0} : starting {1}", _slave.hostname, Environment.NewLine);
+            UpdateStatus(status);
+
             int activeSessionNumber = CountActiveSessions(_slave.ipAddress);
 
             status = string.Format("{0} : openning rdp for this server {1}", _slave.hostname, Environment.NewLine);
@@ -146,9 +149,9 @@ namespace ShivaQEviewer
             // Psexec needs that rdp connection in order to gain access rights
             int timeoutCounter = 0;
             int timeoutLimit = 120; //after 2min lets consider this a fail
-            while (activeSessionNumber + 1 != CountActiveSessions(_slave.ipAddress))
+            while (activeSessionNumber == CountActiveSessions(_slave.ipAddress)) //when number of active session changes
             {
-                await Task.Delay(1000);
+                await Task.Delay(1000); //wait 1sec
                 if (timeoutCounter >= timeoutLimit)
                 {
                     break;

@@ -117,11 +117,8 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="addserverpage_bt_add" xml:space="preserve">
-    <value>Add</value>
-  </data>
   <data name="addserverpage_header" xml:space="preserve">
-    <value>ADD COMPUTER FROM NETWORK</value>
+    <value>ADD SERVER</value>
   </data>
   <data name="addserverpage_lb_host" xml:space="preserve">
     <value>Hosname (or IP) :</value>
@@ -129,17 +126,20 @@
   <data name="addserverpage_lb_name" xml:space="preserve">
     <value>Friendly name (optional) :</value>
   </data>
+  <data name="addserverpage_lb_win_login" xml:space="preserve">
+    <value>Windows Login :</value>
+  </data>
+  <data name="addserverpage_lb_win_password" xml:space="preserve">
+    <value>Windows Password :</value>
+  </data>
   <data name="addserverpage_tb_host" xml:space="preserve">
     <value>mypc.net or 10.42.4.2</value>
   </data>
   <data name="addserverpage_tb_name" xml:space="preserve">
     <value>mypc</value>
   </data>
-  <data name="flyout_ts_record_off" xml:space="preserve">
-    <value>Not Recording</value>
-  </data>
-  <data name="flyout_ts_record_on" xml:space="preserve">
-    <value>Recording</value>
+  <data name="addserverpage_tb_win_login" xml:space="preserve">
+    <value>domain\login</value>
   </data>
   <data name="global_bt_close" xml:space="preserve">
     <value>Close</value>
@@ -147,70 +147,37 @@
   <data name="helppage_header" xml:space="preserve">
     <value>HELP</value>
   </data>
-  <data name="helppage_hl_website" xml:space="preserve">
-    <value>http://zougi.github.io/ShivaQE</value>
-  </data>
-  <data name="helppage_tb_copyright" xml:space="preserve">
-    <value>Copyright (C) 2014</value>
-  </data>
-  <data name="helppage_tb_website" xml:space="preserve">
-    <value>zougi.github.io/ShivaQE</value>
-  </data>
   <data name="homepage_bt_add" xml:space="preserve">
     <value>Add</value>
-  </data>
-  <data name="homepage_bt_disconnect" xml:space="preserve">
-    <value>Disconnect</value>
-  </data>
-  <data name="homepage_bt_reconnect" xml:space="preserve">
-    <value>Reconnect</value>
-  </data>
-  <data name="homepage_bt_record" xml:space="preserve">
-    <value>Record</value>
   </data>
   <data name="homepage_bt_remove" xml:space="preserve">
     <value>Remove</value>
   </data>
+  <data name="homepage_bt_view" xml:space="preserve">
+    <value>View</value>
+  </data>
   <data name="homepage_gd_header_ip" xml:space="preserve">
     <value>Ip</value>
+  </data>
+  <data name="homepage_gd_header_login" xml:space="preserve">
+    <value>Login</value>
   </data>
   <data name="homepage_gd_header_name" xml:space="preserve">
     <value>Name</value>
   </data>
-  <data name="homepage_gd_header_status" xml:space="preserve">
-    <value>Status</value>
+  <data name="resolutionpage_bt_ok" xml:space="preserve">
+    <value>OK</value>
   </data>
-  <data name="homepage_ts_broadcast_off" xml:space="preserve">
-    <value>Stop sending</value>
+  <data name="resolutionpage_header" xml:space="preserve">
+    <value>RESOLUTION</value>
   </data>
-  <data name="homepage_ts_broadcast_on" xml:space="preserve">
-    <value>Send mouse/keys</value>
+  <data name="resolutionpage_lb_height" xml:space="preserve">
+    <value>Height :</value>
   </data>
-  <data name="settingspage_cb_trace" xml:space="preserve">
-    <value>enable trace log</value>
+  <data name="resolutionpage_lb_px" xml:space="preserve">
+    <value>px</value>
   </data>
-  <data name="settingspage_cb_tracking" xml:space="preserve">
-    <value>activate anonymous reporting to help enhance ShivaQE</value>
-  </data>
-  <data name="settingspage_header" xml:space="preserve">
-    <value>SETTINGS</value>
-  </data>
-  <data name="settingspage_lb_general" xml:space="preserve">
-    <value>General</value>
-  </data>
-  <data name="settingspage_lb_key_broadcast_off" xml:space="preserve">
-    <value>Send mouse/keys Off</value>
-  </data>
-  <data name="settingspage_lb_key_broadcast_on" xml:space="preserve">
-    <value>Send mouse/keys On</value>
-  </data>
-  <data name="settingspage_lb_key_hide_window" xml:space="preserve">
-    <value>Hide window</value>
-  </data>
-  <data name="settingspage_lb_shortcuts" xml:space="preserve">
-    <value>Shortcuts</value>
-  </data>
-  <data name="settingspage_wm_key" xml:space="preserve">
-    <value>key</value>
+  <data name="resolutionpage_lb_width" xml:space="preserve">
+    <value>Width :</value>
   </data>
 </root>

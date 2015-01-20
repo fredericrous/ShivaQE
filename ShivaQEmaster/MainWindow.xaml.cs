@@ -1,5 +1,4 @@
-﻿using ShivaQEcommon.Hook;
-using ShivaQEcommon.Eventdata;
+﻿using ShivaQEcommon.Eventdata;
 using System;
 using System.IO;
 using System.Timers;
@@ -11,6 +10,8 @@ using ShivaQEcommon;
 using System.Drawing;
 using log4net;
 using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Diagnostics;
 
 namespace ShivaQEmaster
 {
@@ -22,7 +23,7 @@ namespace ShivaQEmaster
         static MainWindowBindings _bindings;
         MouseNKeyListener _mouseNKeyListener;
         SlaveManager _slaveManager;
-        UIChangeListener _uichange;
+        //UIChangeListener _uichange;
         Recorder _recorder;
 
         public static MainWindowBindings Bindings
@@ -48,26 +49,26 @@ namespace ShivaQEmaster
 
             _NavigationFrame.Navigate(new HomePage());
 
-            //wait window is loaded to subscribe to uichangelistener
-            this.Loaded += (s, e) =>
-            {
-                //listen for windows events related to UI
-                _uichange = new UIChangeListener(this);
+            ////wait window is loaded to subscribe to uichangelistener
+            //this.Loaded += (s, e) =>
+            //{
+            //    //listen for windows events related to UI
+            //    _uichange = new UIChangeListener(this);
 
-                //on window creation, sync slaves to be sure all slaves have the same size of window as master
-                _uichange.WindowCreated += () =>
-                    {
-                        try
-                        {
-                            _activeWindowInfo = _uichange.getActiveWindowInfo();
-                        }
-                        catch (Exception ex)
-                        {
-                            _log.Warn("error getting active window info", ex);
-                            return;
-                        }
-                    };
-            };
+            //    //on window creation, sync slaves to be sure all slaves have the same size of window as master
+            //    _uichange.WindowCreated += () =>
+            //        {
+            //            try
+            //            {
+            //                _activeWindowInfo = _uichange.getActiveWindowInfo();
+            //            }
+            //            catch (Exception ex)
+            //            {
+            //                _log.Warn("error getting active window info", ex);
+            //                return;
+            //            }
+            //        };
+            //};
 
             _recorder = Recorder.Instance;
             _recorder.Init();
@@ -78,9 +79,9 @@ namespace ShivaQEmaster
                 try
                 {
                     _slaveManager.DisconnectAll();
-                    _uichange.StopListener();
+                    //_uichange.StopListener();
                     _mouseNKeyListener.DeactiveAll();
-                    _uichange = null;
+                    //_uichange = null;
                     _mouseNKeyListener = null;
                 }
                 catch (Exception ex)
@@ -103,7 +104,7 @@ namespace ShivaQEmaster
                         //should be raised by windowcreated event but it doesn't work weel so it's a workaround...
                         try
                         {
-                            _activeWindowInfo = _uichange.getActiveWindowInfo();
+                            _activeWindowInfo = getActiveWindowInfo();
                         }
                         catch (Exception ex)
                         {
@@ -113,6 +114,7 @@ namespace ShivaQEmaster
                         if (_activeWindowInfo != null)
                         {
                             sendWindowPos(_activeWindowInfo);
+                            ev.windowPos = _activeWindowInfo.Item1 + "." + String.Join(".", _activeWindowInfo.Item2);
                         }
 
                         //record click
@@ -185,7 +187,7 @@ namespace ShivaQEmaster
                             Tuple<string, int[]> activeWindowInfo = null;
                             try
                             {
-                                activeWindowInfo = _uichange.getActiveWindowInfo();
+                                activeWindowInfo = getActiveWindowInfo();
                             }
                             catch (Exception ex)
                             {
@@ -285,6 +287,57 @@ namespace ShivaQEmaster
                 };
         }
 
+        [DllImport("user32.dll")]
+        static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetForegroundWindow();
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left;        // x position of upper-left corner
+            public int Top;         // y position of upper-left corner
+            public int Right;       // x position of lower-right corner
+            public int Bottom;      // y position of lower-right corner
+        }
+
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect); //IntPtr or HandleRef!?
+
+        public Tuple<string, int[]> getActiveWindowInfo()
+        {
+            RECT rct;
+            IntPtr foregroundWindow = GetForegroundWindow();
+
+            if (!GetWindowRect(foregroundWindow, out rct))
+            {
+                _log.Warn("error getting active window");
+                return null;
+            }
+
+            int width = rct.Right - rct.Left + 1;
+            int height = rct.Bottom - rct.Top + 1;
+
+            int[] rcValues = { rct.Left, rct.Top, width, height };
+
+            string windowName = GetProcessByHandle(foregroundWindow).ProcessName;
+
+            return new Tuple<string, int[]>(windowName, rcValues);
+        }
+
+        private static Process GetProcessByHandle(IntPtr hwnd)
+        {
+            try
+            {
+                uint processID;
+                GetWindowThreadProcessId(hwnd, out processID);
+                return Process.GetProcessById((int)processID);
+            }
+            catch { return null; }
+        }
+
         private async void sendWindowPos(Tuple<string, int[]> activeWindowInfo)
         {
             ActionMethod action = new ActionMethod()
@@ -296,7 +349,7 @@ namespace ShivaQEmaster
             {
                 await _slaveManager.Send<ActionMethod>(action);
                 activeWindowInfo = null;
-                System.Threading.Thread.Sleep(1000);
+                await Task.Delay(1000); //await position is set before sending click
             }
             catch (Exception ex)
             {
@@ -304,28 +357,28 @@ namespace ShivaQEmaster
             }
         }
 
-        private async void checkIdentical()
-        {
-            ActionType actionMethod = ActionType.None;
-            string actionValue = null;
+        //private async void checkIdentical()
+        //{
+        //    ActionType actionMethod = ActionType.None;
+        //    string actionValue = null;
 
-            actionMethod = ActionType.CheckIdentical;
-            actionValue = JsonConvert.SerializeObject(_uichange.getEventCalls);
+        //    actionMethod = ActionType.CheckIdentical;
+        //    actionValue = JsonConvert.SerializeObject(_uichange.getEventCalls);
 
-            ActionMethod action = new ActionMethod()
-            {
-                method = actionMethod,
-                value = actionValue
-            };
-             await _slaveManager.Send<ActionMethod>(action);
-             foreach (Slave slave in _slaveManager.slaveList)
-             {
-                NetworkStream networkStream = slave.client.GetStream();
-                // TODO      networkStream.ReadAsync(
-             }
+        //    ActionMethod action = new ActionMethod()
+        //    {
+        //        method = actionMethod,
+        //        value = actionValue
+        //    };
+        //     await _slaveManager.Send<ActionMethod>(action);
+        //     foreach (Slave slave in _slaveManager.slaveList)
+        //     {
+        //        NetworkStream networkStream = slave.client.GetStream();
+        //        // TODO      networkStream.ReadAsync(
+        //     }
 
-             return;
-        }
+        //     return;
+        //}
 
         /// <summary>
         /// open help window

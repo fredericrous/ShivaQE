@@ -118,6 +118,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="NullImageConverter.cs" />
+    <Compile Include="Pages\HomePageBindings.cs" />
     <Compile Include="RecordViewerWindowBindings.cs" />
     <Compile Include="Languages\language_en-US.Designer.cs">
       <AutoGen>True</AutoGen>

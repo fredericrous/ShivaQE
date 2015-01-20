@@ -12,7 +12,6 @@ using Application = System.Windows.Forms.Application;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Interop;
-using ShivaQEcommon.Hook;
 using log4net;
 using System.Reflection;
 
@@ -26,7 +25,7 @@ namespace ShivaQEslave
 
         private static int port = 1142;
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll")]
         public static extern bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int X, int Y, int W, int H, uint uFlags);
 
         public static readonly uint SWP_ASYNCWINDOWPOS = 0x4000;
@@ -39,10 +38,10 @@ namespace ShivaQEslave
 
         // See http://msdn.microsoft.com/en-us/library/ms633541%28v=vs.85%29.aspx
         // See http://msdn.microsoft.com/en-us/library/ms649033%28VS.85%29.aspx
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll")]
         public static extern IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll")]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
 
@@ -76,27 +75,27 @@ namespace ShivaQEslave
                     };
 
                 //global ui change listener behind an hidden window
-                UIChangeListener _uichange = null;
+               // UIChangeListener _uichange = null;
 
-                var hiddenWindow = new Window()
-                {
-                    Width = 0,
-                    Height = 0,
-                    WindowStyle = WindowStyle.None,
-                    ShowInTaskbar = false,
-                    ShowActivated = false
-                };
-                hiddenWindow.Loaded += (s, e) =>
-                    {
-                        _uichange = new UIChangeListener(hiddenWindow);
-                    };
-                hiddenWindow.Show();
+                //var hiddenWindow = new Window()
+                //{
+                //    Width = 0,
+                //    Height = 0,
+                //    WindowStyle = WindowStyle.None,
+                //    ShowInTaskbar = false,
+                //    ShowActivated = false
+                //};
+                //hiddenWindow.Loaded += (s, e) =>
+                //    {
+                //        _uichange = new UIChangeListener(hiddenWindow);
+                //    };
+                //hiddenWindow.Show();
 
-                HwndSource hwndSource = PresentationSource.FromVisual(hiddenWindow) as HwndSource;
-                if (hwndSource != null)
-                {
-                    SetParent(hwndSource.Handle, (IntPtr)HWND_MESSAGE);
-                }
+                //HwndSource hwndSource = PresentationSource.FromVisual(hiddenWindow) as HwndSource;
+                //if (hwndSource != null)
+                //{
+                //    SetParent(hwndSource.Handle, (IntPtr)HWND_MESSAGE);
+                //}
 
 
                 //on data received (after TCP connection was accepted and client sent message), do..
@@ -133,27 +132,27 @@ namespace ShivaQEslave
                                         IDataObject clipboardObject = JsonConvert.DeserializeObject<IDataObject>(action.value);
                                         Clipboard.SetDataObject(clipboardObject);
                                         break;
-                                    case ActionType.CheckIdentical:
-                                        if (_uichange != null)
-                                        {
-                                            List<string> eventCalls = _uichange.getEventCalls;
-                                            List<string> masterEventCalls = JsonConvert.DeserializeObject<List<string>>(action.value);
+                                    //case ActionType.CheckIdentical:
+                                    //    if (_uichange != null)
+                                    //    {
+                                    //        List<string> eventCalls = _uichange.getEventCalls;
+                                    //        List<string> masterEventCalls = JsonConvert.DeserializeObject<List<string>>(action.value);
 
-                                            var masterDifferentThanSlave = masterEventCalls.Except(eventCalls).ToList().Count > 0;
-                                            if (masterDifferentThanSlave)
-                                            {
-                                                ActionMethod actionIdentical = new ActionMethod()
-                                                    {
-                                                        method = ActionType.CheckIdentical,
-                                                        value = "false"
-                                                    };
-                                                string actionString = JsonConvert.SerializeObject(actionIdentical);
-                                                actionString += "<EOF>"; //used serverside to know string has been received entirely
-                                                byte[] actionBytes = Encoding.UTF8.GetBytes(ServerResponseString);
-                                                networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
-                                            }
-                                        }
-                                        break;
+                                    //        var masterDifferentThanSlave = masterEventCalls.Except(eventCalls).ToList().Count > 0;
+                                    //        if (masterDifferentThanSlave)
+                                    //        {
+                                    //            ActionMethod actionIdentical = new ActionMethod()
+                                    //                {
+                                    //                    method = ActionType.CheckIdentical,
+                                    //                    value = "false"
+                                    //                };
+                                    //            string actionString = JsonConvert.SerializeObject(actionIdentical);
+                                    //            actionString += "<EOF>"; //used serverside to know string has been received entirely
+                                    //            byte[] actionBytes = Encoding.UTF8.GetBytes(ServerResponseString);
+                                    //            networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
+                                    //        }
+                                    //    }
+                                    //    break;
                                     case ActionType.Disconnect:
                                         AsynchronousSlave.StopListening();
                                         NotifyIconSystray.ChangeStatus(false);

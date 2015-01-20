@@ -30,7 +30,7 @@ namespace ShivaQEcommon
         [DllImport("user32.dll")]
         private static extern bool GetCursorInfo(out CURSORINFO pci);
 
-        [DllImport("user32.dll", SetLastError = true)]
+        [DllImport("user32.dll")]
         static extern bool DrawIconEx(IntPtr hdc, int xLeft, int yTop, IntPtr hIcon, int cxWidth, int cyHeight, int istepIfAniCur, IntPtr hbrFlickerFreeDraw, int diFlags);
 
         private const Int32 CURSOR_SHOWING = 0x0001;

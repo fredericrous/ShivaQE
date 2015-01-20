@@ -29,7 +29,8 @@ namespace ShivaQEmaster.Languages {
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        public language_en_US() {
+        public language_en_US()
+        {
         }
         
         /// <summary>
@@ -142,7 +143,7 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Help.
+        ///   Looks up a localized string similar to HELP.
         /// </summary>
         public static string helppage_header {
             get {
@@ -282,6 +283,15 @@ namespace ShivaQEmaster.Languages {
         public static string settingspage_cb_tracking {
             get {
                 return ResourceManager.GetString("settingspage_cb_tracking", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SETTINGS.
+        /// </summary>
+        public static string settingspage_header {
+            get {
+                return ResourceManager.GetString("settingspage_header", resourceCulture);
             }
         }
         

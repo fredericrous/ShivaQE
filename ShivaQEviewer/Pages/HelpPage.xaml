@@ -1,0 +1,27 @@
+﻿<Page
+	xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+	xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+	xmlns:local="clr-namespace:ShivaQEviewer"
+	xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+	xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+	xmlns:Languages="clr-namespace:ShivaQEviewer.Languages" mc:Ignorable="d"
+	x:Class="ShivaQEviewer.HelpPage"
+	x:Name="Page"
+	WindowTitle="Page"
+	FlowDirection="LeftToRight"
+	Width="725" Height="342"
+	WindowWidth="725" WindowHeight="342">
+
+	<Page.Resources>
+		<Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
+		<local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>
+	</Page.Resources>
+
+	<Grid x:Name="LayoutRoot" Background="White">
+		<TextBlock HorizontalAlignment="Left" Height="191.806" Margin="24,46,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="665.5"><Run FontWeight="Bold" Text="Use"/><LineBreak/><Run Text="Launch a remote desktop session of each computer to be controlled and deploy &quot;ShivaQE Slave&quot;"/><LineBreak/><Run FontWeight="Bold" Text="Purpose"/><LineBreak/><Run Text="Test different versions of the same program manually with &quot;ShivaQE Master&quot;"/><LineBreak/><Run FontWeight="Bold" Text="How to"/><LineBreak/><Run Text="Fill the IP textbox with ip or hostname of a computer to control."/><LineBreak/><Run Text="In Friendly name textbox, pick the name under which this computer will be displayed in the list of controlled computers."/><LineBreak/><Run Text="Click Add button to add it to the list."/><LineBreak/><Run Text="Click View to launch the remote desktop and deploy ShivaQE Slave"/><LineBreak/><Run/><LineBreak/><Run/></TextBlock>
+		<TextBlock HorizontalAlignment="Right" Height="24" Margin="466,316,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="241"><Run NumberSubstitution.CultureSource="Text" Text="{Binding helppage_tb_copyright, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/><Run Text=" "/><Hyperlink NavigateUri="{Binding helppage_hl_website, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"><Run Text="{Binding helppage_tb_website, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Hyperlink></TextBlock>
+		<Button x:Name="bt_close" Margin="24,262.806,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Content="{Binding global_bt_close, Source={StaticResource language_en_USDataSource}}" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" Click="bt_close_Click" />
+		<TextBlock HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="{Binding helppage_header, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Span></TextBlock>
+		<Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="1" VerticalAlignment="Top" Width="717" Margin="0,41,0,0"/>
+	</Grid>
+</Page>
