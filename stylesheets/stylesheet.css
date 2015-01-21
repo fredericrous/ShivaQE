@@ -322,39 +322,39 @@ Full-Width Styles
   background: url('../images/icon_download.png') no-repeat 0% 90%;
 }
 
+#downloads > a > span:first-child {
+  bottom: 3px;
+  position: absolute;
+  right: 90px;
+  color: #696c70;
+  font-size: 15pt;
+  font-weight: bold;
+}
+
 #downloads > a > span {
   bottom: 3px;
   position: absolute;
   right: 14px;
   color: white;
-}
-
-.zip_download_link {
-  display: block;
-  float: right;
-  width: 90px;
-  height:70px;
-  overflow: hidden;
-  background: url(../images/sprite_download.png) no-repeat bottom left;
+  font-size: 14pt;
   font-weight: bold;
 }
 
-.tar_download_link {
+.download_link {
   display: block;
   float: right;
-  width: 90px;
+  width: 175px;
   position: relative;
   height:70px;
   overflow: hidden;
-  background: url(../images/sprite_download.png) no-repeat bottom right;
+  background: url('../images/sprite_download.png') no-repeat right bottom;
   margin-left: 10px;
+    top: 0px;
+    left: 0px;
 }
 
-.zip_download_link:hover {
-  background: url(../images/sprite_download.png) no-repeat top left;
-}
 
-.tar_download_link:hover {
+.download_link:hover {
   background: url(../images/sprite_download.png) no-repeat top right;
 }
 
