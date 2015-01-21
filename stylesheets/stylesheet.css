@@ -104,9 +104,8 @@ footer p {
 
 a {
   text-decoration: none;
-  color: #007edf;
+  color: #fba92c;
   text-shadow: none;
-
   transition: color 0.5s ease;
   transition: text-shadow 0.5s ease;
   -webkit-transition: color 0.5s ease;
@@ -381,6 +380,18 @@ Full-Width Styles
 
 #section2 > img {
     margin-left: 86px;
+}
+
+#section2 ul > li, #section4 ul > li {
+  font-size: 18pt;
+  padding-left:10px;
+  margin-left: 40px;
+}
+
+ #section5 ul > li {
+  font-size: 14pt;
+  padding-left: 10px;
+  margin-left: 40px;
 }
 
 #section3_wrap {
