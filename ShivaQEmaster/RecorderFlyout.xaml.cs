@@ -45,6 +45,7 @@ namespace ShivaQEmaster
             {
                 _sb_beginRecord.Stop();
                 _sb_stopRecord.Begin();
+                _recorder.Stop();
 
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
                 saveFileDialog.Filter = "Recorded Scenario|*.zip|All Files|*.*";

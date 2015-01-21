@@ -31,7 +31,7 @@ namespace ShivaQEviewer
                         ref IntPtr ppSessionInfo,
                         ref int pCount);
 
-        int WTS_EVENT_LOGON = 0x00000020;
+        //int WTS_EVENT_LOGON = 0x00000020;
 
         private string executablePath = System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath).ToString() + "\\";
         private static string _path_cmd_launcher = "PsExec.exe";

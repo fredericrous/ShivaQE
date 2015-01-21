@@ -19,7 +19,7 @@
         <local:HomePageBindings x:Key="HomePageBindingsDataSource" d:IsDataSource="True"/>
     </Page.Resources>
 
-	<Grid x:Name="LayoutRoot" Background="White" DataContext="{Binding Source={StaticResource MainWindowBindingsDataSource}}">
+	<Grid x:Name="LayoutRoot" Background="White" DataContext="{Binding Source={StaticResource HomePageBindingsDataSource}}">
 		<ListView BorderBrush="#FFFBA92C" BorderThickness="1" x:Name="lv_slaves" HorizontalAlignment="Left" Height="308.962" Margin="217.551,24.029,0,0" VerticalAlignment="Top" Width="342.812" ItemsSource="{Binding slaves, Mode=TwoWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" SelectionMode="Multiple">
 			<ListView.ItemContainerStyle>
 				<Style TargetType="{x:Type ListViewItem}" >
@@ -77,6 +77,6 @@
 			</Grid>
 		</Button>
 		<Path Data="M162,311 C162,311 172,312.75 170.75,324.75" HorizontalAlignment="Left" Height="14.547" Margin="146.625,298.527,0,0" Stretch="Fill" VerticalAlignment="Top" Width="12.608" Stroke="White" StrokeThickness="4"/>
-		<Label Content="{Binding error_msg, Mode=TwoWay, Source={StaticResource HomePageBindingsDataSource}}" HorizontalAlignment="Left" Height="68.528" Margin="587,207,0,0" VerticalAlignment="Top" Width="121" Foreground="Red"/>
+		<TextBlock x:Name="lb_error" HorizontalAlignment="Left" Margin="565.363,204.029,0,0" TextWrapping="Wrap" Text="{Binding error_msg, Mode=TwoWay, Source={StaticResource HomePageBindingsDataSource}}" VerticalAlignment="Top" Width="142.637" Height="71.499" Foreground="Red"/>
 	</Grid>
 </Page>

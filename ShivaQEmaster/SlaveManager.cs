@@ -76,9 +76,9 @@ namespace ShivaQEmaster
             }
         }
 
-        public void Init(ObservableCollection<Slave> slaves)
+        public void Init()
         {
-            slaveList = slaves;
+            slaveList = new ObservableCollection<Slave>();
             broadcastChannel = new UdpClient(AddressFamily.InterNetworkV6);
             broadcastChannel.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
             //broadcastChannel.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
@@ -183,7 +183,6 @@ namespace ShivaQEmaster
             }
             catch (SocketException ex)
             {
-                //MessageBox.Show("Can't add host");
                 _log.Warn("error adding slave", ex);
                 ret = false;
                 throw; 
@@ -265,9 +264,8 @@ namespace ShivaQEmaster
             }
         }
 
-        public async Task<bool> Reconnect(Slave slave)
+        public async Task Reconnect(Slave slave)
         {
-            bool result = true;
             if (!slave.client.Connected)
             {
                 try
@@ -278,23 +276,20 @@ namespace ShivaQEmaster
                 }
                 catch (Exception ex)
                 {
-                    _log.Error("Exception while reconnecting (could be timeout)", ex);
-                    MessageBox.Show("Can't reconnect, maybe slave is not launched or has been terminated!?");
-                    result = false;
+                    string error = "Exception while reconnecting (could be timeout)";
+                    _log.Error(error, ex);
+                    //"Can't reconnect {0}, maybe slave is not launched or has been terminated!?")
+                    throw new InvalidOperationException(error);
                 }
             }
             else
             {
-                MessageBox.Show(slave.name + " already connected");
-                result = false;
+                throw new InvalidOperationException(string.Format("{0} already connected", slave.name));
             }
-            return result;
         }
 
-        internal async Task<bool> Disconnect(Slave slave)
+        internal async Task Disconnect(Slave slave)
         {
-            bool result = true;
-
             ActionMethod data = new ActionMethod() { method = ActionType.Disconnect };
             string json = JsonConvert.SerializeObject(data);
             json += "<EOF>"; //used serverside to know string has been received entirely
@@ -310,9 +305,8 @@ namespace ShivaQEmaster
             {
                 string error = string.Format("Error requesting disconnect from {0}", slave.name);
                 _log.Error(error, ex);
-                result = false;
+                throw new InvalidOperationException(error);
             }
-            return result;
         }
 
     }

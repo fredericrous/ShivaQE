@@ -28,7 +28,7 @@ namespace ShivaQEmaster
 
         public static MainWindowBindings Bindings
         {
-            get { return _bindings; }
+            get { return _bindings; }//set { _bindings = value; }
         }
 
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -38,6 +38,9 @@ namespace ShivaQEmaster
         
         Tuple<string, int[]> _activeWindowInfo = null;
 
+        public delegate void UpdateBroadcastStatusEventHandler(bool status);
+        public static event UpdateBroadcastStatusEventHandler UpdateBroadcastStatus;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -46,6 +49,9 @@ namespace ShivaQEmaster
 
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
+
+            _slaveManager = SlaveManager.Instance;
+            _slaveManager.Init();
 
             _NavigationFrame.Navigate(new HomePage());
 
@@ -91,8 +97,6 @@ namespace ShivaQEmaster
             };
 
             _mouseNKeyListener = MouseNKeyListener.Instance;
-            _slaveManager = SlaveManager.Instance;
-            _slaveManager.Init(_bindings.slaves);
 
             _mouseNKeyListener.Active();
             _mouseNKeyListener.MouseClick += (s, ev) =>
@@ -172,13 +176,13 @@ namespace ShivaQEmaster
                         if (ev.keyData == key_sendmousekey_on)
                         {
                             _mouseNKeyListener.Active(true);
-                            _bindings.checked_broadcast = true;
+                            UpdateBroadcastStatus(true);
                             return;
                         }
                         else if (ev.keyData == key_sendmousekey_off)
                         {
                             _mouseNKeyListener.DeactiveAll();
-                            _bindings.checked_broadcast = false;
+                            UpdateBroadcastStatus(false);
                             return;
                         }
                         else if (ev.keyData == key_force_resize)

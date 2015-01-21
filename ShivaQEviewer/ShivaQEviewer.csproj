@@ -176,12 +176,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ShivaQECommon\ShivaQEcommon.csproj">
-      <Project>{8cde114b-5482-4b98-bc45-b62336bceb1b}</Project>
-      <Name>ShivaQEcommon</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\ShivaQEslave\bin\Debug\shivaqe_logo_slave.ico">
       <Link>slave\shivaqe_logo_slave.ico</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -225,7 +219,10 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Exceptions\" />
+    <ProjectReference Include="..\ShivaQEcommon\ShivaQEcommon.csproj">
+      <Project>{8cde114b-5482-4b98-bc45-b62336bceb1b}</Project>
+      <Name>ShivaQEcommon</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

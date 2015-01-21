@@ -119,10 +119,9 @@ namespace ShivaQEmaster
             {
                 await _slaveManager.Add(hostname, port, friendlyname);
             }
-            catch (Exception ex)
+            catch
             {
                 ErrorMsg("Can't add host. Is slave activated?");
-               // _bindings.error_msg = ex.Message;
             }
         }
 	}

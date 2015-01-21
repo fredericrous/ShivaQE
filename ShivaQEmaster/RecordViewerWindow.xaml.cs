@@ -35,9 +35,8 @@ namespace ShivaQEmaster
             _bindings = this.Resources["RecordViewerWindowBindingsDataSource"] as RecordViewerWindowBindings;
 		}
 
-        public async Task<bool> UpdateImg(TimeSpan timespan, string uriImage, string key)
+        public async Task UpdateImg(TimeSpan timespan, string uriImage, string key)
         {
-            bool result = false;
             try
             {
                 await Task.Delay(timespan);
@@ -46,17 +45,17 @@ namespace ShivaQEmaster
                 tb.Text = key;
                 tb.Foreground = Brushes.White;
                 this.sp_events.Children.Add(tb);
-                result = true;
             }
-            catch (TaskCanceledException ex)
+            catch (TaskCanceledException)
             {
                 _log.Info("canceled");
+                throw new TaskCanceledException("canceled");
             }
             catch (Exception ex)
             {
                 _log.Error("error display delayed img", ex);
+                throw new InvalidOperationException("error display delayed img");
             }
-            return result;
         }
     }
 }

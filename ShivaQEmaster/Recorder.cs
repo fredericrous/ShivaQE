@@ -154,7 +154,10 @@ namespace ShivaQEmaster
 
         public void Save(string scenarioName = "default")
         {
-            _timerRecording.Stop();
+            if (_timerRecording.Enabled) //just in case
+            {
+                _timerRecording.Stop();
+            }
 
             string json = JsonConvert.SerializeObject(_eventList);
 
@@ -283,7 +286,7 @@ namespace ShivaQEmaster
                 
                 result = true;
             }
-            catch (TaskCanceledException ex)
+            catch (TaskCanceledException)
             {
                 _log.Info("canceled");
             }
@@ -298,14 +301,22 @@ namespace ShivaQEmaster
         {
             Preview();
             SlaveManager slaveManager = SlaveManager.Instance;
+            List<Task> tasklist = new List<Task>();
             foreach (MouseNKeyEventArgs mnk_event in _eventList)
             {
                 foreach (Slave slave in slaveManager.slaveList)
                 {
-                    ExecuteEvent(mnk_event);
+                    tasklist.Add(ExecuteEvent(mnk_event));
                 }
             }
+
+            //should wait
         }
 
+
+        public void Stop()
+        {
+            _timerRecording.Stop();
+        }
     }
 }
