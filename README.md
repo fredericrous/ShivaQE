@@ -77,7 +77,7 @@ Under the Hood
 --------
 
 ShivaQEviewer is a deployer to inject to slaves computer the program that allow them to be controlled (shivaQEslave).
-ShivaQEviewer uses paexec a redistribuable alternative to psexec to automatically start shivaQEslave
+ShivaQEviewer uses psexec to automatically start shivaQEslave
 ShivaQEmaster send data through TCP execpt for mouse movement that are transmitted with udp.
 ShivaQE uses libraries listed in "Projects that made ShivaQE possible"
 
@@ -114,7 +114,7 @@ Projects that made ShivaQE possible
 - MahApps.Metro
 - MouseKeyboardActivityMonitor
 - Newtonsoft.Json
-- paexec
+- psexec
 - SimpleImpersonation
 - WindowsInput
 
