@@ -11,13 +11,13 @@ namespace ShivaQEmaster
 {
     public class HomePageBindings : BindingsBase
     {
-        Timer t;
+        Timer timer_error_msg;
 
         public HomePageBindings()
         {
-            t = new Timer(8000);
-            t.AutoReset = false;
-            t.Elapsed += (s, e) =>
+            timer_error_msg = new Timer(8000);
+            timer_error_msg.AutoReset = false;
+            timer_error_msg.Elapsed += (s, e) =>
             {
                 error_msg = string.Empty;
             };
@@ -65,14 +65,14 @@ namespace ShivaQEmaster
         private string _error_msg = string.Empty;
         public string error_msg
         {
-            get { t.Start(); return _error_msg; }
+            get { timer_error_msg.Start(); return _error_msg; }
             set
             {
                 //if (value != _error_msg)
                 //{
-                if (t.Enabled)
+                if (timer_error_msg.Enabled)
                 {
-                    t.Stop();
+                    timer_error_msg.Stop();
                 }
                 _error_msg = value;
                 NotifyPropertyChanged("error_msg");

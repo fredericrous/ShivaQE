@@ -47,7 +47,7 @@ namespace ShivaQEmaster
             }
             catch (ConfigurationErrorsException)
             {
-                Console.WriteLine("Error writing app settings");
+                _log.Error("Error writing app settings");
             }
         }
     }

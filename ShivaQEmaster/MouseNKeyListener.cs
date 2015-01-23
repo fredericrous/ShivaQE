@@ -62,7 +62,7 @@ namespace ShivaQEmaster
                     keyCode = (int)char.ToUpper(keyFromData[0]);
             }
             
-            Console.WriteLine(string.Format("KeyDown: \t{0}; \t data: \t{1}\t code: {2}\tvalue: {3}", key, e.KeyData, keyCode, e.KeyValue));
+            //Console.WriteLine(string.Format("KeyDown: \t{0}; \t data: \t{1}\t code: {2}\tvalue: {3}", key, e.KeyData, keyCode, e.KeyValue));
 
             //raise key event
             OnEvent(KeyboadDown, new MouseNKeyEventArgs() {

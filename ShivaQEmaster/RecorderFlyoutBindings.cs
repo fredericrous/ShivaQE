@@ -1,12 +1,20 @@
 ﻿using System;
+using System.Timers;
 
 namespace ShivaQEmaster
 {
     public class RecorderFlyoutBindings : BindingsBase
     {
+        Timer timer_error_msg;
+
 		public RecorderFlyoutBindings()
         {
-
+            timer_error_msg = new Timer(8000);
+            timer_error_msg.AutoReset = false;
+            timer_error_msg.Elapsed += (s, e) =>
+            {
+                error_msg = string.Empty;
+            };
         }
 		
         private bool _checked_record = false;
@@ -43,6 +51,24 @@ namespace ShivaQEmaster
                     _time_elapsed = value;
                     NotifyPropertyChanged("time_elapsed");
                 }
+            }
+        }
+
+        private string _error_msg = string.Empty;
+        public string error_msg
+        {
+            get { timer_error_msg.Start(); return _error_msg; }
+            set
+            {
+                //if (value != _error_msg)
+                //{
+                if (timer_error_msg.Enabled)
+                {
+                    timer_error_msg.Stop();
+                }
+                _error_msg = value;
+                NotifyPropertyChanged("error_msg");
+                //}
             }
         }
     }

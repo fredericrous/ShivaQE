@@ -55,5 +55,6 @@
         <Button Content="Override" HorizontalAlignment="Left" Height="36.83" Margin="10,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Visibility="Hidden"/>
         <Button Content="Shrink" HorizontalAlignment="Left" Height="36.83" Margin="184.667,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Visibility="Hidden"/>
         <Button Content="Edit" HorizontalAlignment="Left" Height="36.83" Margin="361.334,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Visibility="Hidden"/>
+        <TextBlock HorizontalAlignment="Left" Margin="236,99.663,0,0" TextWrapping="Wrap" Text="{Binding error_msg}" VerticalAlignment="Top" Foreground="#FFFF0707" Height="36.83" Width="200.46"/>
     </Grid>
 </Page>

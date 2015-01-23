@@ -116,6 +116,24 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Recorded Scenario|*.zip|All Files|*.*.
+        /// </summary>
+        public static string flyout_dialog_save_filter {
+            get {
+                return ResourceManager.GetString("flyout_dialog_save_filter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Save a record.
+        /// </summary>
+        public static string flyout_dialog_save_title {
+            get {
+                return ResourceManager.GetString("flyout_dialog_save_title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Not Recording.
         /// </summary>
         public static string flyout_ts_record_off {
@@ -265,6 +283,15 @@ namespace ShivaQEmaster.Languages {
         public static string homepage_ts_broadcast_on {
             get {
                 return ResourceManager.GetString("homepage_ts_broadcast_on", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can&apos;t load a record while recording is on.
+        /// </summary>
+        public static string recorder_error_load_when_record_on {
+            get {
+                return ResourceManager.GetString("recorder_error_load_when_record_on", resourceCulture);
             }
         }
         

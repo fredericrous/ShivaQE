@@ -42,5 +42,19 @@ namespace ShivaQEviewer
                 }
             }
         }
+
+        private string _error_msg = string.Empty;
+        public string error_msg
+        {
+            get { return _error_msg; }
+            set
+            {
+                //if (value != _error_msg)
+                //{
+                _error_msg = value;
+                NotifyPropertyChanged("error_msg");
+                //}
+            }
+        }
     }
 }

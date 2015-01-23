@@ -135,6 +135,12 @@
   <data name="addserverpage_tb_name" xml:space="preserve">
     <value>mypc</value>
   </data>
+  <data name="flyout_dialog_save_filter" xml:space="preserve">
+    <value>Recorded Scenario|*.zip|All Files|*.*</value>
+  </data>
+  <data name="flyout_dialog_save_title" xml:space="preserve">
+    <value>Save a record</value>
+  </data>
   <data name="flyout_ts_record_off" xml:space="preserve">
     <value>Not Recording</value>
   </data>
@@ -185,6 +191,9 @@
   </data>
   <data name="homepage_ts_broadcast_on" xml:space="preserve">
     <value>Send mouse/keys</value>
+  </data>
+  <data name="recorder_error_load_when_record_on" xml:space="preserve">
+    <value>Can't load a record while recording is on</value>
   </data>
   <data name="settingspage_cb_trace" xml:space="preserve">
     <value>enable trace log</value>

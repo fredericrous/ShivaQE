@@ -30,6 +30,9 @@ namespace ShivaQEmaster
         public delegate void TimeElapsedEvent(TimeSpan elapsed);
         public event TimeElapsedEvent TimeElapsed;
 
+        public delegate void UpdateErrorEvent(string error_msg);
+        public event UpdateErrorEvent UpdateError;
+
         static string _sourceDirectory = Environment.ExpandEnvironmentVariables("%tmp%");
         string recordFile = string.Format("{0}\\record.json", _sourceDirectory);
 
@@ -67,14 +70,26 @@ namespace ShivaQEmaster
 
         public void Start()
         {
+            string filename = string.Empty;
+
             _isActive = true;
 
             if (_eventList != null)
             {
-                File.Delete(recordFile);
-                foreach (var item in _eventList)
+                try
                 {
-                    File.Delete(string.Format("{0}\\{1}", _sourceDirectory, item.screenshot));
+                    filename = recordFile;
+                    File.Delete(recordFile);
+                    foreach (var item in _eventList)
+                    {
+                        filename = item.screenshot;
+                        File.Delete(string.Format("{0}\\{1}", _sourceDirectory, item.screenshot));
+                    }
+                }
+                catch (Exception)
+                {
+                    string error_msg = string.Format("cache deletion failed on file {0}. It won't affect the record though.", filename);
+                    UpdateError(error_msg);
                 }
             }
             _watchRecording = Stopwatch.StartNew();
@@ -109,9 +124,11 @@ namespace ShivaQEmaster
 
             ev.timestamp = _watchRecording.ElapsedMilliseconds;
 
+            string screenName = string.Format("record.{0}.jpg", ev.timestamp);
+            string file_path = _sourceDirectory + "\\" + screenName;
+
             try
             {
-                string screenName = string.Format("record.{0}.jpg", ev.timestamp);
                 Bitmap screenCapture = ScreenCapturePInvoke.CaptureFullScreen(true);
                 Bitmap reducedCapture = ReduceBitmap(screenCapture, (int)(screenCapture.Width * 0.7), (int)(screenCapture.Height * 0.7));
 
@@ -120,13 +137,15 @@ namespace ShivaQEmaster
                 EncoderParameter myEncoderParameter = new EncoderParameter(myEncoder, 50L);
                 myEncoderParameters.Param[0] = myEncoderParameter;
 
-                reducedCapture.Save(_sourceDirectory + "\\" + screenName, GetEncoder(ImageFormat.Jpeg), myEncoderParameters);
+                reducedCapture.Save(file_path, GetEncoder(ImageFormat.Jpeg), myEncoderParameters);
 
                 ev.screenshot = screenName;
             }
             catch (Exception ex)
             {
                 _log.Error(ex.Message, ex);
+                string error_msg = string.Format("Can't create video frame for action {0} at time {1} and location {2}. Recording continues", ev.key, ev.timestamp, file_path);
+                UpdateError(error_msg);
             }
 
             try
@@ -136,6 +155,8 @@ namespace ShivaQEmaster
             catch (Exception ex)
             {
                 _log.Error(ex.Message, ex);
+                string error_msg = string.Format("Event {0} couldn't be recorded", ev.key);
+                UpdateError(error_msg);
             }
         }
 
@@ -158,74 +179,124 @@ namespace ShivaQEmaster
             {
                 _timerRecording.Stop();
             }
+            _isActive = false;
 
             string json = JsonConvert.SerializeObject(_eventList);
 
-            using (MemoryStream memorystream = new MemoryStream())
+            try
             {
-                using (StreamWriter streamWriter = new StreamWriter(memorystream, Encoding.UTF8))
+                using (MemoryStream memorystream = new MemoryStream())
                 {
-                    streamWriter.Write(json);
-                    streamWriter.Flush();
-                    using (FileStream fileStream = new FileStream(recordFile, FileMode.Create))
+                    using (StreamWriter streamWriter = new StreamWriter(memorystream, Encoding.UTF8))
                     {
-                        memorystream.WriteTo(fileStream);
+                        streamWriter.Write(json);
+                        streamWriter.Flush();
+                        using (FileStream fileStream = new FileStream(recordFile, FileMode.Create))
+                        {
+                            memorystream.WriteTo(fileStream);
+                        }
                     }
                 }
             }
-
-            using (FileStream zipToOpen = new FileStream(scenarioName + ".zip", FileMode.Create))
+            catch (Exception)
             {
-                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
+                string error_msg = string.Format("Can't save the record. Failed to write file {0}.", recordFile);
+                UpdateError(error_msg);
+            }
+
+            try
+            {
+                using (FileStream zipToOpen = new FileStream(scenarioName + ".zip", FileMode.Create))
                 {
-                    var file = recordFile;
-
-                    archive.CreateEntryFromFile(file, file.Substring(file.LastIndexOf("\\") + 1));
-
-                    foreach (var item in _eventList)
+                    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                     {
-                        file = string.Format("{0}\\{1}", _sourceDirectory, item.screenshot);
+                        var file = recordFile;
 
                         archive.CreateEntryFromFile(file, file.Substring(file.LastIndexOf("\\") + 1));
+
+                        foreach (var item in _eventList)
+                        {
+                            file = string.Format("{0}\\{1}", _sourceDirectory, item.screenshot);
+
+                            archive.CreateEntryFromFile(file, file.Substring(file.LastIndexOf("\\") + 1));
+                        }
                     }
                 }
             }
-
-            _isActive = false;
+            catch (Exception ex)
+            {
+                string error_msg = string.Format("Can't save the record. Failed to write file {0}.", recordFile);
+                _log.Error(error_msg, ex);
+                UpdateError(error_msg);
+            }
         }
 
         public void Load(string scenarioName = "default")
         {
-            //if (!_isActive)
-            //    return;
-
+            if (_isActive)
+            {
+                string error_msg = Languages.language_en_US.recorder_error_load_when_record_on;
+                UpdateError(error_msg);
+                return;
+            }
 
             //clean just in case
             string recordFile = string.Format("{0}\\record.json", _sourceDirectory);
-            try
+            if (File.Exists(recordFile))
             {
-                File.Delete(recordFile);
-            }
-            catch { }
-            List<string> recordImages = Directory.EnumerateFiles(_sourceDirectory, "record.*.jpg").ToList();
-            foreach (var item in recordImages)
-            {
-                File.Delete(item);
-            }
-
-
-            using (FileStream zipToOpen = new FileStream(scenarioName, FileMode.Open))
-            {
-                using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
+                try
                 {
-                    archive.ExtractToDirectory(_sourceDirectory);
+                    File.Delete(recordFile);
+                }
+                catch (Exception ex)
+                {
+                    string error_msg = string.Format("Cache clean failed. Deletion of file {0} failed. Continue to open.", recordFile);
+                    _log.Warn(error_msg, ex);
+                    UpdateError(error_msg);
                 }
             }
+            string file_path = string.Empty;
+            try
+            {
+                List<string> recordImages = Directory.EnumerateFiles(_sourceDirectory, "record.*.jpg").ToList();
+                foreach (var item in recordImages)
+                {
+                    if (File.Exists(item))
+                    {
+                        file_path = item;
+                        File.Delete(item);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                string error_msg = string.Format("Cache clean failed. Deletion of file {0} failed. Continue to open.", file_path);
+                _log.Warn(error_msg, ex);
+                UpdateError(error_msg);
+            }
 
-            StreamReader reader = new StreamReader(recordFile);
-            string value = reader.ReadToEnd();
 
-            _eventList = JsonConvert.DeserializeObject<List<MouseNKeyEventArgs>>(value);
+            try
+            {
+                using (FileStream zipToOpen = new FileStream(scenarioName, FileMode.Open))
+                {
+                    using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Read))
+                    {
+                        archive.ExtractToDirectory(_sourceDirectory);
+                    }
+                }
+
+                StreamReader reader = new StreamReader(recordFile);
+                string value = reader.ReadToEnd();
+
+                _eventList = JsonConvert.DeserializeObject<List<MouseNKeyEventArgs>>(value);
+            }
+            catch (Exception ex)
+            {
+                string error_msg = string.Format("Can't Load {0}.", scenarioName);
+                _log.Error(error_msg, ex);
+                UpdateError(error_msg);
+            }
         }
 
         public void Preview()
@@ -248,10 +319,17 @@ namespace ShivaQEmaster
                         );
                     }
                 }
+                else
+                {
+                    string error_msg = "No record to preview";
+                    UpdateError(error_msg);
+                }
             }
             catch (Exception ex)
             {
-                _log.Error(ex.Message, ex);
+                string error_msg = "Preview failed.";
+                _log.Error(error_msg, ex);
+                UpdateError(error_msg);
             }
 
         }
@@ -278,7 +356,9 @@ namespace ShivaQEmaster
                     }
                     catch (Exception ex)
                     {
-                        _log.Error("error send window created", ex);
+                        string error_msg = "error send window created";
+                        _log.Error(error_msg, ex);
+                        throw new InvalidOperationException(error_msg);
                     }
                 }
 
@@ -292,7 +372,9 @@ namespace ShivaQEmaster
             }
             catch (Exception ex)
             {
-                _log.Error("error display delayed img", ex);
+                string error_msg = "error sending event on slave";
+                _log.Error(error_msg, ex);
+                throw new InvalidOperationException(error_msg);
             }
             return result;
         }
@@ -302,12 +384,20 @@ namespace ShivaQEmaster
             Preview();
             SlaveManager slaveManager = SlaveManager.Instance;
             List<Task> tasklist = new List<Task>();
-            foreach (MouseNKeyEventArgs mnk_event in _eventList)
+            if (_eventList != null && _eventList.Count > 0)
             {
-                foreach (Slave slave in slaveManager.slaveList)
+                foreach (MouseNKeyEventArgs mnk_event in _eventList)
                 {
-                    tasklist.Add(ExecuteEvent(mnk_event));
+                    foreach (Slave slave in slaveManager.slaveList)
+                    {
+                        tasklist.Add(ExecuteEvent(mnk_event));
+                    }
                 }
+            }
+            else
+            {
+                string error_msg = "Load a record first";
+                UpdateError(error_msg);
             }
 
             //should wait
@@ -317,6 +407,7 @@ namespace ShivaQEmaster
         public void Stop()
         {
             _timerRecording.Stop();
+            _isActive = false;
         }
     }
 }

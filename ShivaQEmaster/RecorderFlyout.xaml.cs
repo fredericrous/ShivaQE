@@ -25,9 +25,13 @@ namespace ShivaQEmaster
             _sb_stopRecord = this.FindResource("sb_stopRecord") as Storyboard;
             _recorder = Recorder.Instance;
             _recorder.TimeElapsed += (elapsed) =>
-            {
-                _bindings.time_elapsed = elapsed;
-            };
+                {
+                    _bindings.time_elapsed = elapsed;
+                };
+            _recorder.UpdateError += (error_msg) =>
+                {
+                    _bindings.error_msg = error_msg;
+                };
 		}
 
 		private void ts_record_IsCheckedChanged(object sender, System.EventArgs e)
@@ -48,8 +52,8 @@ namespace ShivaQEmaster
                 _recorder.Stop();
 
                 SaveFileDialog saveFileDialog = new SaveFileDialog();
-                saveFileDialog.Filter = "Recorded Scenario|*.zip|All Files|*.*";
-                saveFileDialog.Title = "Save a record";
+                saveFileDialog.Filter = Languages.language_en_US.flyout_dialog_save_filter;
+                saveFileDialog.Title = Languages.language_en_US.flyout_dialog_save_title;
                 saveFileDialog.ShowDialog();
                 if (saveFileDialog.FileName != "")
                 {
@@ -69,7 +73,7 @@ namespace ShivaQEmaster
 		private void bt_load_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
             OpenFileDialog openFileDialog_Load = new OpenFileDialog();
-            openFileDialog_Load.Filter = "Recorded Scenario|*.zip|All Files|*.*";
+            openFileDialog_Load.Filter = Languages.language_en_US.flyout_dialog_save_filter;
             openFileDialog_Load.FilterIndex = 1;
 
             DialogResult userClickedOK = openFileDialog_Load.ShowDialog();
