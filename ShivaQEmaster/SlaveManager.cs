@@ -91,7 +91,7 @@ namespace ShivaQEmaster
                     ObservableCollection<Slave> slaveListFromJson = JsonConvert.DeserializeObject<ObservableCollection<Slave>>(slaveListJson);
                     foreach (var item in slaveListFromJson)
                     {
-                        slaveList.Add(new Slave(item.ipAddress, item.port) { name = item.name });
+                        slaveList.Add(new Slave(item.ipAddress, item.port) { friendlyName = item.friendlyName });
                     }
                     slaveListFromJson = null;
                 }
@@ -136,7 +136,7 @@ namespace ShivaQEmaster
             try
             {
                 Slave slave = new Slave(hostname, port);
-                slave.name = friendlyname;
+                slave.friendlyName = friendlyname;
 
                 // Connect to the remote endpoint.
                 _log.Info("[Master] Connecting to slave");
@@ -196,12 +196,16 @@ namespace ShivaQEmaster
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="data"></param>
-        public async Task Send<T>(T data)
+        public async Task<List<string>> Send<T>(T data)
         {
-            string json = JsonConvert.SerializeObject(data);
+            List<string> errorList = new List<string>();
+            byte[] byteData;
+            string json = null;
+
+            json = JsonConvert.SerializeObject(data);
             json += "<EOF>"; //used serverside to know string has been received entirely
 
-            byte[] byteData = Encoding.UTF8.GetBytes(json);
+            byteData = Encoding.UTF8.GetBytes(json);
 
             // send data to all remote devices
             foreach (Slave slave in slaveList)
@@ -216,14 +220,16 @@ namespace ShivaQEmaster
                     }
                     catch (Exception ex)
                     {
-                        _log.Error("Error writing request tcp", ex);
-                        slaveList.Where(x => x.ipAddress == slave.ipAddress).First().client.Close();
-                        throw;
+                        string error_msg = string.Format("Error writing request tcp to {0}", slave.ipAddress);
+                        _log.Error(error_msg, ex);
+                        //slaveList.Where(x => x.ipAddress == slave.ipAddress).First().client.Close();
+                        errorList.Add(error_msg);
+                       // throw;
                     }
                     _log.Info("[Master] Written");
                 }
             }
-            return;
+            return errorList;
         }
 
         public void Remove(IEnumerable<Slave> slaves)
@@ -284,7 +290,7 @@ namespace ShivaQEmaster
             }
             else
             {
-                throw new InvalidOperationException(string.Format("{0} already connected", slave.name));
+                throw new InvalidOperationException(string.Format("{0} already connected", slave.friendlyName));
             }
         }
 
@@ -303,7 +309,7 @@ namespace ShivaQEmaster
             }
             catch (Exception ex)
             {
-                string error = string.Format("Error requesting disconnect from {0}", slave.name);
+                string error = string.Format("Error requesting disconnect from {0}", slave.friendlyName);
                 _log.Error(error, ex);
                 throw new InvalidOperationException(error);
             }

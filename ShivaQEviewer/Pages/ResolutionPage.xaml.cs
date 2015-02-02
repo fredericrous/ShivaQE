@@ -67,7 +67,7 @@ namespace ShivaQEviewer
                 foreach (var slave in _slaveManager.slaveList)
                 {
                     var deploy = new Deployer(slave, _bindings.height, _bindings.width);
-
+                    
                     deploy.UpdateStatus += (status) =>
                     {
                         UpdatesStatus(status);

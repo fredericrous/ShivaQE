@@ -9,7 +9,7 @@ namespace ShivaQEslave
 {
     class CompareImages
     {
-        double Compare(Bitmap InputImage1, Bitmap InputImage2, int Tollerance)
+        public static double Compare(Bitmap InputImage1, Bitmap InputImage2, int Tollerance)
         {
             Bitmap Image1 = new Bitmap(InputImage1, new Size(128, 128));
             Bitmap Image2 = new Bitmap(InputImage2, new Size(128, 128));

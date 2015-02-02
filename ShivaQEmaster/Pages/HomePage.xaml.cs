@@ -45,6 +45,14 @@ namespace ShivaQEmaster
                         this.ts_broadcast.IsChecked = status;
                     });
                 };
+
+            MainWindow.ErrorMsg += (text) =>
+                {
+                    this.Dispatcher.Invoke(() =>
+                    {
+                        this.lb_error.Text = text;
+                    });
+                };
 		}
 
         /// <summary>

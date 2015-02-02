@@ -49,8 +49,9 @@
 				</GridView>
 			</ListView.View>
 		</ListView>
-		<Button x:Name="bt_add" Content="{Binding homepage_bt_add, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,245.17,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_add_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
-        <Button x:Name="bt_remove" Content="{Binding homepage_bt_remove, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,177.333,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_remove_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
         <Button x:Name="bt_view" Content="{Binding homepage_bt_view, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,20.157,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_view_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
+        <Button x:Name="bt_edit" Content="{Binding homepage_bt_edit, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,122.67,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" Click="bt_edit_Click" />
+        <Button x:Name="bt_remove" Content="{Binding homepage_bt_remove, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,184.97,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_remove_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
+		<Button x:Name="bt_add" Content="{Binding homepage_bt_add, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,245.17,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_add_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
 	</Grid>
 </Page>

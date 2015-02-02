@@ -12,6 +12,7 @@ using log4net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
+using System.Collections.Generic;
 
 namespace ShivaQEmaster
 {
@@ -40,6 +41,9 @@ namespace ShivaQEmaster
 
         public delegate void UpdateBroadcastStatusEventHandler(bool status);
         public static event UpdateBroadcastStatusEventHandler UpdateBroadcastStatus;
+
+        public delegate void errorEventHandler(string text);
+        public static event errorEventHandler ErrorMsg;
 
         public MainWindow()
         {
@@ -137,16 +141,32 @@ namespace ShivaQEmaster
                         Bitmap comparatorCapture = ScreenCapturePInvoke.CaptureScreen(rect, false);
                         comparatorCapture.Save(comparatorName);
 
+                        //Task.Run(async () =>
+                        //    {
+                                byte[] file = File.ReadAllBytes(comparatorName);
+                        //        await _slaveManager.Send<byte[]>(file);
+                        //        //ActionMethod action = new ActionMethod()
+                        //        //{
+                        //        //    method = ActionType.CheckIdentical,
+                        //        //    value = comparatorName
+                        //        //};
+                        //        //await _slaveManager.Send<ActionMethod>(action);
+
+                        //    });
+
+                        ev.screenshotBytes = file;
 
                         //send click
                         try
                         {
-                            await _slaveManager.Send<MouseNKeyEventArgs>(ev);
+                            List<string> error_hosts = await _slaveManager.Send<MouseNKeyEventArgs>(ev);
+                            UpdateSendErrorIfThereIs(error_hosts);
                             //checkIdentical();
                         }
                         catch (IOException ex)
                         {
                             _log.Error("refresh list because", ex);
+                            ErrorMsg("Error sending mouse");
                             //404 lv_slaves.Items.Refresh();
                         }
                     });
@@ -239,8 +259,8 @@ namespace ShivaQEmaster
                         _recorder.Write(ev);
 
                         //send input
-                        await _slaveManager.Send<MouseNKeyEventArgs>(ev);
-
+                        List<string> error_hosts = await _slaveManager.Send<MouseNKeyEventArgs>(ev);
+                        UpdateSendErrorIfThereIs(error_hosts);
                         //checkIdentical();
                     }
 
@@ -248,6 +268,7 @@ namespace ShivaQEmaster
                 catch (IOException ex)
                 {
                     _log.Error("refresh list because", ex);
+                    ErrorMsg("Error sending key");
                     //404 lv_slaves.Items.Refresh();
                 }
             };
@@ -289,6 +310,19 @@ namespace ShivaQEmaster
                         _log.Error("can't send clipboard update", ex);
                     }
                 };
+        }
+
+        private void UpdateSendErrorIfThereIs(List<string> error_hosts)
+        {
+            if (error_hosts.Count > 0)
+            {
+                string concat_hosts = string.Empty;
+                for (var i = 0; i < error_hosts.Count; i++)
+                {
+                    concat_hosts += error_hosts[i] + ((error_hosts.Count == i - 1) ? string.Empty : ", ");
+                }
+                ErrorMsg(string.Format("Error sending key to slaves {0}", concat_hosts));
+            }
         }
 
         [DllImport("user32.dll")]

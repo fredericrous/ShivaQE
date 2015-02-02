@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace ShivaQEcommon
 {
-    class SettingsManager
+    public class SettingsManager
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 

@@ -134,6 +134,24 @@ namespace ShivaQEviewer.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        public static string editpage_bt_edit {
+            get {
+                return ResourceManager.GetString("editpage_bt_edit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EDIT SERVER INFORMATIONS.
+        /// </summary>
+        public static string editpage_header {
+            get {
+                return ResourceManager.GetString("editpage_header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Close.
         /// </summary>
         public static string global_bt_close {
@@ -157,6 +175,15 @@ namespace ShivaQEviewer.Languages {
         public static string homepage_bt_add {
             get {
                 return ResourceManager.GetString("homepage_bt_add", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string homepage_bt_edit {
+            get {
+                return ResourceManager.GetString("homepage_bt_edit", resourceCulture);
             }
         }
         

@@ -25,7 +25,7 @@
         <TextBox Controls:TextBoxHelper.Watermark="{Binding addserverpage_tb_win_login, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Height="23" Margin="299.001,141,0,0" TextWrapping="NoWrap" Text="{Binding add_login}" VerticalAlignment="Top" Width="243" BorderBrush="#FFFBA92C"/>
         <Label Content="{Binding addserverpage_lb_win_password, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,176.043,433.117,0" VerticalAlignment="Top"/>
         <PasswordBox x:Name="pb_add_password" HorizontalAlignment="Left" Margin="299.001,176.043,0,0" VerticalAlignment="Top" Width="243" KeyDown="pb_add_password_KeyDown" BorderBrush="#FFFBA92C"/>
-        <TextBlock HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="{Binding addserverpage_header, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Span></TextBlock>
+        <TextBlock x:Name="lb_header" HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="{Binding addserverpage_header, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Span></TextBlock>
         <Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="1" VerticalAlignment="Top" Width="725" Margin="0,41,0,0"/>
         <Label Content="{Binding error_msg, Mode=TwoWay}" HorizontalAlignment="Right" Margin="0,242.396,192.999,0" VerticalAlignment="Top" BorderBrush="Black" Foreground="{Binding error_color}" Width="306.158" FontSize="13.333"/>
     </Grid>

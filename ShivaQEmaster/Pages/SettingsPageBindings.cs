@@ -1,4 +1,5 @@
-﻿
+﻿using ShivaQEcommon;
+
 namespace ShivaQEmaster
 {
     public class SettingsPageBindings : BindingsBase

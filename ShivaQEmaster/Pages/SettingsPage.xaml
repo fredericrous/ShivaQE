@@ -30,6 +30,15 @@
 		<Button x:Name="bt_close" Margin="22,304.17,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Content="{Binding global_bt_close, Source={StaticResource language_en_USDataSource}}" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" Click="bt_close_Click" />
 		<TextBlock HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="{Binding settingspage_header, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Span></TextBlock>
 		<Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="1" VerticalAlignment="Top" Width="717" Margin="0,41,0,0"/>
-		
+		<Grid x:Name="bt_sync" Margin="447.857,309.486,44.604,9" Cursor="Hand">
+			<Label x:Name="lb_sync" Content="Sync serverlist with viewer" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="14.667" FontWeight="Bold"/>
+			<Grid Margin="0,0.552,193.577,0">
+				<Ellipse HorizontalAlignment="Left" Height="30.962" VerticalAlignment="Top" Width="30.962" Stroke="#FFFBA92C" StrokeThickness="2"/>
+				<Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" Stretch="Uniform" Margin="2.963,2.46,2.75,3.404">
+					<Canvas x:Name="svg2" Width="64" Height="64"><!--Unknown tag: sodipodi:namedview-->
+	<!--Unknown tag: metadata--><Canvas x:Name="layer1"><Canvas.RenderTransform><TranslateTransform X="0" Y="-988.36218"/></Canvas.RenderTransform><Canvas x:Name="g3000"><Canvas.RenderTransform><TranslateTransform X="-0.6861654" Y="989.15943"/></Canvas.RenderTransform><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path2986" StrokeThickness="8" Stroke="#FF000000" StrokeMiterLimit="10"><Path.Data><PathGeometry Figures="M 10.227 37.869 C 7.549 24.888 15.903 12.194 28.885 9.517 32.13 8.848 35.359 8.869 38.415 9.478" FillRule="NonZero"/></Path.Data></Path><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="path2988" StrokeThickness="8" Stroke="#FF000000" StrokeMiterLimit="10"><Path.Data><PathGeometry Figures="m 53.875 25.621 c 2.677 12.982 -5.677 25.675 -18.659 28.352 -2.909 0.601 -5.804 0.646 -8.575 0.21" FillRule="NonZero"/></Path.Data></Path><Polyline xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Points="42.602,0.286 46.236,17.915 26.648,21.954" x:Name="polyline2990" FillRule="NonZero" Fill="#000000"/><Polyline xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Points="23.378,63.512 19.743,45.883 39.331,41.844" x:Name="polyline2992" FillRule="NonZero" Fill="#000000"/></Canvas></Canvas></Canvas>
+				</Viewbox>
+			</Grid>
+		</Grid>
 	</Grid>
 </Page>

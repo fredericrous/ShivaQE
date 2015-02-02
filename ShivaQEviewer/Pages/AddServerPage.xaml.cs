@@ -24,6 +24,7 @@ using System.Collections.ObjectModel;
 using log4net;
 using System.Reflection;
 using ShivaQEcommon;
+using System.Net;
 
 namespace ShivaQEviewer
 {
@@ -32,9 +33,13 @@ namespace ShivaQEviewer
     /// </summary>
     public partial class AddServerPage : Page
     {
+        const int _default_port = 1142;
+
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         AddServerPageBindings _bindings;
         SlaveManager _slaveManager;
-        private string _slaveList_save_path = "slavelist.json";
+        public static string _slaveList_save_path = "slavelist.json";
 
         public AddServerPage()
         {
@@ -44,7 +49,13 @@ namespace ShivaQEviewer
             _slaveManager = SlaveManager.Instance;
         }
 
-        private void bt_add_add_Click(object sender, System.Windows.RoutedEventArgs e)
+        public AddServerPageBindings Bindings
+        {
+            get { return _bindings; }
+            set { _bindings = value; }
+        }
+
+        public virtual void bt_add_add_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             string hostname = _bindings.add_hostname.Trim();
             if (string.IsNullOrEmpty(hostname))
@@ -52,6 +63,24 @@ namespace ShivaQEviewer
                 MessageBox.Show("specify a hostname first");
                 return;
             }
+
+            int port = _default_port;
+            try
+            {
+                port = Int32.Parse(SettingsManager.ReadSetting("port"));
+            }
+            catch (Exception ex)
+            {
+                _log.Warn("cant parse port, using default " + _default_port, ex);
+            }
+
+            int portInHostname = getPortFromHostname(hostname);
+            if (portInHostname != -1)
+            {
+                port = portInHostname;
+                hostname = hostname.Substring(0, hostname.LastIndexOf(':'));
+            }
+
 
             string friendlyname = string.IsNullOrEmpty(_bindings.add_friendlyname) && Char.IsLetter(hostname[0])
                 ? hostname.Substring(0, (hostname.IndexOf('.') == -1 ? hostname.Length : hostname.IndexOf('.')))
@@ -65,7 +94,8 @@ namespace ShivaQEviewer
                 {
                     login = login,
                     password = password,
-                    friendlyName = friendlyname
+                    friendlyName = friendlyname,
+                    port = port
                 };
                 _slaveManager.Add(slave);
 
@@ -82,6 +112,34 @@ namespace ShivaQEviewer
             string slaveListJson = JsonConvert.SerializeObject(_slaveManager.slaveList, Formatting.Indented);
             File.WriteAllText(_slaveList_save_path, slaveListJson);
 
+        }
+
+        // this function is a doublon with AddServerPage from ShivaQEmaster
+        private int getPortFromHostname(string hostname)
+        {
+            int port = -1;
+
+            int indexColon = hostname.LastIndexOf(':');
+
+            //has port
+            if (indexColon == -1)
+            {
+                return port;
+            }
+
+            //is not a comma part of an ipv6 address
+            if (hostname.Count(x => x == ':') > 1)
+            {
+                IPAddress address;
+                if (!IPAddress.TryParse(hostname.Substring(0, indexColon), out address))
+                {
+                    return port;
+                }
+            }
+
+            Int32.TryParse(hostname.Substring(indexColon + 1), out port);
+
+            return port;
         }
 
         private void bt_add_cancel_Click(object sender, System.Windows.RoutedEventArgs e)

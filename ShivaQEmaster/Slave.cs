@@ -50,6 +50,8 @@ namespace ShivaQEmaster
 
             _endpoint = new IPEndPoint(ipAddress, port);
             _port = port;
+            _friendlyName = hostname;
+            _hostname = hostname;
 
             // Create a TCP/IP socket.
             Renew();
@@ -94,8 +96,21 @@ namespace ShivaQEmaster
             }
         }
 
+        private string _friendlyName;
         [JsonProperty]
-        public string name { get; set; }
+        public string friendlyName
+        {
+            get { return _friendlyName ; }
+            set { _friendlyName = friendlyName; }
+        }
+
+        private string _hostname;
+        [JsonProperty]
+        public string hostname
+        {
+            get { return _hostname; }
+            set { _hostname = hostname; }
+        }
 
         [JsonProperty]
         public int port { get { return _port; } set { _port = value; } }

@@ -141,6 +141,12 @@
   <data name="addserverpage_tb_win_login" xml:space="preserve">
     <value>domain\login</value>
   </data>
+  <data name="editpage_bt_edit" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="editpage_header" xml:space="preserve">
+    <value>EDIT SERVER INFORMATIONS</value>
+  </data>
   <data name="global_bt_close" xml:space="preserve">
     <value>Close</value>
   </data>
@@ -149,6 +155,9 @@
   </data>
   <data name="homepage_bt_add" xml:space="preserve">
     <value>Add</value>
+  </data>
+  <data name="homepage_bt_edit" xml:space="preserve">
+    <value>Edit</value>
   </data>
   <data name="homepage_bt_remove" xml:space="preserve">
     <value>Remove</value>

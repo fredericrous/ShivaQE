@@ -82,8 +82,8 @@ namespace ShivaQEmaster
                     File.Delete(recordFile);
                     foreach (var item in _eventList)
                     {
-                        filename = item.screenshot;
-                        File.Delete(string.Format("{0}\\{1}", _sourceDirectory, item.screenshot));
+                        filename = item.screenshotPath;
+                        File.Delete(string.Format("{0}\\{1}", _sourceDirectory, item.screenshotPath));
                     }
                 }
                 catch (Exception)
@@ -139,7 +139,7 @@ namespace ShivaQEmaster
 
                 reducedCapture.Save(file_path, GetEncoder(ImageFormat.Jpeg), myEncoderParameters);
 
-                ev.screenshot = screenName;
+                ev.screenshotPath = screenName;
             }
             catch (Exception ex)
             {
@@ -216,7 +216,7 @@ namespace ShivaQEmaster
 
                         foreach (var item in _eventList)
                         {
-                            file = string.Format("{0}\\{1}", _sourceDirectory, item.screenshot);
+                            file = string.Format("{0}\\{1}", _sourceDirectory, item.screenshotPath);
 
                             archive.CreateEntryFromFile(file, file.Substring(file.LastIndexOf("\\") + 1));
                         }
@@ -311,7 +311,7 @@ namespace ShivaQEmaster
                     List<Task> taskList = new List<Task>();
                     for (var i = 0; i < _eventList.Count; i++)
                     {
-                        string fileName = string.Format("{0}\\{1}", _sourceDirectory, _eventList[i].screenshot);
+                        string fileName = string.Format("{0}\\{1}", _sourceDirectory, _eventList[i].screenshotPath);
                         TimeSpan ts = TimeSpan.FromMilliseconds(_eventList[i].timestamp);
                         taskList.Add(
                             recordViewer.UpdateImg(ts, fileName,

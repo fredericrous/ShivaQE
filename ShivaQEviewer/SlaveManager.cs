@@ -58,12 +58,15 @@ namespace ShivaQEviewer
                     {
                         Slave newSlave = new Slave(slave.hostname)
                         {
-                            login = slave.login,
-                            password = slave.password,
                             friendlyName = slave.friendlyName,
                             ipAddress = slave.ipAddress
                         };
-                        slaveList.Add(slave);
+                        if (slave.login != null && slave.password != null)
+                        {
+                            newSlave.login = slave.login;
+                            newSlave.password = slave.password;
+                        }
+                        slaveList.Add(newSlave);
                     }
                     slaveListFromJson = null;
                 }
@@ -83,6 +86,5 @@ namespace ShivaQEviewer
         {
             slaveList.Remove(slave);
         }
-
     }
 }

@@ -1,4 +1,5 @@
 ﻿using log4net;
+using ShivaQEviewer.TerminalServices;
 using SimpleImpersonation;
 using System;
 using System.Collections.Generic;
@@ -17,22 +18,6 @@ namespace ShivaQEviewer
     {
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        [DllImport("WtsApi32.dll")]
-        public static extern bool WTSWaitSystemEvent(IntPtr hServer, int EventMask, out IntPtr pEventFlags);
-
-        [DllImport("WtsApi32.dll")]
-        public static extern IntPtr WTSOpenServer(string server);
-
-        [DllImport("wtsapi32.dll")]
-        static extern int WTSEnumerateSessions(
-                        IntPtr hServer,
-                        int Reserved,
-                        int Version,
-                        ref IntPtr ppSessionInfo,
-                        ref int pCount);
-
-        //int WTS_EVENT_LOGON = 0x00000020;
-
         private string executablePath = System.IO.Path.GetDirectoryName(System.Windows.Forms.Application.ExecutablePath).ToString() + "\\";
         private static string _path_cmd_launcher = "PsExec.exe";
 
@@ -48,76 +33,6 @@ namespace ShivaQEviewer
             this._resolution_width = resolution_width;
         }
 
-        [DllImport("wtsapi32.dll")]
-        static extern void WTSCloseServer(IntPtr hServer);
-
-        [DllImport("wtsapi32.dll")]
-        static extern void WTSFreeMemory(IntPtr pMemory);
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct WTS_SESSION_INFO
-        {
-            public Int32 SessionID;
-
-            [MarshalAs(UnmanagedType.LPStr)]
-            public String pWinStationName;
-
-            public WTS_CONNECTSTATE_CLASS State;
-        }
-
-        public enum WTS_CONNECTSTATE_CLASS
-        {
-            WTSActive,
-            WTSConnected,
-            WTSConnectQuery,
-            WTSShadow,
-            WTSDisconnected,
-            WTSIdle,
-            WTSListen,
-            WTSReset,
-            WTSDown,
-            WTSInit
-        } 
-
-        public static int CountActiveSessions(String ServerName)
-        {
-            IntPtr server = IntPtr.Zero;
-            int ret = 0;
-            server = WTSOpenServer(ServerName);
-
-            try
-            {
-                IntPtr ppSessionInfo = IntPtr.Zero;
-
-                Int32 count = 0;
-                Int32 retval = WTSEnumerateSessions(server, 0, 1, ref ppSessionInfo, ref count);
-                Int32 dataSize = Marshal.SizeOf(typeof(WTS_SESSION_INFO));
-
-                Int64 current = (int)ppSessionInfo;
-
-                if (retval != 0)
-                {
-                    for (int i = 0; i < count; i++)
-                    {
-                        WTS_SESSION_INFO si = (WTS_SESSION_INFO)Marshal.PtrToStructure((System.IntPtr)current, typeof(WTS_SESSION_INFO));
-                        current += dataSize;
-                        if (si.State == WTS_CONNECTSTATE_CLASS.WTSActive)
-                        {
-                            ret++;
-                        }
-                    }
-
-                    WTSFreeMemory(ppSessionInfo);
-                }
-            }
-            finally
-            {
-                WTSCloseServer(server);
-            }
-
-            return ret;
-        }
-
         public delegate void UpdateStatusEvent(string status);
         public event UpdateStatusEvent UpdateStatus;
 
@@ -128,13 +43,13 @@ namespace ShivaQEviewer
             status = string.Format("{0} : starting {1}", _slave.hostname, Environment.NewLine);
             UpdateStatus(status);
 
-            int activeSessionNumber = CountActiveSessions(_slave.ipAddress);
+            List<TerminalSessionData> lastSessionList = TermServicesManager.ListSessions(_slave.ipAddress);
 
             status = string.Format("{0} : openning rdp for this server {1}", _slave.hostname, Environment.NewLine);
             UpdateStatus(status);
 
             //open rdp
-            IntPtr hServer = executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
+            executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
                 string.Format("/v:{0} /h:{1} /w:{2}",
                 _slave.ipAddress, _resolution_height, _resolution_width), false, false, _slave);
 
@@ -142,22 +57,24 @@ namespace ShivaQEviewer
             UpdateStatus(status);
 
             //copy slave
-            if (!copy_files(executablePath + "slave", String.Format(@"\\{0}\c$\ShivaQEslave", _slave.hostname), _slave.login, _slave.password))
-                return false;
+            try
+            {
+                copy_files(executablePath + "slave", String.Format(@"\\{0}\c$\ShivaQEslave", _slave.hostname), _slave.login, _slave.password);
+            }
+            catch (Exception ex)
+            {
+                status = string.Format("Error while copying ShivaQEslave to {0}: {1}{2}", _slave.hostname, ex.Message, Environment.NewLine);
+                UpdateStatus(status);
+            }
 
             // wait rdp connection is done before executing psexec.
             // Psexec needs that rdp connection in order to gain access rights
-            int timeoutCounter = 0;
+
             int timeoutLimit = 120; //after 2min lets consider this a fail
-            while (activeSessionNumber == CountActiveSessions(_slave.ipAddress)) //when number of active session changes
-            {
-                await Task.Delay(1000); //wait 1sec
-                if (timeoutCounter >= timeoutLimit)
-                {
-                    break;
-                }
-                timeoutCounter++;
-            }
+
+            UpdateStatus(string.Format("{0}: waiting for rdp completion. If it takes more than {1} min, it will be aborted.", _slave.hostname, 120 / 60));
+
+            TerminalSessionData sessionData = await TermServicesManager.GetNewSession(_slave.ipAddress, lastSessionList, timeoutLimit);	
 
             string username = _slave.login;
             if (username.IndexOf('\\') != -1)
@@ -184,13 +101,23 @@ namespace ShivaQEviewer
             status = string.Format("{0} : launch slave on this server {1}", _slave.hostname, Environment.NewLine);
             UpdateStatus(status);
             executeCmd(executablePath + _path_cmd_launcher,
-                string.Format(@"\\{0} -u ""{1}"" -p ""{2}"" -i 2 -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe""",
-                _slave.ipAddress, _slave.login, _slave.password), true, true);
+                string.Format(@"\\{0} -u ""{1}"" -p ""{2}"" -i {3} -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe {4}""",
+                _slave.ipAddress, _slave.login, _slave.password, sessionData.SessionId, _slave.port), true, true);
 
             return true;
         }
 
-        private bool copy_files(string source_dir, string destination_dir, string login, string password)
+        /// <summary>
+        /// copy a directory and its files over the network
+        /// </summary>
+        /// <param name="source_dir">the source directory</param>
+        /// <param name="destination_dir">the destination directory</param>
+        /// <param name="login">
+        /// windows login credential. specify domain with \. ie: domain\login.
+        /// if no domain is suplied. ie: login. domain set is localhost.
+        /// </param>
+        /// <param name="password">the password of the windows account</param>
+        private void copy_files(string source_dir, string destination_dir, string login, string password)
         {
             string[] directories = Directory.GetDirectories(source_dir, "*", SearchOption.AllDirectories);
             string[] files = Directory.GetFiles(source_dir, "*", SearchOption.AllDirectories);
@@ -225,12 +152,22 @@ namespace ShivaQEviewer
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine("Error deleting files: " + ex.Message);
+                    _log.Warn("Error deleting files: " + ex.Message);
                 }
 
                 foreach (string dir in directories)
                 {
-                    Directory.CreateDirectory(destination_dir + dir.Substring(source_dir.Length));
+                    string directory_to_create = destination_dir + dir.Substring(source_dir.Length);
+                    try
+                    {
+                        Directory.CreateDirectory(directory_to_create);
+                    }
+                    catch (Exception ex)
+                    {
+                        string error_msg = string.Format("can't create directory {0} on slave", directory_to_create);
+                        _log.Error(error_msg, ex);
+                        UpdateStatus(error_msg);
+                    }
                 }
 
                 foreach (string file_name in files)
@@ -241,14 +178,23 @@ namespace ShivaQEviewer
                     }
                     catch (Exception ex)
                     {
-                        _log.Error(string.Format("can't copy {0}", file_name), ex);
+                        string error_msg = string.Format("can't copy {0} on slave", file_name);
+                        _log.Error(error_msg, ex);
+                        UpdateStatus(error_msg);
                     }
                 }
-
-                return true;
             }
         }
 
+        /// <summary>
+        /// launch an executable.
+        /// </summary>
+        /// <param name="filename">the name of the executable</param>
+        /// <param name="argument">the arguments to pass to the executable</param>
+        /// <param name="hidden">should the window of the executable be displayed</param>
+        /// <param name="redirectOutput">should output be redirected to log</param>
+        /// <param name="slave"></param>
+        /// <returns></returns>
         private IntPtr executeCmd(string filename, string argument, bool hidden = false, bool redirectOutput = false, Slave slave = null)
         {
             Process process = new Process();
@@ -310,7 +256,7 @@ namespace ShivaQEviewer
             return process.Handle;
         }
 
-
+        //check if _path_cmd_launcher (psexec) exists
         internal static void CmdLauncherExists()
         {
             if (!File.Exists(_path_cmd_launcher))

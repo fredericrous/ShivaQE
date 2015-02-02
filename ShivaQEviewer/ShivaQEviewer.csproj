@@ -81,6 +81,7 @@
     <Compile Include="Pages\AddServerPageBindings.cs" />
     <Compile Include="Pages\BindingsBase.cs" />
     <Compile Include="Deployer.cs" />
+    <Compile Include="Pages\EditServerPage.cs" />
     <Compile Include="Pages\HomePageBindings.cs" />
     <Compile Include="Pages\ResolutionPageBindings.cs" />
     <Compile Include="Pages\HelpPage.xaml.cs">
@@ -103,6 +104,7 @@
     </Compile>
     <Compile Include="Slave.cs" />
     <Compile Include="SlaveManager.cs" />
+    <Compile Include="TermServicesManager.cs" />
     <Page Include="Pages\AddServerPage.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

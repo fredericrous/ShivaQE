@@ -29,8 +29,7 @@ namespace ShivaQEmaster.Languages {
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        public language_en_US()
-        {
+        public language_en_US() {
         }
         
         /// <summary>
@@ -296,6 +295,15 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Sync serverlist with viewer.
+        /// </summary>
+        public static string settingspage_bt_syncpage {
+            get {
+                return ResourceManager.GetString("settingspage_bt_syncpage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to enable trace log.
         /// </summary>
         public static string settingspage_cb_trace {
@@ -373,6 +381,42 @@ namespace ShivaQEmaster.Languages {
         public static string settingspage_wm_key {
             get {
                 return ResourceManager.GetString("settingspage_wm_key", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Sync.
+        /// </summary>
+        public static string settingssyncpage_bt_sync {
+            get {
+                return ResourceManager.GetString("settingssyncpage_bt_sync", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Directory to viewer&apos;s serverlist.json.
+        /// </summary>
+        public static string settingssyncpage_lb_path {
+            get {
+                return ResourceManager.GetString("settingssyncpage_lb_path", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows login.
+        /// </summary>
+        public static string settingssyncpage_lb_win_login {
+            get {
+                return ResourceManager.GetString("settingssyncpage_lb_win_login", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Windows Password.
+        /// </summary>
+        public static string settingssyncpage_lb_win_password {
+            get {
+                return ResourceManager.GetString("settingssyncpage_lb_win_password", resourceCulture);
             }
         }
     }

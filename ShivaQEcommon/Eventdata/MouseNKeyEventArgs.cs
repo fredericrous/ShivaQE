@@ -13,7 +13,8 @@ namespace ShivaQEcommon.Eventdata
         public int position_x { get; set; }
         public int position_y { get; set; }
         public double timestamp { get; set; }
-        public string screenshot { get; set; }
+        public string screenshotPath { get; set; }
+        public byte[] screenshotBytes { get; set; }
         public string windowPos { get; set; }
     }
 }

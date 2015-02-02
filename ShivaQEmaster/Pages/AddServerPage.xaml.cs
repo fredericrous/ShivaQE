@@ -1,10 +1,12 @@
 ﻿using log4net;
 using ShivaQEcommon;
 using System;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
+using System.Linq;
 
 namespace ShivaQEmaster
 {
@@ -86,10 +88,7 @@ namespace ShivaQEmaster
                     add_local_warning = true;
                     return;
                 }
-                //if (dialogResult == System.Windows.Forms.DialogResult.No)
-                //{
-                //    return;
-                //}
+
             }
 
             //add new slave to list of slaves
@@ -104,10 +103,44 @@ namespace ShivaQEmaster
                 _log.Warn("cant parse port, using default " + _default_port, ex);
             }
 
+            int portInHostname = getPortFromHostname(hostname);
+            if (portInHostname != -1)
+            {
+                port = portInHostname;
+                hostname = hostname.Substring(0, hostname.LastIndexOf(':'));
+            }
+
             AddServer(hostname, port, friendlyname);
 
             //go back to homepage
             this.NavigationService.Navigate(new Uri("Pages/HomePage.xaml", UriKind.Relative));
+        }
+
+        private int getPortFromHostname(string hostname)
+        {
+            int port = -1;
+
+            int indexColon = hostname.LastIndexOf(':');
+
+            //has port
+            if (indexColon == -1)
+            {
+                return port;
+            }
+
+            //is not a comma part of an ipv6 address
+            if (hostname.Count(x => x == ':') > 1)
+            {
+                IPAddress address;
+                if (!IPAddress.TryParse(hostname.Substring(0, indexColon), out address))
+                {
+                    return port;
+                }
+            }
+
+            Int32.TryParse(hostname.Substring(indexColon + 1), out port);
+
+            return port;
         }
 
         public delegate void errorEventHandler(string text);

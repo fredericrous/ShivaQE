@@ -66,6 +66,9 @@ namespace ShivaQEviewer
         }
 
         [JsonProperty]
+        public int port { get; set; }
+
+        [JsonProperty]
         public string friendlyName { get; set; }
 
         [JsonProperty]

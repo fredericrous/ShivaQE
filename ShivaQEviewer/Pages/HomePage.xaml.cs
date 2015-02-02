@@ -29,12 +29,10 @@ namespace ShivaQEviewer
 {
 	public partial class HomePage
 	{
-        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         HomePageBindings _bindings;
         SlaveManager _slaveManager;
-
-        private string _slaveList_save_path = "..\\slavelist.json";
 
         public HomePage()
         {
@@ -61,13 +59,29 @@ namespace ShivaQEviewer
         {
             _slaveManager.Remove(_bindings.slaveSelected);
             string slaveListJson = JsonConvert.SerializeObject(_slaveManager.slaveList, Formatting.Indented);
-            File.WriteAllText(_slaveList_save_path, slaveListJson);
+            File.WriteAllText(AddServerPage._slaveList_save_path, slaveListJson);
         }
 
         private void bt_view_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             this.NavigationService.Navigate(new ResolutionPage());
         }
+
+        private void bt_edit_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            if (_bindings.slaveSelected == null)
+            {   
+                return;
+            }
+
+            EditServerPage page = new EditServerPage(_bindings.slaveSelected);
+            page.Unloaded += (_s, _e) =>
+            {
+                lv_slaves.Items.Refresh();
+            };
+            this.NavigationService.Navigate(page);
+        }
+
 
 	}
 }

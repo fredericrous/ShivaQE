@@ -195,6 +195,9 @@
   <data name="recorder_error_load_when_record_on" xml:space="preserve">
     <value>Can't load a record while recording is on</value>
   </data>
+  <data name="settingspage_bt_syncpage" xml:space="preserve">
+    <value>Sync serverlist with viewer</value>
+  </data>
   <data name="settingspage_cb_trace" xml:space="preserve">
     <value>enable trace log</value>
   </data>
@@ -221,5 +224,17 @@
   </data>
   <data name="settingspage_wm_key" xml:space="preserve">
     <value>key</value>
+  </data>
+  <data name="settingssyncpage_bt_sync" xml:space="preserve">
+    <value>Sync</value>
+  </data>
+  <data name="settingssyncpage_lb_path" xml:space="preserve">
+    <value>Directory to viewer's serverlist.json</value>
+  </data>
+  <data name="settingssyncpage_lb_win_login" xml:space="preserve">
+    <value>Windows login</value>
+  </data>
+  <data name="settingssyncpage_lb_win_password" xml:space="preserve">
+    <value>Windows Password</value>
   </data>
 </root>
