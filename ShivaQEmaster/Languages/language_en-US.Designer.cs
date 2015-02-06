@@ -304,6 +304,15 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to activate notification feedback for non matching UI.
+        /// </summary>
+        public static string settingspage_cb_match_notification {
+            get {
+                return ResourceManager.GetString("settingspage_cb_match_notification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to enable trace log.
         /// </summary>
         public static string settingspage_cb_trace {
@@ -394,7 +403,16 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Directory to viewer&apos;s serverlist.json.
+        ///   Looks up a localized string similar to SYNC SERVERLIST FROM VIEWER.
+        /// </summary>
+        public static string settingssyncpage_header {
+            get {
+                return ResourceManager.GetString("settingssyncpage_header", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Directory to viewer&apos;s serverlist.json :.
         /// </summary>
         public static string settingssyncpage_lb_path {
             get {
@@ -403,7 +421,7 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows login.
+        ///   Looks up a localized string similar to Windows Login :.
         /// </summary>
         public static string settingssyncpage_lb_win_login {
             get {
@@ -412,11 +430,29 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Windows Password.
+        ///   Looks up a localized string similar to Windows Password :.
         /// </summary>
         public static string settingssyncpage_lb_win_password {
             get {
                 return ResourceManager.GetString("settingssyncpage_lb_win_password", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to \\server\c$\ShivaQEViewer_Install_Path\slavelist.json.
+        /// </summary>
+        public static string settingssyncpage_tb_path {
+            get {
+                return ResourceManager.GetString("settingssyncpage_tb_path", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to domain\login.
+        /// </summary>
+        public static string settingssyncpage_tb_win_login {
+            get {
+                return ResourceManager.GetString("settingssyncpage_tb_win_login", resourceCulture);
             }
         }
     }

@@ -117,7 +117,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="NotifyWindow.xaml.cs">
+      <DependentUpon>NotifyWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="NullImageConverter.cs" />
+    <Compile Include="Pages\SettingsSyncPageBindings.cs" />
     <Compile Include="Pages\HomePageBindings.cs" />
     <Compile Include="Pages\SettingsSyncPage.xaml.cs">
       <DependentUpon>SettingsSyncPage.xaml</DependentUpon>
@@ -154,6 +158,10 @@
     </Compile>
     <Compile Include="Slave.cs" />
     <Compile Include="SlaveManager.cs" />
+    <Page Include="NotifyWindow.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="Pages\AddServerPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

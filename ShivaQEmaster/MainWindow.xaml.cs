@@ -13,6 +13,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ShivaQEmaster
 {
@@ -45,6 +46,8 @@ namespace ShivaQEmaster
         public delegate void errorEventHandler(string text);
         public static event errorEventHandler ErrorMsg;
 
+        private NotifyWindow _notifyWindow;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -56,6 +59,15 @@ namespace ShivaQEmaster
 
             _slaveManager = SlaveManager.Instance;
             _slaveManager.Init();
+            _slaveManager.ErrorNotIdentical += (error_msg) =>
+                {
+                    if (_notifyWindow != null /* && _notifyWindow.IsLoaded */)
+                    {
+                        _notifyWindow.Close();
+                    }
+                    _notifyWindow = new NotifyWindow(error_msg);
+                    _notifyWindow.Show();
+                };
 
             _NavigationFrame.Navigate(new HomePage());
 
@@ -105,10 +117,25 @@ namespace ShivaQEmaster
             _mouseNKeyListener.Active();
             _mouseNKeyListener.MouseClick += (s, ev) =>
             {
-                //send winpos before click
+                if (isWindowClicked(ev.position_x, ev.position_y, Application.Current.MainWindow))
+                {
+                    _log.Info("wont transmit click done on master window");
+                    return;
+                }
+
+                if (_notifyWindow != null && _notifyWindow.IsLoaded)
+                {
+                    if (isWindowClicked(ev.position_x, ev.position_y, _notifyWindow))
+                    {
+                        _log.Info("wont transmit click done on notify window");
+                        return;
+                    }
+                }
 
                 Task.Run( async () =>
                     {
+
+                        //send winpos before click
                         //should be raised by windowcreated event but it doesn't work weel so it's a workaround...
                         try
                         {
@@ -141,18 +168,7 @@ namespace ShivaQEmaster
                         Bitmap comparatorCapture = ScreenCapturePInvoke.CaptureScreen(rect, false);
                         comparatorCapture.Save(comparatorName);
 
-                        //Task.Run(async () =>
-                        //    {
-                                byte[] file = File.ReadAllBytes(comparatorName);
-                        //        await _slaveManager.Send<byte[]>(file);
-                        //        //ActionMethod action = new ActionMethod()
-                        //        //{
-                        //        //    method = ActionType.CheckIdentical,
-                        //        //    value = comparatorName
-                        //        //};
-                        //        //await _slaveManager.Send<ActionMethod>(action);
-
-                        //    });
+                        byte[] file = File.ReadAllBytes(comparatorName);
 
                         ev.screenshotBytes = file;
 
@@ -161,7 +177,6 @@ namespace ShivaQEmaster
                         {
                             List<string> error_hosts = await _slaveManager.Send<MouseNKeyEventArgs>(ev);
                             UpdateSendErrorIfThereIs(error_hosts);
-                            //checkIdentical();
                         }
                         catch (IOException ex)
                         {
@@ -261,7 +276,6 @@ namespace ShivaQEmaster
                         //send input
                         List<string> error_hosts = await _slaveManager.Send<MouseNKeyEventArgs>(ev);
                         UpdateSendErrorIfThereIs(error_hosts);
-                        //checkIdentical();
                     }
 
                 }
@@ -310,6 +324,12 @@ namespace ShivaQEmaster
                         _log.Error("can't send clipboard update", ex);
                     }
                 };
+        }
+
+        private bool isWindowClicked(int x, int y, Window window)
+        {
+            return (x < window.Left && x > window.Left - window.Width)
+                && (y < window.Top && x > window.Top - window.Height);
         }
 
         private void UpdateSendErrorIfThereIs(List<string> error_hosts)
@@ -394,29 +414,6 @@ namespace ShivaQEmaster
                 _log.Error("error send window created", ex);
             }
         }
-
-        //private async void checkIdentical()
-        //{
-        //    ActionType actionMethod = ActionType.None;
-        //    string actionValue = null;
-
-        //    actionMethod = ActionType.CheckIdentical;
-        //    actionValue = JsonConvert.SerializeObject(_uichange.getEventCalls);
-
-        //    ActionMethod action = new ActionMethod()
-        //    {
-        //        method = actionMethod,
-        //        value = actionValue
-        //    };
-        //     await _slaveManager.Send<ActionMethod>(action);
-        //     foreach (Slave slave in _slaveManager.slaveList)
-        //     {
-        //        NetworkStream networkStream = slave.client.GetStream();
-        //        // TODO      networkStream.ReadAsync(
-        //     }
-
-        //     return;
-        //}
 
         /// <summary>
         /// open help window

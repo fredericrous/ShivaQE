@@ -28,7 +28,9 @@ namespace ShivaQEviewer
         //list of slaves computer that this master will send information to
         public ObservableCollection<Slave> slaveList;
 
-        private string _slaveList_save_path = "slavelist.json";
+        private static readonly string _slaveList_save_path = "slavelist.json";
+
+        public string SlaveListPath { get { return _slaveList_save_path; } }
 
         private static readonly SlaveManager _instance = new SlaveManager();
 

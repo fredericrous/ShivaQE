@@ -83,5 +83,20 @@ namespace ShivaQEmaster
                 }
             }
         }
+
+        private bool _match_notification = SettingsManager.ReadSetting("notification_status").Trim().ToLower() == "true";
+        public bool match_notification
+        {
+            get { return _match_notification; }
+            set
+            {
+                if (value != _match_notification)
+                {
+                    SettingsManager.AddUpdateAppSettings("analytics_status", value.ToString());
+                    _match_notification = value;
+                    NotifyPropertyChanged("analytics_status");
+                }
+            }
+        }
     }
 }

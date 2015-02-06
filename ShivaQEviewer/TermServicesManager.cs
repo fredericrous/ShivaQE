@@ -276,6 +276,8 @@ namespace ShivaQEviewer.TerminalServices
         static int timeoutCounter = 0;
         internal async static Task<TerminalSessionData> GetNewSession(string hostname, List<TerminalSessionData> lastSessionList, int timeoutLimit)
         {
+            TerminalSessionData newSession = null;
+
             while (lastSessionList.Count == CountSessions(hostname)) //when number of active session changes
             {
                 await Task.Delay(1000); //wait 1sec
@@ -287,12 +289,42 @@ namespace ShivaQEviewer.TerminalServices
             }
 
             List<TerminalSessionData> sessionList = TermServicesManager.ListSessions(hostname);
-            IEnumerable<TerminalSessionData> newSessions = sessionList.Except(lastSessionList);
-            if (newSessions.Count() != 1)
+            //IEnumerable<TerminalSessionData> newSessions = sessionList.Except(lastSessionList);
+
+            //if (newSessions.Count() > 0)
+            //{
+            //    if (newSessions.Count() != 1)
+            //    {
+            //        _log.Warn(string.Format("{0} rdp sessions detected. selecting the first one.", newSessions.Count()));
+            //    }
+            //    newSession = newSessions.First();
+            //}
+            //else
+            //{
+                newSession = getSessionChanged(sessionList, lastSessionList);
+            //}
+
+            return newSession;
+        }
+
+        private static TerminalSessionData getSessionChanged(List<TerminalSessionData> sessionList, List<TerminalSessionData> lastSessionList)
+        {
+            foreach (var session in sessionList)
             {
-                _log.Warn(string.Format("{0} rdp sessions detected. selecting the first one.", newSessions.Count()));
+                if (session.ConnectionState == WTS_CONNECTSTATE_CLASS.Active)
+                {
+                    foreach (var lastSession in lastSessionList)
+                    {
+                        if (session.SessionId == lastSession.SessionId && lastSession.ConnectionState != session.ConnectionState)
+                            //note: we dont check if session wasnt active before because it could have been already active (on another computer!?)
+                        {
+                            return session;
+                        }
+                    }
+                }
             }
-            return newSessions.First();
+
+            return null;
         }
 
         public static int CountSessions(String ServerName)

@@ -17,7 +17,7 @@
     </Page.Resources>
 
     <Grid x:Name="LayoutRoot" DataContext="{Binding Source={StaticResource MainWindowBindingsDataSource}}">
-        <ScrollViewer Margin="10,10,10,9.492">
+        <ScrollViewer Margin="10,10,10,9.492" local:ScrollHelper.AutoScroll="true">
             <TextBlock x:Name="tb_status" TextWrapping="Wrap" Text="{Binding status, Mode=TwoWay, NotifyOnTargetUpdated=True, UpdateSourceTrigger=PropertyChanged}" />
         </ScrollViewer>
     </Grid>

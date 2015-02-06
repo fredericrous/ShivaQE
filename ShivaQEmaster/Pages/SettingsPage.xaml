@@ -25,12 +25,12 @@
 		<Label x:Name="lb_key_hide" Content="{Binding settingspage_lb_key_hide_window, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,200.951,166.016,0" VerticalAlignment="Top"/>
 		<TextBlock x:Name="subtitle_shortcuts" HorizontalAlignment="Left" Margin="405,81.201,0,0" TextWrapping="Wrap" Text="{Binding settingspage_lb_shortcuts, Source={StaticResource language_en_USDataSource}}" VerticalAlignment="Top" FontSize="14.667" Foreground="Black"/>
 		<TextBlock x:Name="subtitle_general" HorizontalAlignment="Left" Margin="70,81.201,0,0" TextWrapping="Wrap" Text="{Binding settingspage_lb_general, Source={StaticResource language_en_USDataSource}}" VerticalAlignment="Top" FontSize="14.667" Foreground="Black"/>
-		<CheckBox x:Name="cb_analytics" Content="{Binding settingspage_cb_tracking, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10,209.951,0,0" VerticalAlignment="Top" IsChecked="{Binding anonymous_tracking}"/>
-		<CheckBox Content="{Binding settingspage_cb_trace, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10,178.991,0,0" VerticalAlignment="Top" IsChecked="{Binding trace_status}"/>
+		<CheckBox x:Name="cb_analytics" Content="{Binding settingspage_cb_tracking, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10.666,164.971,0,0" VerticalAlignment="Top" IsChecked="{Binding anonymous_tracking}"/>
+		<CheckBox Content="{Binding settingspage_cb_trace, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10.666,124.971,0,0" VerticalAlignment="Top" IsChecked="{Binding trace_status}"/>
 		<Button x:Name="bt_close" Margin="22,304.17,0,0" HorizontalAlignment="Left" VerticalAlignment="Top" Background="#FF020202" Content="{Binding global_bt_close, Source={StaticResource language_en_USDataSource}}" FontSize="18.667" Cursor="Hand" FontWeight="Bold" Foreground="White" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" Click="bt_close_Click" />
 		<TextBlock HorizontalAlignment="Left" Margin="10,8,0,0" TextWrapping="Wrap" VerticalAlignment="Top" FontSize="21.333" Foreground="Black"><Span FontFamily="Consolas"><Run Text="{Binding settingspage_header, Mode=OneWay, Source={StaticResource language_en_USDataSource}}"/></Span></TextBlock>
 		<Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="1" VerticalAlignment="Top" Width="717" Margin="0,41,0,0"/>
-		<Grid x:Name="bt_sync" Margin="447.857,309.486,44.604,9" Cursor="Hand">
+		<Grid x:Name="bt_sync" Margin="447.857,309.486,44.604,9" Cursor="Hand" MouseDown="bt_sync_MouseDown">
 			<Label x:Name="lb_sync" Content="Sync serverlist with viewer" HorizontalAlignment="Right" VerticalAlignment="Top" FontSize="14.667" FontWeight="Bold"/>
 			<Grid Margin="0,0.552,193.577,0">
 				<Ellipse HorizontalAlignment="Left" Height="30.962" VerticalAlignment="Top" Width="30.962" Stroke="#FFFBA92C" StrokeThickness="2"/>
@@ -40,5 +40,7 @@
 				</Viewbox>
 			</Grid>
 		</Grid>
+		<CheckBox x:Name="cb_match_notifications" Content="{Binding settingspage_cb_match_notification, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10.666,204.931,0,0" VerticalAlignment="Top" IsChecked="{Binding match_notification}"/>
+		<TextBlock x:Name="lb_error" HorizontalAlignment="Left" Margin="390,274,0,0" TextWrapping="Wrap" Text="{Binding error_msg}" VerticalAlignment="Top" TextAlignment="Right" Width="281.672" Foreground="#FFFBA92C"/>
 	</Grid>
 </Page>

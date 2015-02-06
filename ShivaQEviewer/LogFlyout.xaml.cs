@@ -15,7 +15,7 @@ namespace ShivaQEviewer
             ResolutionPage.UpdatesStatus += (str) => //couldnt make work binding so doing it old fashion
                 {
                     this.Dispatcher.Invoke(() => {
-                        this.tb_status.Text += str;
+                        this.tb_status.Text += str + Environment.NewLine;
                     });
                 };
 		}

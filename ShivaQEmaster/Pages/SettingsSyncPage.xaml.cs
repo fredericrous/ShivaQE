@@ -1,5 +1,8 @@
-﻿using System;
+﻿using log4net;
+using ShivaQEcommon;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,37 +16,92 @@ using System.Windows.Shapes;
 namespace ShivaQEmaster
 {
 	public partial class SettingsSyncPage
-	{
+    {
+        private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
+        static string _currentLogin = Environment.UserDomainName + "\\" + Environment.UserName;
+        SettingsSyncPageBindings _bindings;
+        SlaveManager _slaveManager;
+
 		public SettingsSyncPage()
 		{
 			this.InitializeComponent();
 
-			// Insert code required on object creation below this point.
-		}
+            _bindings = this.Resources["SettingsSyncPageBindingsDataSource"] as SettingsSyncPageBindings;
+            _bindings.login = _currentLogin;
 
-		private void pb_add_password_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
-		{
-			// TODO: Add event handler implementation here.
+            _slaveManager = SlaveManager.Instance;
 		}
 
 		private void tb_path_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
 		{
-			// TODO: Add event handler implementation here.
+            if (e.Key == Key.Enter)
+            {
+                tb_login.Focus();
+            }
 		}
 
 		private void tb_login_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
 		{
-			// TODO: Add event handler implementation here.
+            if (e.Key == Key.Enter)
+            {
+                pb_add_password.Focus();
+            }
 		}
 
+        private void pb_add_password_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                bt_sync_Click(sender, e);
+            }
+        }
+
 		private void bt_close_Click(object sender, System.Windows.RoutedEventArgs e)
-		{
-			// TODO: Add event handler implementation here.
+        {
+            this.NavigationService.Navigate(new Uri("Pages/HomePage.xaml", UriKind.Relative));
 		}
 
 		private void bt_sync_Click(object sender, System.Windows.RoutedEventArgs e)
-		{
-			// TODO: Add event handler implementation here.
+        {
+            if (string.IsNullOrWhiteSpace(_bindings.path))
+            {
+                _bindings.error_msg = string.Format("You must specify a path to {0}", _slaveManager.SlaveListPath);
+                //UpdateStatus(error_msg);
+                return;
+            }
+
+            if (_bindings.path.Substring(_bindings.path.LastIndexOf('\\') + 1) != _slaveManager.SlaveListPath)
+            {
+                _bindings.error_msg = string.Format("Path must end with filename {0}", _slaveManager.SlaveListPath);
+                return;
+            }
+
+            string login = _bindings.login.Trim();
+
+            try
+            {
+                CopyOverNetwork.UpdateStatus += (status) =>
+                {
+                    _bindings.error_msg = status;
+                    // UpdateStatus(_status);
+                };
+                string destination_path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Replace("file:\\", "");
+                if (login == string.Empty || login == _currentLogin)
+                {
+                    CopyOverNetwork.CopyFiles(_bindings.path, destination_path);
+                }
+                else
+                {
+                    CopyOverNetwork.CopyFiles(_bindings.path, destination_path, login, pb_add_password.Password);
+                }
+            }
+            catch (Exception ex)
+            {
+                _bindings.error_msg = string.Format("Copy error: {0}", ex.Message);
+                _log.Error(_bindings.error_msg);
+            }
+            bt_close_Click(null, null);
 		}
 	}
 }

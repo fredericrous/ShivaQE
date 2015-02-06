@@ -201,8 +201,6 @@ namespace ShivaQEslave
                         //PngBitmapDecoder decoder = new PngBitmapDecoder(imageStreamSource, BitmapCreateOptions.PreservePixelFormat, BitmapCacheOption.Default);
                         //BitmapSource bitmapSource = decoder.Frames[0];
 
-
-                        string comparatorName = string.Format("camparator.{0}.png", 1);
                         int rect_size = 64;
                         Rectangle rect = new Rectangle()
                         {
@@ -212,6 +210,23 @@ namespace ShivaQEslave
                             Y = mouseNkey.position_y - (rect_size / 2)
                         };
                         Bitmap comparatorCapture = ScreenCapturePInvoke.CaptureScreen(rect, false);
+
+                        double resultCompare = CompareImages.Compare(bmp, comparatorCapture, 0);
+
+                        if (resultCompare > 1)
+                        {
+                           // string except_msg = "NOTIDENTICAL:";
+                            //ActionMethod actionIdentical = new ActionMethod()
+                            //    {
+                            //        method = ActionType.CheckIdentical,
+                            //        value = mouseNkey.timestamp + ":" + mouseNkey.key
+                            //    };
+                            //string actionString = JsonConvert.SerializeObject(actionIdentical);
+                            string actionString = mouseNkey.timestamp + ":" + mouseNkey.key;
+                            actionString += "<EOF>"; //used serverside to know string has been received entirely
+                            byte[] actionBytes = Encoding.UTF8.GetBytes(actionString);
+                            networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
+                        }
 
                         _log.Info("image comparator" + CompareImages.Compare(bmp, comparatorCapture, 0));
                     }

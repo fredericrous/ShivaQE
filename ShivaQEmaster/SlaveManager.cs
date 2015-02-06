@@ -61,8 +61,10 @@ namespace ShivaQEmaster
         //list of slaves computer that this master will send information to
         public ObservableCollection<Slave> slaveList;
 
-        UdpClient broadcastChannel;
-        private string slaveList_save_path = "slavelist.json";
+        private UdpClient _broadcastChannel;
+        private static readonly string _slaveList_save_path = "slavelist.json";
+
+        public string SlaveListPath { get { return _slaveList_save_path; } }
 
         private static readonly SlaveManager _instance = new SlaveManager();
 
@@ -79,15 +81,15 @@ namespace ShivaQEmaster
         public void Init()
         {
             slaveList = new ObservableCollection<Slave>();
-            broadcastChannel = new UdpClient(AddressFamily.InterNetworkV6);
-            broadcastChannel.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
+            _broadcastChannel = new UdpClient(AddressFamily.InterNetworkV6);
+            _broadcastChannel.Client.SetSocketOption(SocketOptionLevel.IPv6, SocketOptionName.IPv6Only, false);
             //broadcastChannel.Client.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.ReuseAddress, true);
 
-            if (File.Exists(slaveList_save_path))
+            if (File.Exists(_slaveList_save_path))
             {
                 try
                 {
-                    string slaveListJson = File.ReadAllText(slaveList_save_path);
+                    string slaveListJson = File.ReadAllText(_slaveList_save_path);
                     ObservableCollection<Slave> slaveListFromJson = JsonConvert.DeserializeObject<ObservableCollection<Slave>>(slaveListJson);
                     foreach (var item in slaveListFromJson)
                     {
@@ -97,10 +99,13 @@ namespace ShivaQEmaster
                 }
                 catch (Exception ex)
                 {
-                    _log.Error(string.Format("load json {0}", slaveList_save_path), ex);
+                    _log.Error(string.Format("load json {0}", _slaveList_save_path), ex);
                 }
             }
         }
+
+        public delegate void ErrorNotIdenticalEventHandler(string text);
+        public event ErrorNotIdenticalEventHandler ErrorNotIdentical;
 
         /// <summary>
         /// Send data as JSON through UDP to each server within slaveList
@@ -117,7 +122,7 @@ namespace ShivaQEmaster
                 if (slave.client.Connected) //broadcast only if slave is also connected with tcp
                 {
                     byte[] byteData = Encoding.UTF8.GetBytes(json);
-                    broadcastChannel.SendAsync(byteData, byteData.Length, slave.endpoint);
+                    _broadcastChannel.SendAsync(byteData, byteData.Length, slave.endpoint);
                 }
             }
         }
@@ -157,7 +162,7 @@ namespace ShivaQEmaster
 
                 //save list to file to be reloaded at next startup
                 string slaveListJson = JsonConvert.SerializeObject(slaveList, Formatting.Indented);
-                File.WriteAllText(slaveList_save_path, slaveListJson);
+                File.WriteAllText(_slaveList_save_path, slaveListJson);
 
                 //set language on slave
                 ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(response.Remove(response.LastIndexOf("<EOF>")));
@@ -226,10 +231,42 @@ namespace ShivaQEmaster
                         errorList.Add(error_msg);
                        // throw;
                     }
+
+                    if (SettingsManager.ReadSetting("notification_status") == "true")
+                    {
+                        try
+                        {
+                            await IsResultOK(networkStream, slave.hostname);
+                        }
+                        catch (Exception ex)
+                        {
+                            string error_msg = string.Format("Error writing request tcp to {0}", slave.ipAddress);
+                            _log.Error(error_msg, ex);
+                            //errorList.Add(error_msg);
+                        }
+                    }
                     _log.Info("[Master] Written");
                 }
             }
             return errorList;
+        }
+
+        private async Task IsResultOK(NetworkStream networkStream, string serverName)
+        {
+            //read server's response
+            var buffer = new byte[4096]; //server should send which patform and which version it's on. buffer of 4096 is largely enough
+            var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+            var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
+
+            string[] responseTab = response.Split(':');
+            string time = responseTab[0];
+            string key = responseTab[1];
+
+            response = string.Format("{0}: error on {1} at time {2}", serverName, key, time);
+
+            _log.Info(string.Format("[Master] Slave response was {0}", response));
+
+            ErrorNotIdentical(response);
         }
 
         public void Remove(IEnumerable<Slave> slaves)
@@ -248,7 +285,7 @@ namespace ShivaQEmaster
             Task.WaitAll(tasks.ToArray());
 
             string slaveListJson = JsonConvert.SerializeObject(slaveList);
-            File.WriteAllText(slaveList_save_path, slaveListJson);
+            File.WriteAllText(_slaveList_save_path, slaveListJson);
         }
 
         //public async void reconnectAll()

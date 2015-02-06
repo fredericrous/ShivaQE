@@ -17,5 +17,10 @@ namespace ShivaQEmaster
 		{
             this.NavigationService.Navigate(new Uri("Pages/HomePage.xaml", UriKind.Relative));
 		}
+
+		private void bt_sync_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            this.NavigationService.Navigate(new Uri("Pages/SettingsSyncPage.xaml", UriKind.Relative));
+		}
 	}
 }

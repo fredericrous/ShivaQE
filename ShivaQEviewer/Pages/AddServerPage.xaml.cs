@@ -1,5 +1,4 @@
-﻿using SimpleImpersonation;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -39,7 +38,7 @@ namespace ShivaQEviewer
 
         AddServerPageBindings _bindings;
         SlaveManager _slaveManager;
-        public static string _slaveList_save_path = "slavelist.json";
+        public static string _slaveList_save_path;
 
         public AddServerPage()
         {
@@ -47,6 +46,7 @@ namespace ShivaQEviewer
 
             _bindings = this.Resources["AddServerPageBindingsDataSource"] as AddServerPageBindings;
             _slaveManager = SlaveManager.Instance;
+            _slaveList_save_path = _slaveManager.SlaveListPath;
         }
 
         public AddServerPageBindings Bindings

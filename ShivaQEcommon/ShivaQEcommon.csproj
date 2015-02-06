@@ -58,6 +58,9 @@
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
+    <Reference Include="SimpleImpersonation">
+      <HintPath>..\packages\SimpleImpersonation.1.0.1\lib\net40-Client\SimpleImpersonation.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
@@ -73,6 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Analytics.cs" />
+    <Compile Include="CopyOverNetwork.cs" />
     <Compile Include="Eventdata\ActionMethod.cs" />
     <Compile Include="Eventdata\HookEvent.cs" />
     <Compile Include="Eventdata\MouseNKeyEventArgs.cs" />

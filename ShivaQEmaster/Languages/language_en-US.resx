@@ -198,6 +198,9 @@
   <data name="settingspage_bt_syncpage" xml:space="preserve">
     <value>Sync serverlist with viewer</value>
   </data>
+  <data name="settingspage_cb_match_notification" xml:space="preserve">
+    <value>activate notification feedback for non matching UI</value>
+  </data>
   <data name="settingspage_cb_trace" xml:space="preserve">
     <value>enable trace log</value>
   </data>
@@ -228,13 +231,22 @@
   <data name="settingssyncpage_bt_sync" xml:space="preserve">
     <value>Sync</value>
   </data>
+  <data name="settingssyncpage_header" xml:space="preserve">
+    <value>SYNC SERVERLIST FROM VIEWER</value>
+  </data>
   <data name="settingssyncpage_lb_path" xml:space="preserve">
-    <value>Directory to viewer's serverlist.json</value>
+    <value>Directory to viewer's serverlist.json :</value>
   </data>
   <data name="settingssyncpage_lb_win_login" xml:space="preserve">
-    <value>Windows login</value>
+    <value>Windows Login :</value>
   </data>
   <data name="settingssyncpage_lb_win_password" xml:space="preserve">
-    <value>Windows Password</value>
+    <value>Windows Password :</value>
+  </data>
+  <data name="settingssyncpage_tb_path" xml:space="preserve">
+    <value>\\server\c$\ShivaQEViewer_Install_Path\slavelist.json</value>
+  </data>
+  <data name="settingssyncpage_tb_win_login" xml:space="preserve">
+    <value>domain\login</value>
   </data>
 </root>

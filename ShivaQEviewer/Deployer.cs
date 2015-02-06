@@ -1,9 +1,10 @@
 ﻿using log4net;
+using ShivaQEcommon;
 using ShivaQEviewer.TerminalServices;
-using SimpleImpersonation;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -40,30 +41,50 @@ namespace ShivaQEviewer
         {
             string status;
 
-            status = string.Format("{0} : starting {1}", _slave.hostname, Environment.NewLine);
+            status = string.Format("{0} : starting", _slave.hostname);
+            UpdateStatus(status);
+
+            //does slave has framework 4.5
+            status = string.Format("{0} : check slave has 4.5 framework or + installed (trully only checking that 4.0 or supperior version is on because 4.5 overrides 4.0)", _slave.hostname);
+            UpdateStatus(status);
+
+            bool isFrameworkInstalled = checkFrameworkExists(_slave);
+            status = string.Format("{0} : 4.5 framework presence: {1}", _slave.hostname, isFrameworkInstalled ? "OK" : "Not found");
             UpdateStatus(status);
 
             List<TerminalSessionData> lastSessionList = TermServicesManager.ListSessions(_slave.ipAddress);
 
-            status = string.Format("{0} : openning rdp for this server {1}", _slave.hostname, Environment.NewLine);
+            status = string.Format("{0} : openning rdp for this server", _slave.hostname);
             UpdateStatus(status);
 
             //open rdp
             executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
                 string.Format("/v:{0} /h:{1} /w:{2}",
-                _slave.ipAddress, _resolution_height, _resolution_width), false, false, _slave);
+                _slave.hostname, _resolution_height, _resolution_width), false, false, _slave);
 
-            status = string.Format("{0} : copying slave to this server {1}", _slave.hostname, Environment.NewLine);
+            status = string.Format("{0} : copying slave to this server", _slave.hostname);
             UpdateStatus(status);
 
             //copy slave
             try
             {
-                copy_files(executablePath + "slave", String.Format(@"\\{0}\c$\ShivaQEslave", _slave.hostname), _slave.login, _slave.password);
+                CopyOverNetwork.UpdateStatus += (_status) =>
+                    {
+                        UpdateStatus(_status);
+                    };
+
+                if (string.IsNullOrWhiteSpace(_slave.login)) 
+                {
+                    CopyOverNetwork.CopyFiles(executablePath + "slave", String.Format(@"\\{0}\c$\ShivaQEslave", _slave.hostname));
+                }
+                else
+                {
+                    CopyOverNetwork.CopyFiles(executablePath + "slave", String.Format(@"\\{0}\c$\ShivaQEslave", _slave.hostname), _slave.login, _slave.password);
+                }
             }
             catch (Exception ex)
             {
-                status = string.Format("Error while copying ShivaQEslave to {0}: {1}{2}", _slave.hostname, ex.Message, Environment.NewLine);
+                status = string.Format("Error while copying ShivaQEslave to {0}: {1}", _slave.hostname, ex.Message);
                 UpdateStatus(status);
             }
 
@@ -74,7 +95,8 @@ namespace ShivaQEviewer
 
             UpdateStatus(string.Format("{0}: waiting for rdp completion. If it takes more than {1} min, it will be aborted.", _slave.hostname, 120 / 60));
 
-            TerminalSessionData sessionData = await TermServicesManager.GetNewSession(_slave.ipAddress, lastSessionList, timeoutLimit);	
+            TerminalSessionData sessionData = await TermServicesManager.GetNewSession(_slave.ipAddress, lastSessionList, timeoutLimit);
+            int sessionId = sessionData != null ? sessionData.SessionId : 2;
 
             string username = _slave.login;
             if (username.IndexOf('\\') != -1)
@@ -98,92 +120,69 @@ namespace ShivaQEviewer
             // option i 2 tells psexec our software wants a ui
             // d tells not to wait for end of execution
 
-            status = string.Format("{0} : launch slave on this server {1}", _slave.hostname, Environment.NewLine);
+            status = string.Format("{0} : launch slave on this server", _slave.hostname);
             UpdateStatus(status);
-            executeCmd(executablePath + _path_cmd_launcher,
-                string.Format(@"\\{0} -u ""{1}"" -p ""{2}"" -i {3} -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe {4}""",
-                _slave.ipAddress, _slave.login, _slave.password, sessionData.SessionId, _slave.port), true, true);
+
+            string loginParams = string.Empty;
+            if (!string.IsNullOrWhiteSpace(_slave.login))
+            {
+                loginParams = string.Format(@"-u ""{0}""", _slave.login);
+
+                loginParams += string.IsNullOrWhiteSpace(_slave.password)
+                    ? string.Empty : string.Format(@" -p ""{0}""", _slave.password);
+            }
+            string port = _slave.port == 0 ? string.Empty : _slave.port.ToString();
+
+            string cmd = string.Format(@"\\{0} {1} -i {2} -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe {3}""",
+                _slave.ipAddress, loginParams, sessionId, port);
+            executeCmd(executablePath + _path_cmd_launcher, cmd , true, true);
+
+            status = string.Format("{0} : done{1}", _slave.hostname,
+                isFrameworkInstalled ? string.Empty : ". Beware: if slave's launched failed check you have .Net 4.5 installed on it"
+            );
+            UpdateStatus(status);
 
             return true;
         }
 
         /// <summary>
-        /// copy a directory and its files over the network
+        /// check on slave that .Net 4.0 or sup is installed (4.5 check is a bit harder to check because install dir overrides 4.0...)
         /// </summary>
-        /// <param name="source_dir">the source directory</param>
-        /// <param name="destination_dir">the destination directory</param>
-        /// <param name="login">
-        /// windows login credential. specify domain with \. ie: domain\login.
-        /// if no domain is suplied. ie: login. domain set is localhost.
-        /// </param>
-        /// <param name="password">the password of the windows account</param>
-        private void copy_files(string source_dir, string destination_dir, string login, string password)
+        /// <param name="_slave"></param>
+        /// <returns></returns>
+        private bool checkFrameworkExists(Slave _slave)
         {
-            string[] directories = Directory.GetDirectories(source_dir, "*", SearchOption.AllDirectories);
-            string[] files = Directory.GetFiles(source_dir, "*", SearchOption.AllDirectories);
+            string frameworkFolder = @"Windows\Microsoft.NET\Framework";
+            bool result = false;
 
-            ////doesn't work !?
-            //if (destination_dir.Contains(':'))
-            //{
-            //    destination_dir = destination_dir.Replace(':', '-');
-            //    destination_dir = destination_dir.Substring(0, destination_dir.IndexOf('\\', 2)) + ".ipv6-literal.net"
-            //        + destination_dir.Substring(destination_dir.IndexOf('\\', 2));
-            //}
+            string[] frameworkDirectories;
 
-            string domain = "localhost";
-            if (login.IndexOf('\\') != -1)
+            if (string.IsNullOrWhiteSpace(_slave.login))
             {
-                string[] domainNlogin = login.Split('\\');
-                domain = domainNlogin[0];
-                login = domainNlogin[1];
+                frameworkDirectories = CopyOverNetwork.GetFoldersFrom(String.Format(@"\\{0}\c$\{1}", _slave.hostname, frameworkFolder));
+            }
+            else
+            {
+                frameworkDirectories = CopyOverNetwork.GetFoldersFrom(String.Format(@"\\{0}\c$\{1}", _slave.hostname, frameworkFolder), _slave.login, _slave.password);
             }
 
-            //log user for distant copy paste
-            using (Impersonation.LogonUser(domain, login, password, LogonType.NewCredentials)) // warning static
+            if (frameworkDirectories.Length > 0)
             {
-                try
+                foreach (var directory in frameworkDirectories)
                 {
-                    if (Directory.Exists(destination_dir))
+                    float version;
+                    string dir_version = directory.Substring(directory.LastIndexOf('\\')).Substring(2, 3);
+                    if (float.TryParse(dir_version, NumberStyles.AllowDecimalPoint, CultureInfo.CreateSpecificCulture("en-US"), out version))
                     {
-                        Directory.Delete(destination_dir, true);
-                    }
-
-                    Directory.CreateDirectory(destination_dir);
-                }
-                catch (Exception ex)
-                {
-                    _log.Warn("Error deleting files: " + ex.Message);
-                }
-
-                foreach (string dir in directories)
-                {
-                    string directory_to_create = destination_dir + dir.Substring(source_dir.Length);
-                    try
-                    {
-                        Directory.CreateDirectory(directory_to_create);
-                    }
-                    catch (Exception ex)
-                    {
-                        string error_msg = string.Format("can't create directory {0} on slave", directory_to_create);
-                        _log.Error(error_msg, ex);
-                        UpdateStatus(error_msg);
-                    }
-                }
-
-                foreach (string file_name in files)
-                {
-                    try
-                    {
-                        File.Copy(file_name, destination_dir + file_name.Substring(source_dir.Length), true);
-                    }
-                    catch (Exception ex)
-                    {
-                        string error_msg = string.Format("can't copy {0} on slave", file_name);
-                        _log.Error(error_msg, ex);
-                        UpdateStatus(error_msg);
+                        if (version >= 4)
+                        {
+                            result = true;
+                            break;
+                        }
                     }
                 }
             }
+            return result;
         }
 
         /// <summary>
