@@ -342,7 +342,7 @@ Full-Width Styles
 .download_link {
   display: block;
   float: right;
-  width: 175px;
+  width: 100%;
   position: relative;
   height:70px;
   overflow: hidden;
