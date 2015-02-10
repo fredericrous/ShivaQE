@@ -190,3 +190,4 @@ MicrosoftPublicSymbols/
 #Specific to this project
 PsExec.exe
 gh-pages/
+Packages.dgml

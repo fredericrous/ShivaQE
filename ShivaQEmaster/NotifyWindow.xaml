@@ -10,8 +10,9 @@
 	ResizeMode="NoResize" WindowStyle="None" MouseDown="Window_MouseDown" AllowsTransparency="True">
 
 	<Grid x:Name="LayoutRoot">
-		<TextBlock x:Name="tb_warning" HorizontalAlignment="Left" Margin="75,10,0,0" TextWrapping="Wrap" Text="Warning" VerticalAlignment="Top" Height="68.5" Width="297" Foreground="Black" FontSize="18.667"/>
-		<Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="88.5" Width="70"/>
+		<TextBlock x:Name="tb_warning" HorizontalAlignment="Left" Margin="120,10,0,0" TextWrapping="Wrap" Text="Warning" VerticalAlignment="Top" Height="68.5" Width="252" Foreground="Black" FontSize="16"/>
+		<Rectangle Fill="#FFFBA92C" HorizontalAlignment="Left" Height="88.5" Width="115"/>
 		<Button x:Name="bt_close" Content="X" HorizontalAlignment="Left" Margin="370,0,0,0" VerticalAlignment="Top" Width="30" Background="{x:Null}" Click="bt_close_Click"/>
+		<Image x:Name="img_slave" HorizontalAlignment="Left" Height="64" Margin="25,12.5,0,0" VerticalAlignment="Top" Width="64"/>
 	</Grid>
 </Window>

@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using ShivaQEcommon;
 using log4net;
 using System.Reflection;
+using System.Threading;
 
 namespace ShivaQEmaster
 {
@@ -104,7 +105,7 @@ namespace ShivaQEmaster
             }
         }
 
-        public delegate void ErrorNotIdenticalEventHandler(string text);
+        public delegate void ErrorNotIdenticalEventHandler(string text, string serverName);
         public event ErrorNotIdenticalEventHandler ErrorNotIdentical;
 
         /// <summary>
@@ -152,7 +153,7 @@ namespace ShivaQEmaster
                 var networkStream = slave.client.GetStream();
 
                 //read server's response
-                var buffer = new byte[4096]; //server should send which patform and which version it's on. buffer of 4096 is largely enough
+                var buffer = new byte[150]; //server should send which patform and which version it's on. buffer of 150 should be enough
                 var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
                 var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
                 _log.Info(string.Format("[Master] Slave response was {0}", response));
@@ -170,7 +171,7 @@ namespace ShivaQEmaster
                 {
                     ActionMethod action = new ActionMethod() { method = ActionType.SetLang, value = Lang };
                     string json = JsonConvert.SerializeObject(action);
-                    json += "<EOF>";
+                    //json += "<EOF>";
                     byte[] byteData = Encoding.UTF8.GetBytes(json);
                     _log.Info(string.Format("[Master] Writing request {0}", byteData));
                     try
@@ -182,7 +183,6 @@ namespace ShivaQEmaster
                         _log.Error("Error writting request", ex);
                         throw;
                     }
-
                 }
 
             }
@@ -194,6 +194,56 @@ namespace ShivaQEmaster
             }
 
             return ret;
+        }
+
+        private static readonly string eof_tag = "<EOF>";
+
+        public async Task<string> Send<T>(T data, string hostname)
+        {
+            string receivedData = null;
+            byte[] byteData;
+            string json = null;
+            StringBuilder sb = new StringBuilder();
+
+            json = JsonConvert.SerializeObject(data);
+            json += "<EOF>"; //used serverside to know string has been received entirely
+
+            byteData = Encoding.UTF8.GetBytes(json);
+
+            NetworkStream networkStream = this.slaveList.Where(x => x.hostname == hostname).First().client.GetStream();
+            await networkStream.WriteAsync(byteData, 0, byteData.Length);
+            
+            //keep waiting for data untill cancellation token is fired
+            while (true)
+            {
+                var buffer = new byte[4096];
+
+                //wait for data transmitted
+                int byteCount = 0;
+                try
+                {
+                    byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+                }
+                catch (Exception e)
+                {
+                    _log.Warn("Error reading answer", e);
+                    break;
+                }
+
+                //read result
+                if (byteCount > 0)
+                {
+                    sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
+
+                    string content = sb.ToString();
+                    if (content.IndexOf(eof_tag) > -1)
+                    {
+                        receivedData = content.Substring(0, content.IndexOf(eof_tag));
+                        break;
+                    }
+                }
+            }
+            return receivedData;
         }
 
         /// <summary>
@@ -254,19 +304,22 @@ namespace ShivaQEmaster
         private async Task IsResultOK(NetworkStream networkStream, string serverName)
         {
             //read server's response
-            var buffer = new byte[4096]; //server should send which patform and which version it's on. buffer of 4096 is largely enough
+            var buffer = new byte[4096];
             var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
             var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-            string[] responseTab = response.Split(':');
-            string time = responseTab[0];
-            string key = responseTab[1];
-
-            response = string.Format("{0}: error on {1} at time {2}", serverName, key, time);
-
             _log.Info(string.Format("[Master] Slave response was {0}", response));
 
-            ErrorNotIdentical(response);
+            if (!(response.Contains("platform") && response.Contains("version"))) //workaround because accept message sometimes prompts here!?
+            {
+                string[] responseTab = response.Replace("<EOF>", "").Split(':');
+                string time = responseTab[0];
+                string key = responseTab[1];
+
+                response = string.Format("{0}: error on {1} at time {2}", serverName, key, time);
+
+                ErrorNotIdentical(response, serverName);
+            }
         }
 
         public void Remove(IEnumerable<Slave> slaves)
@@ -282,7 +335,14 @@ namespace ShivaQEmaster
                 tasks.Add(Disconnect(slave));
                 slaveList.Remove(slave);
             }
-            Task.WaitAll(tasks.ToArray());
+            try
+            {
+                Task.WaitAll(tasks.ToArray());
+            }
+            catch
+            {
+                _log.Error("Error while removing slave");
+            }
 
             string slaveListJson = JsonConvert.SerializeObject(slaveList);
             File.WriteAllText(_slaveList_save_path, slaveListJson);

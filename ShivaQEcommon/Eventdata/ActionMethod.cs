@@ -19,12 +19,20 @@ namespace ShivaQEcommon.Eventdata
     /// <summary>
     /// Used as a webservice, this class describes an action
     /// </summary>
-    public class ActionMethod
+    public class ActionMethod<T>
     {
         [JsonProperty]
         public ActionType method { get; set; }
 
         [JsonProperty]
-        public string value { get; set; }
+        public T value { get; set; }
+    }
+
+    /// <summary>
+    /// default type for actionMethod is string
+    /// </summary>
+    public class ActionMethod : ActionMethod<string>
+    {
+
     }
 }

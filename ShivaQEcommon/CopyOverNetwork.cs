@@ -39,7 +39,7 @@ namespace ShivaQEcommon
             }
         }
 
-        private static void setDomain_and_login(out string domain, ref string login)
+        public static void setDomain_and_login(out string domain, ref string login)
         {
             if (login.IndexOf('\\') != -1)
             {
@@ -49,7 +49,7 @@ namespace ShivaQEcommon
             }
             else
             {
-                domain = Environment.UserDomainName; //"localhost";
+                domain = "localhost";
             }
         }
 

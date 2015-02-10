@@ -273,19 +273,26 @@ namespace ShivaQEviewer.TerminalServices
             return data;
         }
 
-        static int timeoutCounter = 0;
+        public static void GetNewSessionAbortDelay()
+        {
+            _timeoutCounter = _timeoutLimit;
+        }
+
+        static int _timeoutCounter = 0;
+        static int _timeoutLimit = 0;
         internal async static Task<TerminalSessionData> GetNewSession(string hostname, List<TerminalSessionData> lastSessionList, int timeoutLimit)
         {
             TerminalSessionData newSession = null;
+            _timeoutLimit = timeoutLimit;
 
             while (lastSessionList.Count == CountSessions(hostname)) //when number of active session changes
             {
                 await Task.Delay(1000); //wait 1sec
-                if (timeoutCounter >= timeoutLimit)
+                if (_timeoutCounter >= timeoutLimit)
                 {
                     break;
                 }
-                timeoutCounter++;
+                _timeoutCounter++;
             }
 
             List<TerminalSessionData> sessionList = TermServicesManager.ListSessions(hostname);

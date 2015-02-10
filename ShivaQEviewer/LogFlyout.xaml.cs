@@ -20,5 +20,10 @@ namespace ShivaQEviewer
                 };
 		}
 
+        private void Page_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+        {
+            ResolutionPage.Skip();
+        }
+
 	}
 }

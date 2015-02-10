@@ -18,7 +18,7 @@ namespace ShivaQEslave
     /// </summary>
     public class AsynchronousSlave
     {
-        private static readonly log4net.ILog log = log4net.LogManager.GetLogger
+        private static readonly log4net.ILog _log = log4net.LogManager.GetLogger
         (System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public delegate void dataReceivedEventHandler(string data, NetworkStream networkStream);
@@ -59,15 +59,6 @@ namespace ShivaQEslave
         }
 
         /// <summary>
-        /// Simple call to TCPHandler(StringBuilder sb, bool infinite, NetworkStream networkStream);
-        /// this start the TCPHandler as fresh: wait for accept connection, and new data
-        /// </summary>
-        private static void TCPHandler()
-        {
-            TCPHandler(new StringBuilder(), true, null);
-        }
-
-        /// <summary>
         /// mecanic of how tcp is handled:
         /// wait for accept connection & fire event if there is
         /// register a cancellation token in order to close the stream when it is hanging for transmitted data
@@ -78,12 +69,16 @@ namespace ShivaQEslave
         /// <param name="sb"></param>
         /// <param name="infinite"></param>
         /// <param name="networkStream"></param>
-        private static async void TCPHandler(StringBuilder sb, bool infinite, NetworkStream networkStream)
+        private static async void TCPHandler()
         {
+            StringBuilder sb = new StringBuilder();
+            bool infinite = true;
+            NetworkStream networkStream = null;
+
             if (infinite)
             {
                 var tcpClient = await _tcpListener.AcceptTcpClientAsync(); // wait for connection before executing the rest of the code
-                log.Info("[Slave] Master has connected");
+                _log.Info("[Slave] Master has connected");
 
                 networkStream = tcpClient.GetStream();
 
@@ -114,7 +109,7 @@ namespace ShivaQEslave
                 }
                 catch (Exception e)
                 {
-                    log.Warn("Error reading", e);
+                    _log.Warn("Error reading", e);
                     infinite = false;
 
                     //wait for next connection
@@ -151,7 +146,7 @@ namespace ShivaQEslave
                     {
                         string data = content.Substring(0, content.IndexOf(eof_tag));
 
-                        log.Info(string.Format("Received tcp says: {0}", data));
+                        _log.Info(string.Format("Received tcp says: {0}", data));
 
                         //callback
                         if (TCPdataReceived != null)
@@ -161,11 +156,7 @@ namespace ShivaQEslave
                         content = sb.Remove(0, data.Length + eof_tag.Length).ToString();
                     }
                 }
-                else
-                {
-                    //get the remaining data
-                    TCPHandler(sb, false, networkStream);
-                }
+                //remaining data will be get by the while(true) loop
             }
         }
 
@@ -185,7 +176,7 @@ namespace ShivaQEslave
 
         private static void UDPreceiveHandler()
         {
-            UDPreceiveHandler(new StringBuilder(), true);
+            UDPreceiveHandler(new StringBuilder());
         }
 
         /// <summary>
@@ -193,9 +184,9 @@ namespace ShivaQEslave
         /// </summary>
         /// <param name="sb">partial received data</param>
         /// <param name="infinite">if true wait for more</param>
-        private static async void UDPreceiveHandler(StringBuilder sb, bool infinite)
+        private static async void UDPreceiveHandler(StringBuilder sb)
         {
-            while (infinite)
+            while (true)
             {
                 // log.Infp("Waiting for broadcast");
                 UdpReceiveResult result = await _udpListener.ReceiveAsync();
@@ -222,16 +213,7 @@ namespace ShivaQEslave
                             UDPdataReceived(data);
                         }
                     }
-                    else
-                    {
-                        /*
-                         * The function above will do just nothing
-                         * Also, it seems this "else" will never be fired if data has been well sent with eof tag...
-                         */
-
-                        //get the remaining data
-                        UDPreceiveHandler(sb, false);
-                    }
+                    //remaining data will be get by the while(true) loop
                 }
             }
         }

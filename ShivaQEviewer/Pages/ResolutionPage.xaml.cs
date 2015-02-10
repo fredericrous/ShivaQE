@@ -50,6 +50,7 @@ namespace ShivaQEviewer
         public delegate void updateEventHandler(string text);
         public static event updateEventHandler UpdatesStatus;
 
+        static List<Deployer> _deployers;
 
         private void bt_resolution_ok_Click(object sender, System.Windows.RoutedEventArgs e)
         {
@@ -63,7 +64,7 @@ namespace ShivaQEviewer
 
                 //we list the task only to determine when they'll all be done
                 List<Task> tasks = new List<Task>();
-
+                _deployers = new List<Deployer>();
                 foreach (var slave in _slaveManager.slaveList)
                 {
                     var deploy = new Deployer(slave, _bindings.height, _bindings.width);
@@ -73,12 +74,21 @@ namespace ShivaQEviewer
                         UpdatesStatus(status);
                     };
                     tasks.Add(deploy.Run());
+                    _deployers.Add(deploy);
                 }
 
                 Task.WaitAll(tasks.ToArray());
                 _bind_main.status += string.Format("{0} DONE !!!", Environment.NewLine);
             });
 
+        }
+
+        internal static void Skip()
+        {
+            foreach (Deployer deployer in _deployers)
+            {
+                deployer.Skip();
+            }
         }
     }
 }

@@ -37,6 +37,18 @@ namespace ShivaQEviewer
         public delegate void UpdateStatusEvent(string status);
         public event UpdateStatusEvent UpdateStatus;
 
+        /// <summary>
+        /// abort waiting delay for GetNewSession
+        /// </summary>
+        public void Skip()
+        {
+            TermServicesManager.GetNewSessionAbortDelay();
+        }
+
+        /// <summary>
+        /// run the deployment tasks. check if .net is present. open rdp. copy ShivaQEslave to distant computer that will become a slave. launch ShivaQEslave
+        /// </summary>
+        /// <returns></returns>
         public async Task<bool> Run()
         {
             string status;
@@ -93,27 +105,22 @@ namespace ShivaQEviewer
 
             int timeoutLimit = 120; //after 2min lets consider this a fail
 
-            UpdateStatus(string.Format("{0}: waiting for rdp completion. If it takes more than {1} min, it will be aborted.", _slave.hostname, 120 / 60));
-
-            TerminalSessionData sessionData = await TermServicesManager.GetNewSession(_slave.ipAddress, lastSessionList, timeoutLimit);
-            int sessionId = sessionData != null ? sessionData.SessionId : 2;
-
-            string username = _slave.login;
-            if (username.IndexOf('\\') != -1)
+            string waitSentence = string.Format("If it takes more than {0} min, it will be aborted.", timeoutLimit / 60);
+            if (lastSessionList.Count == 0) //if ListSessions failed
             {
-                string[] domainNlogin = username.Split('\\');
-                username = domainNlogin[1];
+                timeoutLimit = 60;
+                waitSentence = "Can't detect if you are/will loggin successfuly.";
+                waitSentence += Environment.NewLine;
+                waitSentence += string.Format("Waiting {0} min in case of a login prompt, to let you time to enter your credentials.", timeoutLimit / 60);
+                waitSentence += Environment.NewLine;
+                waitSentence += "Press [Enter] to skip waiting.";
             }
 
-            //get graphical session id
+            UpdateStatus(string.Format("{0}: waiting for rdp completion. {1}", _slave.hostname, waitSentence));
 
-            //http://www.codeproject.com/Articles/111430/Grabbing-Information-of-a-Terminal-Services-Sessio
-
-            //executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmd.exe"),
-            //    string.Format(@"/C "" ""{0}"" \\{1} -u ""{2}"" -p ""{3}"" -accepteula query session ""{4}"" """,
-            //    executablePath + _path_cmd_launcher,
-            //    slave.ipAddress, slave.login, slave.password, username), true, true);
-
+            TerminalSessionData sessionData = await TermServicesManager.GetNewSession(_slave.ipAddress, lastSessionList, timeoutLimit);
+ 
+            int sessionId = sessionData != null ? sessionData.SessionId : 2;
 
             //start slave with psexec
             // option accepteula remove license warning
@@ -135,6 +142,21 @@ namespace ShivaQEviewer
 
             string cmd = string.Format(@"\\{0} {1} -i {2} -accepteula -d ""C:\ShivaQEslave\ShivaQEslave.exe {3}""",
                 _slave.ipAddress, loginParams, sessionId, port);
+
+            if (string.IsNullOrEmpty(_slave.password))
+            {
+                status = "Because of WindowsOS restrictions when password is null, remote launch of slave may fail";
+                UpdateStatus(status);
+            }
+
+            //try
+            //{
+            //    wmiCmd(_slave.ipAddress, _slave.login, _slave.password, @"C:\ShivaQEslave\ShivaQEslave.exe");
+            //}
+            //catch (Exception ex)
+            //{
+            //    _log.Error(ex.Message, ex);
+            //}
             executeCmd(executablePath + _path_cmd_launcher, cmd , true, true);
 
             status = string.Format("{0} : done{1}", _slave.hostname,
@@ -143,6 +165,55 @@ namespace ShivaQEviewer
             UpdateStatus(status);
 
             return true;
+        }
+
+        /// <summary>
+        /// WMI could replace psexec but I have problems making it work
+        /// </summary>
+        /// <param name="ipAddress"></param>
+        /// <param name="login"></param>
+        /// <param name="password"></param>
+        /// <param name="cmd"></param>
+        private void wmiCmd(string ipAddress, string login, string password, string cmd)
+        {
+            System.Management.ConnectionOptions connOptions =
+                new System.Management.ConnectionOptions();
+
+            string domain;
+            CopyOverNetwork.setDomain_and_login(out domain, ref login);
+
+            connOptions.Impersonation = System.Management.ImpersonationLevel.Impersonate;
+            //connOptions.Authentication = System.Management.AuthenticationLevel.Packet;
+            connOptions.EnablePrivileges = true;
+
+            connOptions.Authority = "ntlmdomain:" + domain;
+            connOptions.Username = login;
+            if (!string.IsNullOrWhiteSpace(password))
+            {
+                connOptions.Password = password;
+            }
+
+            System.Management.ManagementScope manScope =
+                new System.Management.ManagementScope(
+                    String.Format(@"\\{0}\ROOT\CIMV2", ipAddress), connOptions);
+            manScope.Connect();
+
+            System.Management.ObjectGetOptions objectGetOptions =
+                new System.Management.ObjectGetOptions();
+
+            System.Management.ManagementPath managementPath =
+                new System.Management.ManagementPath("Win32_Process");
+
+            System.Management.ManagementClass processClass =
+                new System.Management.ManagementClass(manScope, managementPath, objectGetOptions);
+
+            System.Management.ManagementBaseObject inParams =
+                processClass.GetMethodParameters("Create");
+
+            inParams["CommandLine"] = cmd;
+
+            System.Management.ManagementBaseObject outParams =
+                processClass.InvokeMethod("Create", inParams, null);
         }
 
         /// <summary>
@@ -201,7 +272,7 @@ namespace ShivaQEviewer
             if (slave != null)
             {
                 process.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-                process.StartInfo.Arguments = string.Format("/generic:TERMSRV/{0} /user:{1} /pass:{2}", slave.ipAddress, slave.login, slave.password);
+                process.StartInfo.Arguments = string.Format("/generic:TERMSRV/{0} /user:{1}{2}", slave.ipAddress, slave.login, slave.password ?? " /pass:" + _slave.password);
                 process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 process.StartInfo.CreateNoWindow = true;
                 process.Start();
@@ -219,14 +290,17 @@ namespace ShivaQEviewer
                 startInfo.UseShellExecute = false;
                 startInfo.RedirectStandardOutput = true;
                 startInfo.RedirectStandardError = true;
+                //startInfo.RedirectStandardInput = true;
                 process.EnableRaisingEvents = true;
                 process.OutputDataReceived += (s, e) =>
                 {
                     _log.Info(e.Data);
+                    UpdateStatus(e.Data);
                 };
                 process.ErrorDataReceived += (s, e) =>
                 {
-                    _log.Info("error: " + e.Data);
+                    _log.Info(e.Data);
+                    UpdateStatus(e.Data);
                 };
             }
 

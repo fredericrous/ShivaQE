@@ -10,7 +10,7 @@
 	WindowTitle="Page"
 	FlowDirection="LeftToRight"
 	Width="725" Height="200"
-	WindowWidth="725" WindowHeight="200">
+	WindowWidth="725" WindowHeight="200" KeyDown="Page_KeyDown">
 	
     <Page.Resources>
         <local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>

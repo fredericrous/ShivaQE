@@ -50,6 +50,7 @@ namespace ShivaQEslave
         [DllImport("user32.dll")]
         static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        static string _tmp_screenshot_path = "tmp.bmp";
 
         [STAThread]
         static void Main(string[] args)
@@ -175,7 +176,6 @@ namespace ShivaQEslave
             //    SetParent(hwndSource.Handle, (IntPtr)HWND_MESSAGE);
             //}
 
-
             //on data received (after TCP connection was accepted and client sent message), do..
             AsynchronousSlave.TCPdataReceived += (string data, NetworkStream networkStream) =>
             {
@@ -185,7 +185,14 @@ namespace ShivaQEslave
                     if (data.StartsWith(@"{""method"":"))
                     {
                         ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
-                        handleAction(action);
+                        try
+                        {
+                            handleAction(action, networkStream);
+                        }
+                        catch (Exception ex)
+                        {
+                            _log.Error(string.Format("can't execute action {0} with value {1}", action.method, action.value), ex);
+                        }
 
                         return;
                     }
@@ -210,6 +217,7 @@ namespace ShivaQEslave
                             Y = mouseNkey.position_y - (rect_size / 2)
                         };
                         Bitmap comparatorCapture = ScreenCapturePInvoke.CaptureScreen(rect, false);
+                        comparatorCapture.Save(_tmp_screenshot_path);
 
                         double resultCompare = CompareImages.Compare(bmp, comparatorCapture, 0);
 
@@ -262,7 +270,7 @@ namespace ShivaQEslave
             };
         }
 
-        private static void handleAction(ActionMethod action)
+        private static void handleAction(ActionMethod action, NetworkStream networkStream)
         {
             switch (action.method)
             {
@@ -288,7 +296,7 @@ namespace ShivaQEslave
                     IDataObject clipboardObject = JsonConvert.DeserializeObject<IDataObject>(action.value);
                     Clipboard.SetDataObject(clipboardObject);
                     break;
-                //case ActionType.CheckIdentical:
+                case ActionType.CheckIdentical:
                 //    if (_uichange != null)
                 //    {
                 //        List<string> eventCalls = _uichange.getEventCalls;
@@ -297,18 +305,18 @@ namespace ShivaQEslave
                 //        var masterDifferentThanSlave = masterEventCalls.Except(eventCalls).ToList().Count > 0;
                 //        if (masterDifferentThanSlave)
                 //        {
-                //            ActionMethod actionIdentical = new ActionMethod()
-                //                {
-                //                    method = ActionType.CheckIdentical,
-                //                    value = "false"
-                //                };
-                //            string actionString = JsonConvert.SerializeObject(actionIdentical);
-                //            actionString += "<EOF>"; //used serverside to know string has been received entirely
-                //            byte[] actionBytes = Encoding.UTF8.GetBytes(ServerResponseString);
-                //            networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
+                        ActionMethod<byte[]> actionIdentical = new ActionMethod<byte[]>()
+                            {
+                                method = ActionType.CheckIdentical,
+                                value = File.ReadAllBytes(_tmp_screenshot_path)
+                            };
+                        string actionString = JsonConvert.SerializeObject(actionIdentical);
+                        actionString += "<EOF>"; //used serverside to know string has been received entirely
+                        byte[] actionBytes = Encoding.UTF8.GetBytes(actionString);
+                        networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
                 //        }
                 //    }
-                //    break;
+                    break;
                 case ActionType.Disconnect:
                     AsynchronousSlave.StopListening();
                     NotifyIconSystray.ChangeStatus(false);

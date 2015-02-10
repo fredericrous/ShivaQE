@@ -14,6 +14,8 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Media.Imaging;
+using System.Text;
 
 namespace ShivaQEmaster
 {
@@ -59,14 +61,26 @@ namespace ShivaQEmaster
 
             _slaveManager = SlaveManager.Instance;
             _slaveManager.Init();
-            _slaveManager.ErrorNotIdentical += (error_msg) =>
+            _slaveManager.ErrorNotIdentical += (error_msg, hostname) =>
                 {
                     if (_notifyWindow != null /* && _notifyWindow.IsLoaded */)
                     {
                         _notifyWindow.Close();
                     }
-                    _notifyWindow = new NotifyWindow(error_msg);
-                    _notifyWindow.Show();
+
+                    var fetchIconTask = getImageComparedOnSlave(hostname);
+                    fetchIconTask.Wait();
+                    byte[] notifyIcon = fetchIconTask.Result;
+
+                    try
+                    {
+                        _notifyWindow = new NotifyWindow(error_msg, notifyIcon);
+                        _notifyWindow.Show();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex.Message);
+                    }
                 };
 
             _NavigationFrame.Navigate(new HomePage());
@@ -326,10 +340,37 @@ namespace ShivaQEmaster
                 };
         }
 
+        private async Task<byte[]> getImageComparedOnSlave(string hostname)
+        {
+            byte[] result = null;
+
+            ActionMethod action = new ActionMethod()
+            {
+                method = ActionType.CheckIdentical
+            };
+
+            try
+            {
+                string response = await _slaveManager.Send<ActionMethod>(action, hostname);
+
+                if (!string.IsNullOrEmpty(response))
+                {
+                    ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(response);
+                    result = receivedAction.value;
+                }
+            }
+            catch (Exception ex)
+            {
+                _log.Error("error send window created", ex);
+            }
+
+            return result;
+        }
+
         private bool isWindowClicked(int x, int y, Window window)
         {
-            return (x < window.Left && x > window.Left - window.Width)
-                && (y < window.Top && x > window.Top - window.Height);
+            return (x > window.Left && x < window.Left + window.Width)
+                && (y > window.Top && y < window.Top + window.Height);
         }
 
         private void UpdateSendErrorIfThereIs(List<string> error_hosts)
@@ -429,6 +470,50 @@ namespace ShivaQEmaster
         {
             _NavigationFrame.Navigate(new SettingsPage());
         }
+
+        //private static readonly string eof_tag = "<EOF>";
+
+        ///// <summary>
+        ///// format tcp received data, wait for more if message is incomplete (no eof_tag)
+        ///// fire TCPdataReceived callback when data is ready
+        ///// </summary>
+        ///// <param name="byteCount"></param>
+        ///// <param name="buffer"></param>
+        ///// <param name="sb"></param>
+        ///// <param name="networkStream"></param>
+        //private static void TCPDataReceivedHandler(int byteCount, byte[] buffer, StringBuilder sb, NetworkStream networkStream)
+        //{
+        //    if (byteCount > 0)
+        //    {
+        //        // There  might be more data, so store the data received so far.
+        //        sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
+
+        //        // Check for end-of-file tag. If it is not there, read 
+        //        // more data.
+        //        string content = sb.ToString();
+        //        if (content.IndexOf(eof_tag) > -1)
+        //        {
+        //            while (content.IndexOf(eof_tag) > -1) //for double click for instance, packets seems to be concatenated
+        //            {
+        //                string data = content.Substring(0, content.IndexOf(eof_tag));
+
+        //                _log.Info(string.Format("Received tcp says: {0}", data));
+
+        //                //callback
+        //                if (TCPdataReceived != null)
+        //                {
+        //                    TCPdataReceived(data, networkStream);
+        //                }
+        //                content = sb.Remove(0, data.Length + eof_tag.Length).ToString();
+        //            }
+        //        }
+        //        else
+        //        {
+        //            //get the remaining data
+        //            TCPHandler(sb, false, networkStream);
+        //        }
+        //    }
+        //}
         
     }
 }

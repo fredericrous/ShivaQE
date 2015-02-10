@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Windows;
 using System.Windows.Controls;
@@ -25,12 +26,18 @@ namespace ShivaQEmaster
             setWindowPosition();
         }
 
-		public NotifyWindow(string text)
+		public NotifyWindow(string text, byte[] imgBytes)
 		{
 			this.InitializeComponent();
 
             setWindowPosition();
             this.tb_warning.Text = text;
+            if (imgBytes != null)
+            {
+                BitmapImage imgSource = new BitmapImage();
+                imgSource.StreamSource = new MemoryStream(imgBytes);
+                this.img_slave.Source = imgSource;
+            }
 		}
 
         /// <summary>
