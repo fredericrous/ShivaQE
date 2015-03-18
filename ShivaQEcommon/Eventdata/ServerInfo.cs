@@ -10,5 +10,6 @@ namespace ShivaQEcommon.Eventdata
         public string platform { get; set; }
         public string version { get; set; }
         public string lang { get; set; }
+        public string token { get; set; }
     }
 }

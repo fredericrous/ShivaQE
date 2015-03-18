@@ -75,27 +75,25 @@ namespace ShivaQEslave
             bool infinite = true;
             NetworkStream networkStream = null;
 
-            if (infinite)
+            var tcpClient = await _tcpListener.AcceptTcpClientAsync(); // wait for connection before executing the rest of the code
+            _log.Info("[Slave] Master has connected");
+
+            networkStream = tcpClient.GetStream();
+
+            //register a cancellation token, it will stop readAsync method from hanging and will wait for accepttcpclient again 
+            tcpCancellationToken = new CancellationTokenSource();
+            tcpCancellationToken.Token.Register(() =>
             {
-                var tcpClient = await _tcpListener.AcceptTcpClientAsync(); // wait for connection before executing the rest of the code
-                _log.Info("[Slave] Master has connected");
+                infinite = false;
+                TCPHandler();
+            });
 
-                networkStream = tcpClient.GetStream();
-
-                //register a cancellation token, it will stop readAsync method from hanging and will wait for accepttcpclient again 
-                tcpCancellationToken = new CancellationTokenSource();
-                tcpCancellationToken.Token.Register(() =>
-                {
-                    infinite = false;
-                    TCPHandler();
-                });
-
-                //fire tcpaccept event when connection has been accepted
-                if (TCPaccepted != null)
-                {
-                    TCPaccepted(networkStream);
-                }
+            //fire tcpaccept event when connection has been accepted
+            if (TCPaccepted != null)
+            {
+                TCPaccepted(networkStream);
             }
+
             //keep waiting for data untill cancellation token is fired
             while (infinite)
             {
@@ -116,9 +114,16 @@ namespace ShivaQEslave
                     TCPHandler();
                 }
 
-                //format data, wait for more if message is incomplete (no eof_tag)
-                //fire TCPdataReceived callback when data is ready
-                TCPDataReceivedHandler(byteCount, buffer, sb, networkStream);
+                if (byteCount > 0)
+                {
+                    //format data, wait for more if message is incomplete (no eof_tag)
+                    //fire TCPdataReceived callback when data is ready
+                    TCPDataReceivedHandler(byteCount, buffer, sb, networkStream);
+                }
+                else
+                {
+                    tcpCancellationToken.Cancel();
+                }
             }
         }
 
@@ -132,32 +137,29 @@ namespace ShivaQEslave
         /// <param name="networkStream"></param>
         private static void TCPDataReceivedHandler(int byteCount, byte[] buffer, StringBuilder sb, NetworkStream networkStream)
         {
-            if (byteCount > 0)
+            // There  might be more data, so store the data received so far.
+            sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
+
+            // Check for end-of-file tag. If it is not there, read 
+            // more data.
+            string content = sb.ToString();
+            if (content.IndexOf(eof_tag) > -1)
             {
-                // There  might be more data, so store the data received so far.
-                sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
-
-                // Check for end-of-file tag. If it is not there, read 
-                // more data.
-                string content = sb.ToString();
-                if (content.IndexOf(eof_tag) > -1)
+                while (content.IndexOf(eof_tag) > -1) //for double click for instance, packets seems to be concatenated
                 {
-                    while (content.IndexOf(eof_tag) > -1) //for double click for instance, packets seems to be concatenated
+                    string data = content.Substring(0, content.IndexOf(eof_tag));
+
+                    _log.Info(string.Format("Received tcp says: {0}", data));
+
+                    //callback
+                    if (TCPdataReceived != null)
                     {
-                        string data = content.Substring(0, content.IndexOf(eof_tag));
-
-                        _log.Info(string.Format("Received tcp says: {0}", data));
-
-                        //callback
-                        if (TCPdataReceived != null)
-                        {
-                            TCPdataReceived(data, networkStream);
-                        }
-                        content = sb.Remove(0, data.Length + eof_tag.Length).ToString();
+                        TCPdataReceived(data, networkStream);
                     }
+                    content = sb.Remove(0, data.Length + eof_tag.Length).ToString();
                 }
-                //remaining data will be get by the while(true) loop
             }
+            //remaining data will be get by the while(true) loop
         }
 
         /// <summary>

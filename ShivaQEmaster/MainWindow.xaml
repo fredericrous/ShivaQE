@@ -8,7 +8,7 @@
         Title="ShivaQE"
 		Height="380" Width="725"
 		ResizeMode="CanMinimize"
-		BorderThickness="1" BorderBrush="DarkOrange" WindowTitleBrush="#FF020202" WindowTransitionsEnabled="False">
+		BorderThickness="1" BorderBrush="DarkOrange" WindowTitleBrush="#FF020202" WindowTransitionsEnabled="False" MouseLeave="MetroWindow_MouseLeave" MouseEnter="MetroWindow_MouseEnter">
     <Controls:MetroWindow.Resources>
         <local:MainWindowBindings x:Key="MainWindowBindingsDataSource" d:IsDataSource="True"/>
     </Controls:MetroWindow.Resources>

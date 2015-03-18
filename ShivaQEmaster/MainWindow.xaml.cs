@@ -48,7 +48,9 @@ namespace ShivaQEmaster
         public delegate void errorEventHandler(string text);
         public static event errorEventHandler ErrorMsg;
 
-        private NotifyWindow _notifyWindow;
+        private static NotifyWindow _notifyWindow = new NotifyWindow();
+
+        bool? _mouseCaptured = null;
 
         public MainWindow()
         {
@@ -60,28 +62,44 @@ namespace ShivaQEmaster
             this.DataContext = this; //deadcode?
 
             _slaveManager = SlaveManager.Instance;
-            _slaveManager.Init();
+
             _slaveManager.ErrorNotIdentical += (error_msg, hostname) =>
                 {
-                    if (_notifyWindow != null /* && _notifyWindow.IsLoaded */)
-                    {
-                        _notifyWindow.Close();
-                    }
-
-                    var fetchIconTask = getImageComparedOnSlave(hostname);
-                    fetchIconTask.Wait();
-                    byte[] notifyIcon = fetchIconTask.Result;
-
                     try
                     {
-                        _notifyWindow = new NotifyWindow(error_msg, notifyIcon);
-                        _notifyWindow.Show();
+                        if (_notifyWindow != null && _notifyWindow.IsLoaded)
+                        {
+                            _notifyWindow.Hide();
+                        }
                     }
-                    catch (Exception ex)
+                    catch { } // isloaded may return an exception
+
+                    _notifyWindow.tb_warning.Text = error_msg;
+                    _notifyWindow.Show();
+                };
+
+
+            _slaveManager.ImageReceveid += (notifyIcon) =>
+                {
+                    if (notifyIcon != null && _notifyWindow != null)
                     {
-                        Console.WriteLine(ex.Message);
+                        try
+                        {
+                            _notifyWindow.NotifyIcon = notifyIcon;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                        }
+                    }
+                    else
+                    {
+                        _log.Error("can't get compared image");
                     }
                 };
+
+            
+            _slaveManager.Init();
 
             _NavigationFrame.Navigate(new HomePage());
 
@@ -131,60 +149,78 @@ namespace ShivaQEmaster
             _mouseNKeyListener.Active();
             _mouseNKeyListener.MouseClick += (s, ev) =>
             {
-                if (isWindowClicked(ev.position_x, ev.position_y, Application.Current.MainWindow))
-                {
-                    _log.Info("wont transmit click done on master window");
-                    return;
-                }
-
-                if (_notifyWindow != null && _notifyWindow.IsLoaded)
-                {
-                    if (isWindowClicked(ev.position_x, ev.position_y, _notifyWindow))
-                    {
-                        _log.Info("wont transmit click done on notify window");
-                        return;
-                    }
-                }
-
+                
                 Task.Run( async () =>
                     {
+                        bool isLeftClickDown = ev.key == "Left" && ev.keyData == "down";
+                        //send winpos before click down
+                        if (_mouseCaptured != true && isLeftClickDown)
+                        {
+                            try
+                            {
+                                _activeWindowInfo = getActiveWindowInfo();
+                            }
+                            catch (Exception ex)
+                            {
+                                _log.Warn("error getting active window info", ex);
+                                _activeWindowInfo = null;
+                            }
+                            if (_activeWindowInfo != null)
+                            {
+                                //send window's position
+                                //should be raised by windowcreated event but it doesn't work weel so it's a workaround...
+                                sendWindowPos(_activeWindowInfo);
+                                ev.windowPos = _activeWindowInfo.Item1 + "." + String.Join(".", _activeWindowInfo.Item2);
+                            }
+                        }
 
-                        //send winpos before click
-                        //should be raised by windowcreated event but it doesn't work weel so it's a workaround...
+                        // if (isWindowClicked(ev.position_x, ev.position_y, Application.Current.MainWindow))
+                        if (_mouseCaptured == true)
+                        {
+                            _log.Info(string.Format("wont transmit {0} click {1} done on master window", ev.key, ev.keyData));
+                            return;
+                        }
+
                         try
                         {
-                            _activeWindowInfo = getActiveWindowInfo();
+                            if (_notifyWindow != null && _notifyWindow.IsLoaded)
+                            {
+                                //if (isWindowClicked(ev.position_x, ev.position_y, _notifyWindow))
+                                if (_notifyWindow.IsMouseCaptured)
+                                {
+                                    _log.Info(string.Format("wont transmit {0} click {1} done on notify window", ev.key, ev.keyData));
+                                    return;
+                                }
+                            }
                         }
-                        catch (Exception ex)
+                        catch
                         {
-                            _log.Warn("error getting active window info", ex);
-                            _activeWindowInfo = null;
+                            //we dont care about this exception. It was put to handle invalidoperation thrown by _notifyWindow.IsLoaded
                         }
-                        if (_activeWindowInfo != null)
-                        {
-                            sendWindowPos(_activeWindowInfo);
-                            ev.windowPos = _activeWindowInfo.Item1 + "." + String.Join(".", _activeWindowInfo.Item2);
-                        }
+
 
                         //record click
                         _recorder.Write(ev);
 
                         //save picture of click in order to compare
-                        string comparatorName = string.Format("camparator.{0}.png", 1);
-                        int rect_size = 64;
-                        Rectangle rect = new Rectangle()
+                        if (isLeftClickDown)
                         {
-                            Height = rect_size,
-                            Width = rect_size,
-                            X = ev.position_x - (rect_size / 2),
-                            Y = ev.position_y - (rect_size / 2)
-                        };
-                        Bitmap comparatorCapture = ScreenCapturePInvoke.CaptureScreen(rect, false);
-                        comparatorCapture.Save(comparatorName);
+                            string comparatorName = string.Format("camparator.{0}.png", 1);
+                            int rect_size = 64;
+                            Rectangle rect = new Rectangle()
+                            {
+                                Height = rect_size,
+                                Width = rect_size,
+                                X = ev.position_x - (rect_size / 2),
+                                Y = ev.position_y - (rect_size / 2)
+                            };
+                            Bitmap comparatorCapture = ScreenCapturePInvoke.CaptureScreen(rect, false);
+                            comparatorCapture.Save(comparatorName);
 
-                        byte[] file = File.ReadAllBytes(comparatorName);
+                            byte[] file = File.ReadAllBytes(comparatorName);
 
-                        ev.screenshotBytes = file;
+                            ev.screenshotBytes = file;
+                        }
 
                         //send click
                         try
@@ -282,7 +318,7 @@ namespace ShivaQEmaster
                         await _slaveManager.Send<ActionMethod>(action);
 
                     }
-                    else if (_mouseNKeyListener.isActive)
+                    else if (_mouseNKeyListener != null && _mouseNKeyListener.isActive)
                     {
                         //record
                         _recorder.Write(ev);
@@ -340,38 +376,44 @@ namespace ShivaQEmaster
                 };
         }
 
-        private async Task<byte[]> getImageComparedOnSlave(string hostname)
-        {
-            byte[] result = null;
+        ///// <summary>
+        ///// get slave's image that has been compared with master's one
+        ///// this func is not perfect because a different result could come before this one
+        ///// </summary>
+        ///// <param name="hostname"></param>
+        ///// <returns></returns>
+        //private async Task<byte[]> getImageComparedOnSlave(string hostname)
+        //{
+        //    byte[] result = null;
 
-            ActionMethod action = new ActionMethod()
-            {
-                method = ActionType.CheckIdentical
-            };
+        //    ActionMethod action = new ActionMethod()
+        //    {
+        //        method = ActionType.CheckIdentical
+        //    };
 
-            try
-            {
-                string response = await _slaveManager.Send<ActionMethod>(action, hostname);
+        //    try
+        //    {
+        //        string response = await _slaveManager.Send<ActionMethod>(action, hostname);
 
-                if (!string.IsNullOrEmpty(response))
-                {
-                    ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(response);
-                    result = receivedAction.value;
-                }
-            }
-            catch (Exception ex)
-            {
-                _log.Error("error send window created", ex);
-            }
+        //        if (!string.IsNullOrEmpty(response))
+        //        {
+        //            ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(response);
+        //            result = receivedAction.value;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _log.Error("error send window created", ex);
+        //    }
 
-            return result;
-        }
+        //    return result;
+        //}
 
-        private bool isWindowClicked(int x, int y, Window window)
-        {
-            return (x > window.Left && x < window.Left + window.Width)
-                && (y > window.Top && y < window.Top + window.Height);
-        }
+        //private bool isWindowClicked(int x, int y, Window window)
+        //{
+        //    return (x > window.Left && x < window.Left + window.Width)
+        //        && (y > window.Top && y < window.Top + window.Height);
+        //}
 
         private void UpdateSendErrorIfThereIs(List<string> error_hosts)
         {
@@ -471,49 +513,15 @@ namespace ShivaQEmaster
             _NavigationFrame.Navigate(new SettingsPage());
         }
 
-        //private static readonly string eof_tag = "<EOF>";
+        private void MetroWindow_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            _mouseCaptured = false;
+        }
 
-        ///// <summary>
-        ///// format tcp received data, wait for more if message is incomplete (no eof_tag)
-        ///// fire TCPdataReceived callback when data is ready
-        ///// </summary>
-        ///// <param name="byteCount"></param>
-        ///// <param name="buffer"></param>
-        ///// <param name="sb"></param>
-        ///// <param name="networkStream"></param>
-        //private static void TCPDataReceivedHandler(int byteCount, byte[] buffer, StringBuilder sb, NetworkStream networkStream)
-        //{
-        //    if (byteCount > 0)
-        //    {
-        //        // There  might be more data, so store the data received so far.
-        //        sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
+        private void MetroWindow_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+        	_mouseCaptured = true;
+        }
 
-        //        // Check for end-of-file tag. If it is not there, read 
-        //        // more data.
-        //        string content = sb.ToString();
-        //        if (content.IndexOf(eof_tag) > -1)
-        //        {
-        //            while (content.IndexOf(eof_tag) > -1) //for double click for instance, packets seems to be concatenated
-        //            {
-        //                string data = content.Substring(0, content.IndexOf(eof_tag));
-
-        //                _log.Info(string.Format("Received tcp says: {0}", data));
-
-        //                //callback
-        //                if (TCPdataReceived != null)
-        //                {
-        //                    TCPdataReceived(data, networkStream);
-        //                }
-        //                content = sb.Remove(0, data.Length + eof_tag.Length).ToString();
-        //            }
-        //        }
-        //        else
-        //        {
-        //            //get the remaining data
-        //            TCPHandler(sb, false, networkStream);
-        //        }
-        //    }
-        //}
-        
     }
 }

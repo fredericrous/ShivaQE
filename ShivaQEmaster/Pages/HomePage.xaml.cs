@@ -81,6 +81,7 @@ namespace ShivaQEmaster
             // Task.WaitAll(tasks.ToArray());
             waitTasks(tasks);
 
+            lv_slaves.ItemsSource = _slaveManager.slaveList; //wont refresh otherwise...items.refresh() doesnt seem to do the work
             lv_slaves.Items.Refresh();
         }
 

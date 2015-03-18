@@ -132,5 +132,8 @@ namespace ShivaQEmaster
         
         [JsonIgnore]
         public bool IsSelected { get; set; }
+
+        [JsonIgnore]
+        public string token { get; set; }
     }
 }

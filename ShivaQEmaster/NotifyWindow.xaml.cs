@@ -26,18 +26,12 @@ namespace ShivaQEmaster
             setWindowPosition();
         }
 
-		public NotifyWindow(string text, byte[] imgBytes)
+		public NotifyWindow(string text)
 		{
 			this.InitializeComponent();
 
             setWindowPosition();
             this.tb_warning.Text = text;
-            if (imgBytes != null)
-            {
-                BitmapImage imgSource = new BitmapImage();
-                imgSource.StreamSource = new MemoryStream(imgBytes);
-                this.img_slave.Source = imgSource;
-            }
 		}
 
         /// <summary>
@@ -94,5 +88,15 @@ namespace ShivaQEmaster
         {
             this.Close();
         }
-	}
+
+        public byte[] NotifyIcon
+        {
+            set
+            {
+                BitmapImage imgSource = new BitmapImage();
+                imgSource.StreamSource = new MemoryStream(value);
+                this.img_slave.Source = imgSource;
+            }
+        }
+    }
 }

@@ -61,7 +61,8 @@ namespace ShivaQEslave
                 {
                     platform = "windows",
                     version = Environment.OSVersion.ToString(),
-                    lang = MouseNKeySimulator.getKeyboardLang()
+                    lang = MouseNKeySimulator.getKeyboardLang(),
+                    token = Guid.NewGuid().ToString()
                 };
 
                 int port = _default_port;
@@ -135,6 +136,27 @@ namespace ShivaQEslave
             }
         }
 
+        private static string disociateDataFromToken(string data)
+        {
+            if (data.IndexOf(':') == -1)
+            {
+                _log.Info("data is not correctly formated: {0}");
+                return string.Empty;
+            }
+            string token = data.Substring(0, data.IndexOf(':'));
+            var charIndex = from ch in token.ToArray() where Char.IsLetterOrDigit(ch) select token.IndexOf(ch); //I dont know why but master sends token and slave receives %01token
+            if (charIndex.Count() > 0)
+                token = token.Substring(charIndex.First());
+
+            if (!_serverInfo.token.Equals(token))
+            {
+                _log.Info(string.Format("incorrect token: {0}. Expected was {1}", token, _serverInfo.token));
+                return string.Empty;
+            }
+
+            return data.Substring(data.IndexOf(':') + 1);
+        }
+
         private static void startServer(int port)
         {
             string ServerResponseString = JsonConvert.SerializeObject(_serverInfo);
@@ -177,11 +199,31 @@ namespace ShivaQEslave
             //}
 
             //on data received (after TCP connection was accepted and client sent message), do..
-            AsynchronousSlave.TCPdataReceived += (string data, NetworkStream networkStream) =>
+            AsynchronousSlave.TCPdataReceived += (string rawData, NetworkStream networkStream) =>
             {
-                _log.Info(data);
+                _log.Info(rawData);
+
                 try
                 {
+                    //if token is ok, get data, else return empty string
+                    string data = disociateDataFromToken(rawData);
+
+                    //if no token, notify master
+                    if (data == string.Empty)
+                    {
+                        ActionMethod action = new ActionMethod()
+                        {
+                            method = ActionType.Disconnect,
+                            value = _serverInfo.token
+                        };
+
+                        string actionString = JsonConvert.SerializeObject(action);
+                        actionString += "<EOF>";
+                        byte[] actionBytes = Encoding.UTF8.GetBytes(actionString);
+                        networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
+                        return;
+                    }
+
                     if (data.StartsWith(@"{""method"":"))
                     {
                         ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
@@ -223,16 +265,25 @@ namespace ShivaQEslave
 
                         if (resultCompare > 1)
                         {
-                           // string except_msg = "NOTIDENTICAL:";
-                            //ActionMethod actionIdentical = new ActionMethod()
-                            //    {
-                            //        method = ActionType.CheckIdentical,
-                            //        value = mouseNkey.timestamp + ":" + mouseNkey.key
-                            //    };
+                            ActionMethod actionIdentical = new ActionMethod()
+                            {
+                                method = ActionType.CheckIdentical,
+                                value = mouseNkey.timestamp + ":" + mouseNkey.key
+                            };
                             //string actionString = JsonConvert.SerializeObject(actionIdentical);
                             string actionString = mouseNkey.timestamp + ":" + mouseNkey.key;
                             actionString += "<EOF>"; //used serverside to know string has been received entirely
                             byte[] actionBytes = Encoding.UTF8.GetBytes(actionString);
+                            networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
+
+                            ActionMethod<byte[]> actionIdenticalImage = new ActionMethod<byte[]>()
+                            {
+                                method = ActionType.CheckIdentical,
+                                value = File.ReadAllBytes(_tmp_screenshot_path)
+                            };
+                            actionString = JsonConvert.SerializeObject(actionIdenticalImage);
+                            actionString += "<EOF>"; //used serverside to know string has been received entirely
+                            actionBytes = Encoding.UTF8.GetBytes(actionString);
                             networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
                         }
 
@@ -258,6 +309,15 @@ namespace ShivaQEslave
             {
                 try
                 {
+                    //if token is ok, get data, else return empty string
+                    data = disociateDataFromToken(data);
+
+                    //if no token, no action
+                    if (data == string.Empty)
+                    {
+                        return;
+                    }
+
                     MouseNKeyEventArgs mouseNkey = JsonConvert.DeserializeObject<MouseNKeyEventArgs>(data);
 
                     //set mouse curstor to position X, Y
@@ -296,27 +356,9 @@ namespace ShivaQEslave
                     IDataObject clipboardObject = JsonConvert.DeserializeObject<IDataObject>(action.value);
                     Clipboard.SetDataObject(clipboardObject);
                     break;
-                case ActionType.CheckIdentical:
-                //    if (_uichange != null)
-                //    {
-                //        List<string> eventCalls = _uichange.getEventCalls;
-                //        List<string> masterEventCalls = JsonConvert.DeserializeObject<List<string>>(action.value);
+                //case ActionType.CheckIdentical:
 
-                //        var masterDifferentThanSlave = masterEventCalls.Except(eventCalls).ToList().Count > 0;
-                //        if (masterDifferentThanSlave)
-                //        {
-                        ActionMethod<byte[]> actionIdentical = new ActionMethod<byte[]>()
-                            {
-                                method = ActionType.CheckIdentical,
-                                value = File.ReadAllBytes(_tmp_screenshot_path)
-                            };
-                        string actionString = JsonConvert.SerializeObject(actionIdentical);
-                        actionString += "<EOF>"; //used serverside to know string has been received entirely
-                        byte[] actionBytes = Encoding.UTF8.GetBytes(actionString);
-                        networkStream.WriteAsync(actionBytes, 0, actionBytes.Length);
-                //        }
-                //    }
-                    break;
+                //    break;
                 case ActionType.Disconnect:
                     AsynchronousSlave.StopListening();
                     NotifyIconSystray.ChangeStatus(false);
@@ -325,21 +367,6 @@ namespace ShivaQEslave
                     break;
             }
         }
-
-        //private static bool isPng(byte[] databytes)
-        //{
-        //    bool ret = true;
-        //    byte[] pngHeader = new byte[] { 137, 80, 78, 71, 13, 10, 26, 10 };
-        //    for (var i = 0; i < pngHeader.Length; i++)
-        //    {
-        //        if (pngHeader[i] != databytes[i])
-        //        {
-        //            ret = false;
-        //            break;
-        //        }
-        //    }
-        //    return ret;
-        //}
 
         private static Process GetProcessByHandle(IntPtr hwnd)
         {

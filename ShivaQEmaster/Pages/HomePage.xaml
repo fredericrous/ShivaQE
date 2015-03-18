@@ -38,7 +38,7 @@
 					<GridViewColumn Header="{Binding homepage_gd_header_name, Source={StaticResource language_en_USDataSource}}" Width="145">
 						<GridViewColumn.CellTemplate>
 							<DataTemplate>
-								<TextBlock Text="{Binding name}" />
+								<TextBlock Text="{Binding friendlyName}" />
 							</DataTemplate>
 						</GridViewColumn.CellTemplate>
 					</GridViewColumn>

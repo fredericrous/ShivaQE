@@ -108,6 +108,9 @@ namespace ShivaQEmaster
         public delegate void ErrorNotIdenticalEventHandler(string text, string serverName);
         public event ErrorNotIdenticalEventHandler ErrorNotIdentical;
 
+        public delegate void ImageReceveidEvent(byte[] notifyIcon);
+        public event ImageReceveidEvent ImageReceveid;
+
         /// <summary>
         /// Send data as JSON through UDP to each server within slaveList
         /// </summary>
@@ -116,17 +119,19 @@ namespace ShivaQEmaster
         public void Broadcast<T>(T data)
         {
             string json = JsonConvert.SerializeObject(data);
-            json += "<EOF>";
 
             foreach (var slave in slaveList)
             {
                 if (slave.client.Connected) //broadcast only if slave is also connected with tcp
                 {
+                    json = string.Format("{0}:{1}<EOF>", slave.token, json);
                     byte[] byteData = Encoding.UTF8.GetBytes(json);
                     _broadcastChannel.SendAsync(byteData, byteData.Length, slave.endpoint);
                 }
             }
         }
+
+        List<string> readingList = new List<string>();
 
         /// <summary>
         /// Connect to a server and add it to slaveList
@@ -153,10 +158,15 @@ namespace ShivaQEmaster
                 var networkStream = slave.client.GetStream();
 
                 //read server's response
-                var buffer = new byte[150]; //server should send which patform and which version it's on. buffer of 150 should be enough
+                var buffer = new byte[850]; //server should send which patform and which version it's on. buffer should be enough
                 var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
                 var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
                 _log.Info(string.Format("[Master] Slave response was {0}", response));
+
+                ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(response.Remove(response.LastIndexOf("<EOF>")));
+
+                //set token got from slave
+                slave.token = serverInfo.token;
 
                 //add slave to list
                 slaveList.Add(slave);
@@ -166,12 +176,16 @@ namespace ShivaQEmaster
                 File.WriteAllText(_slaveList_save_path, slaveListJson);
 
                 //set language on slave
-                ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(response.Remove(response.LastIndexOf("<EOF>")));
+
                 if (serverInfo.lang != Lang)
                 {
-                    ActionMethod action = new ActionMethod() { method = ActionType.SetLang, value = Lang };
+                    ActionMethod action = new ActionMethod()
+                    {
+                        method = ActionType.SetLang,
+                        value = Lang
+                    };
                     string json = JsonConvert.SerializeObject(action);
-                    //json += "<EOF>";
+                    json = string.Format("{0}:{1}<EOF>", serverInfo.token, json);
                     byte[] byteData = Encoding.UTF8.GetBytes(json);
                     _log.Info(string.Format("[Master] Writing request {0}", byteData));
                     try
@@ -185,12 +199,16 @@ namespace ShivaQEmaster
                     }
                 }
 
+                //async func
+                Task task = ReadSlaveIncoming(slave);
+                readingList.Add(slave.hostname);
+
             }
             catch (SocketException ex)
             {
                 _log.Warn("error adding slave", ex);
                 ret = false;
-                throw; 
+                throw;
             }
 
             return ret;
@@ -198,52 +216,167 @@ namespace ShivaQEmaster
 
         private static readonly string eof_tag = "<EOF>";
 
-        public async Task<string> Send<T>(T data, string hostname)
+        //public async Task<string> Send<T>(T data, string hostname)
+        //{
+        //    string receivedData = null;
+        //    byte[] byteData;
+        //    string json = null;
+        //    StringBuilder sb = new StringBuilder();
+
+        //    json = JsonConvert.SerializeObject(data);
+        //    json += "<EOF>"; //used serverside to know string has been received entirely
+
+        //    byteData = Encoding.UTF8.GetBytes(json);
+
+        //    NetworkStream networkStream = this.slaveList.Where(x => x.hostname == hostname).First().client.GetStream();
+        //    await networkStream.WriteAsync(byteData, 0, byteData.Length);
+
+        //    ActionType? expectedAction = null;
+        //    if (typeof(T) == typeof(ActionType))
+        //    {
+        //        expectedAction = data as ActionType?;
+        //    }
+
+        //    //keep waiting for data untill cancellation token is fired
+        //    while (true)
+        //    {
+        //        var buffer = new byte[4096];
+
+        //        //wait for data transmitted
+        //        int byteCount = 0;
+        //        try
+        //        {
+        //            byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            _log.Warn("Error reading answer", e);
+        //            break;
+        //        }
+
+        //        //read result
+        //        if (byteCount > 0)
+        //        {
+        //            sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
+
+        //            string content = sb.ToString();
+        //            if (content.IndexOf(eof_tag) > -1)
+        //            {
+        //                if (expectedAction != null)
+        //                {
+        //                    int actionNumber = 0;
+        //                    Int32.TryParse(content.Substring(content.IndexOf("action:\""), 2), out actionNumber);
+        //                    if ((ActionType)actionNumber == expectedAction)
+        //                    {
+        //                        receivedData = content.Substring(0, content.IndexOf(eof_tag));
+        //                        break;
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    receivedData = content.Substring(0, content.IndexOf(eof_tag));
+        //                    break;
+        //                }
+        //            }
+        //        }
+        //    }
+        //    return receivedData;
+        //}
+
+        private async Task ReadSlaveIncoming(Slave slave)
         {
-            string receivedData = null;
-            byte[] byteData;
-            string json = null;
-            StringBuilder sb = new StringBuilder();
-
-            json = JsonConvert.SerializeObject(data);
-            json += "<EOF>"; //used serverside to know string has been received entirely
-
-            byteData = Encoding.UTF8.GetBytes(json);
-
-            NetworkStream networkStream = this.slaveList.Where(x => x.hostname == hostname).First().client.GetStream();
-            await networkStream.WriteAsync(byteData, 0, byteData.Length);
-            
-            //keep waiting for data untill cancellation token is fired
-            while (true)
+            if (slave != null && slave.status == "Connected")
             {
-                var buffer = new byte[4096];
-
-                //wait for data transmitted
-                int byteCount = 0;
                 try
                 {
-                    byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
-                }
-                catch (Exception e)
-                {
-                    _log.Warn("Error reading answer", e);
-                    break;
-                }
+                    var networkStream = slave.client.GetStream();
 
-                //read result
-                if (byteCount > 0)
-                {
-                    sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
+                    var buffer = new byte[4096];
+                    var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+                    var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-                    string content = sb.ToString();
-                    if (content.IndexOf(eof_tag) > -1)
+                    _log.Info(string.Format("[Master] Slave response was {0}", response));
+
+                    string content = response.ToString();
+                    if (!(content.IndexOf(eof_tag) > -1))
                     {
-                        receivedData = content.Substring(0, content.IndexOf(eof_tag));
-                        break;
+                        _log.Info("missing eof tag from received data");
+                    }
+                    else
+                    {
+                        while (content.IndexOf(eof_tag) > -1) //for double click for instance, packets seems to be concatenated
+                        {
+                            string data = content.Substring(0, content.IndexOf(eof_tag));
+
+                            _log.Info(string.Format("Received tcp says: {0}", data));
+
+                            //action
+                            if (response.Contains("platform") && response.Contains("version"))
+                            { //if we have reconnected
+                                ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(data);
+                                slave.token = serverInfo.token;
+
+                                //send a empty request in order to update status of _slave.Connected
+                                await networkStream.WriteAsync(new byte[] { 1 }, 0, 1);
+                            }
+                            else if (response.Contains("method"))
+                            {
+                                try
+                                {
+                                    ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
+
+                                    switch (action.method)
+                                    {
+                                        case ActionType.Disconnect: //not used for disconnect when sent by slave..but to re-give token
+                                            slave.token = action.value;
+                                            break;
+                                        case ActionType.CheckIdentical:
+
+                                            ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(data);
+
+                                            byte[] result = receivedAction.value;
+
+                                            if (result != null)
+                                            {
+                                                ImageReceveid(result);
+                                            }
+                                            break;
+                                        default:
+                                            break;
+                                    }
+
+                                }
+                                catch (Exception ex)
+                                {
+                                    _log.Info("not an image: " + data, ex);
+                                }
+                            }
+                            else if (SettingsManager.ReadSetting("notification_status") == "true")
+                            {
+                                string[] responseTab = response.Replace("<EOF>", "").Split(':');
+                                string time = responseTab[0];
+                                string key = responseTab[1];
+
+                                response = string.Format("{0}: error on {1} at time {2}", slave.friendlyName, key, time);
+
+                                ErrorNotIdentical(response, slave.friendlyName);
+                            }
+                            content = response.Remove(0, data.Length + eof_tag.Length).ToString();
+                        }
                     }
                 }
+                catch (Exception ex)
+                {
+                    _log.Warn(string.Format("error read slave {0}'s incoming data", slave.hostname), ex);
+                }
+                //wait for next read
+                await ReadSlaveIncoming(slave);
             }
-            return receivedData;
+            else
+            {
+                //removing slave from the list which await slave answers
+                readingList.Remove(slave.hostname);
+            }
         }
 
         /// <summary>
@@ -257,21 +390,29 @@ namespace ShivaQEmaster
             byte[] byteData;
             string json = null;
 
-            json = JsonConvert.SerializeObject(data);
-            json += "<EOF>"; //used serverside to know string has been received entirely
-
-            byteData = Encoding.UTF8.GetBytes(json);
-
             // send data to all remote devices
             foreach (Slave slave in slaveList)
             {
                 if (slave.status == "Connected")
                 {
+                    json = JsonConvert.SerializeObject(data);
+                    json = string.Format("{0}:{1}<EOF>", slave.token, json);
+
+                    byteData = Encoding.UTF8.GetBytes(json);
+
                     var networkStream = slave.client.GetStream();
                     _log.Info(string.Format("[Master] Writing request {0}", json));
                     try
                     {
                         await networkStream.WriteAsync(byteData, 0, byteData.Length);
+                    }
+                    catch (SocketException sex)
+                    {
+                        _log.Info("Slave closed the connection!?", sex);
+                        //if (sex.ErrorCode == 10054)
+                        //{
+                           Disconnect(slave);
+                        //}
                     }
                     catch (Exception ex)
                     {
@@ -279,56 +420,64 @@ namespace ShivaQEmaster
                         _log.Error(error_msg, ex);
                         //slaveList.Where(x => x.ipAddress == slave.ipAddress).First().client.Close();
                         errorList.Add(error_msg);
-                       // throw;
+                        // throw;
                     }
 
-                    if (SettingsManager.ReadSetting("notification_status") == "true")
-                    {
-                        try
-                        {
-                            await IsResultOK(networkStream, slave.hostname);
-                        }
-                        catch (Exception ex)
-                        {
-                            string error_msg = string.Format("Error writing request tcp to {0}", slave.ipAddress);
-                            _log.Error(error_msg, ex);
-                            //errorList.Add(error_msg);
-                        }
-                    }
+                    //if (compareON && SettingsManager.ReadSetting("notification_status") == "true")
+                    //{
+                    //    try
+                    //    {
+                    //        await IsResultOK(networkStream, slave.hostname);
+                    //    }
+                    //    catch (Exception ex)
+                    //    {
+                    //        string error_msg = string.Format("Error writing request tcp to {0}", slave.ipAddress);
+                    //        _log.Error(error_msg, ex);
+                    //        //errorList.Add(error_msg);
+                    //    }
+                    //}
                     _log.Info("[Master] Written");
                 }
             }
             return errorList;
         }
 
-        private async Task IsResultOK(NetworkStream networkStream, string serverName)
-        {
-            //read server's response
-            var buffer = new byte[4096];
-            var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
-            var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
+        //private async Task IsResultOK(NetworkStream networkStream, string serverName)
+        //{
+        //    //read server's response
+        //    var buffer = new byte[4096];
+        //    var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
+        //    var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
 
-            _log.Info(string.Format("[Master] Slave response was {0}", response));
+        //    _log.Info(string.Format("[Master] Slave response was {0}", response));
 
-            if (!(response.Contains("platform") && response.Contains("version"))) //workaround because accept message sometimes prompts here!?
-            {
-                string[] responseTab = response.Replace("<EOF>", "").Split(':');
-                string time = responseTab[0];
-                string key = responseTab[1];
+        //    string content = response.ToString();
+        //    if (content.IndexOf(eof_tag) > -1)
+        //    {
+        //        while (content.IndexOf(eof_tag) > -1) //for double click for instance, packets seems to be concatenated
+        //        {
+        //            string data = content.Substring(0, content.IndexOf(eof_tag));
 
-                response = string.Format("{0}: error on {1} at time {2}", serverName, key, time);
+        //            _log.Info(string.Format("Received tcp says: {0}", data));
 
-                ErrorNotIdentical(response, serverName);
-            }
-        }
+        //            //action
+        //            if (!(response.Contains("platform") && response.Contains("version") || response.Contains("method"))) //not supra efficient long term
+        //            {
+        //                string[] responseTab = response.Replace("<EOF>", "").Split(':');
+        //                string time = responseTab[0];
+        //                string key = responseTab[1];
+
+        //                response = string.Format("{0}: error on {1} at time {2}", serverName, key, time);
+
+        //                ErrorNotIdentical(response, serverName);
+        //            }
+        //            content = response.Remove(0, data.Length + eof_tag.Length).ToString();
+        //        }
+        //    }
+        //}
 
         public void Remove(IEnumerable<Slave> slaves)
         {
-            ActionMethod data = new ActionMethod() { method = ActionType.Disconnect };
-            string json = JsonConvert.SerializeObject(data);
-            json += "<EOF>"; //used serverside to know string has been received entirely
-            byte[] byteData = Encoding.UTF8.GetBytes(json);
-
             List<Task> tasks = new List<Task>();
             foreach (var slave in slaves.ToList())
             {
@@ -376,6 +525,13 @@ namespace ShivaQEmaster
                     slave.Renew();
                     await slave.client.ConnectAsync(IPAddress.Parse(slave.ipAddress), slave.port);
                     _log.Info("[Client] re-Connected to server");
+
+                    bool isAlreadyReading = (from r in readingList where r == slave.hostname select r).Count() > 0;
+                    if (!isAlreadyReading)
+                    {
+                        Task task = ReadSlaveIncoming(slave);
+                        readingList.Add(slave.hostname);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -395,7 +551,7 @@ namespace ShivaQEmaster
         {
             ActionMethod data = new ActionMethod() { method = ActionType.Disconnect };
             string json = JsonConvert.SerializeObject(data);
-            json += "<EOF>"; //used serverside to know string has been received entirely
+            json = string.Format("{0}:{1}<EOF>", slave.token, json);
             byte[] byteData = Encoding.UTF8.GetBytes(json);
 
             try
@@ -408,7 +564,7 @@ namespace ShivaQEmaster
             {
                 string error = string.Format("Error requesting disconnect from {0}", slave.friendlyName);
                 _log.Error(error, ex);
-                throw new InvalidOperationException(error);
+                //throw new InvalidOperationException(error);
             }
         }
 

@@ -7,7 +7,7 @@
 	Title="NotifyWindow"
 	Width="400" Height="88.5"
 	Background="White" Opacity="0.8"
-	ResizeMode="NoResize" WindowStyle="None" MouseDown="Window_MouseDown" AllowsTransparency="True">
+	ResizeMode="NoResize" WindowStyle="None" MouseDown="Window_MouseDown" AllowsTransparency="True" Topmost="True">
 
 	<Grid x:Name="LayoutRoot">
 		<TextBlock x:Name="tb_warning" HorizontalAlignment="Left" Margin="120,10,0,0" TextWrapping="Wrap" Text="Warning" VerticalAlignment="Top" Height="68.5" Width="252" Foreground="Black" FontSize="16"/>
