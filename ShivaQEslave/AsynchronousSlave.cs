@@ -30,6 +30,9 @@ namespace ShivaQEslave
         public delegate void acceptedEventHandler(NetworkStream networkStream);
         public static event acceptedEventHandler TCPaccepted;
 
+        public delegate void closedEventHandler();
+        public static event closedEventHandler TCPclosed;
+
         private static readonly string eof_tag = "<EOF>";
 
         private static TcpListener _tcpListener;
@@ -85,6 +88,7 @@ namespace ShivaQEslave
             tcpCancellationToken.Token.Register(() =>
             {
                 infinite = false;
+                TCPclosed();
                 TCPHandler();
             });
 
@@ -109,7 +113,7 @@ namespace ShivaQEslave
                 {
                     _log.Warn("Error reading", e);
                     infinite = false;
-
+                    TCPclosed();
                     //wait for next connection
                     TCPHandler();
                 }
