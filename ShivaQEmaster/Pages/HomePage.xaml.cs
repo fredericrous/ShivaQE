@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows;
 using System.Windows.Documents;
 
@@ -25,6 +26,11 @@ namespace ShivaQEmaster
             _bindings = this.Resources["HomePageBindingsDataSource"] as HomePageBindings;
             this._mouseNKeyListener = MouseNKeyListener.Instance;
             this._slaveManager = SlaveManager.Instance;
+
+            _slaveManager.Disconnected += () =>
+            {
+                lv_slaves.Items.Refresh();
+            };
 
             _bindings.slaves = _slaveManager.slaveList; //bind slavelist to listview
 
@@ -59,9 +65,13 @@ namespace ShivaQEmaster
         /// wait all tasks are done
         /// </summary>
         /// <param name="tasks"></param>
-        private async void waitTasks(List<Task> tasks)
+        private async void waitTasksThenRefresh(List<Task> tasks)
         {
             await Task.WhenAll(tasks);
+
+          //  _bindings.slaves = _slaveManager.slaveList;
+            //lv_slaves.ItemsSource = _slaveManager.slaveList; //wont refresh otherwise...items.refresh() doesnt seem to do the work
+            lv_slaves.Items.Refresh();
         }
 
         /// <summary>
@@ -79,10 +89,7 @@ namespace ShivaQEmaster
             }
 
             // Task.WaitAll(tasks.ToArray());
-            waitTasks(tasks);
-
-            lv_slaves.ItemsSource = _slaveManager.slaveList; //wont refresh otherwise...items.refresh() doesnt seem to do the work
-            lv_slaves.Items.Refresh();
+            waitTasksThenRefresh(tasks);
         }
 
         private async Task ReconnectServer(Slave slave, bool disconnect = false)
@@ -128,9 +135,7 @@ namespace ShivaQEmaster
                 tasks.Add(ReconnectServer(slave, true));
             }
 
-            waitTasks(tasks);
-
-            lv_slaves.Items.Refresh();
+            waitTasksThenRefresh(tasks);
         }
 
         /// <summary>

@@ -56,7 +56,9 @@ namespace ShivaQEmaster
         {
             InitializeComponent();
 
-            //new Analytics()  .Init("ShivaQE Viewer", "1.0");
+            //Analytics analytics = new Analytics();
+            //analytics.Init("ShivaQE Viewer", "1.0");
+            //analytics.Event("", "");
 
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
@@ -97,7 +99,6 @@ namespace ShivaQEmaster
                         _log.Error("can't get compared image");
                     }
                 };
-
             
             _slaveManager.Init();
 
@@ -203,9 +204,9 @@ namespace ShivaQEmaster
                         _recorder.Write(ev);
 
                         //save picture of click in order to compare
-                        if (isLeftClickDown)
+                        if (isLeftClickDown && SettingsManager.ReadSetting("notification_status") == "true")
                         {
-                            string comparatorName = string.Format("camparator.{0}.png", 1);
+                            string comparatorName = string.Format("comparator.{0}.png", 1);
                             int rect_size = 64;
                             Rectangle rect = new Rectangle()
                             {

@@ -67,6 +67,17 @@ namespace ShivaQEmaster
 
         public string SlaveListPath { get { return _slaveList_save_path; } }
 
+
+        public delegate void ErrorNotIdenticalEventHandler(string text, string serverName);
+        public event ErrorNotIdenticalEventHandler ErrorNotIdentical;
+
+        public delegate void ImageReceveidEvent(byte[] notifyIcon);
+        public event ImageReceveidEvent ImageReceveid;
+
+        public delegate void DisconnectedEventHandler();
+        public event DisconnectedEventHandler Disconnected;
+
+
         private static readonly SlaveManager _instance = new SlaveManager();
 
         private SlaveManager() { }
@@ -104,12 +115,6 @@ namespace ShivaQEmaster
                 }
             }
         }
-
-        public delegate void ErrorNotIdenticalEventHandler(string text, string serverName);
-        public event ErrorNotIdenticalEventHandler ErrorNotIdentical;
-
-        public delegate void ImageReceveidEvent(byte[] notifyIcon);
-        public event ImageReceveidEvent ImageReceveid;
 
         /// <summary>
         /// Send data as JSON through UDP to each server within slaveList
@@ -368,6 +373,7 @@ namespace ShivaQEmaster
                 catch (Exception ex)
                 {
                     _log.Warn(string.Format("error read slave {0}'s incoming data", slave.hostname), ex);
+                    Disconnected();
                 }
                 //wait for next read
                 await ReadSlaveIncoming(slave);

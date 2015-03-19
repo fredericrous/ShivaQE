@@ -89,12 +89,22 @@ namespace ShivaQEmaster
             this.Close();
         }
 
+        //public ImageSource NotifyIconTest
+        //{
+        //    set
+        //    {
+        //        this.img_slave.Source = value;
+        //    }
+        //}
+
         public byte[] NotifyIcon
         {
             set
             {
                 BitmapImage imgSource = new BitmapImage();
+                imgSource.BeginInit();
                 imgSource.StreamSource = new MemoryStream(value);
+                imgSource.EndInit();
                 this.img_slave.Source = imgSource;
             }
         }
