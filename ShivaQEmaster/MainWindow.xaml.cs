@@ -191,6 +191,8 @@ namespace ShivaQEmaster
                     _mouseNKeyListener.DeactiveAll();
                     //_uichange = null;
                     _mouseNKeyListener = null;
+
+                    Application.Current.Shutdown(); // Force close because NotifyWindow is opened
                 }
                 catch (Exception ex)
                 {

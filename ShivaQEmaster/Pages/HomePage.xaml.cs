@@ -16,6 +16,7 @@ namespace ShivaQEmaster
         HomePageBindings _bindings;
         MouseNKeyListener _mouseNKeyListener;
         SlaveManager _slaveManager;
+        Analytics _analytics;
 
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -23,8 +24,8 @@ namespace ShivaQEmaster
 		{
 			this.InitializeComponent();
 
-            Analytics analytics = Analytics.Instance;
-            analytics.PageView("Home");
+            _analytics = Analytics.Instance;
+            _analytics.PageView("Home");
 
             _bindings = this.Resources["HomePageBindingsDataSource"] as HomePageBindings;
             this._mouseNKeyListener = MouseNKeyListener.Instance;
@@ -93,6 +94,8 @@ namespace ShivaQEmaster
 
             // Task.WaitAll(tasks.ToArray());
             waitTasksThenRefresh(tasks);
+
+            _analytics.Event("HomePage", "Reconnect");
         }
 
         private async Task ReconnectServer(Slave slave, bool disconnect = false)
@@ -122,6 +125,8 @@ namespace ShivaQEmaster
         private void bt_remove_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             _slaveManager.Remove(_bindings.selectedSlaves);
+
+            _analytics.Event("HomePage", "Remove");
         }
 
         /// <summary>
@@ -139,6 +144,8 @@ namespace ShivaQEmaster
             }
 
             waitTasksThenRefresh(tasks);
+
+            _analytics.Event("HomePage", "Disconnect");
         }
 
         /// <summary>
@@ -149,6 +156,8 @@ namespace ShivaQEmaster
         private void bt_add_Click(object sender, System.Windows.RoutedEventArgs e)
         {
             this.NavigationService.Navigate(new AddServerPage());
+
+            _analytics.Event("HomePage", "Add");
         }
 
         /// <summary>
@@ -170,6 +179,8 @@ namespace ShivaQEmaster
             {
                 _mouseNKeyListener.DeactiveAll();
             }
+
+            _analytics.Event("HomePage", "Broadcast change");
         }
 
         /// <summary>
