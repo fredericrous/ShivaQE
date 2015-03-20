@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShivaQEcommon;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Principal;
@@ -29,6 +30,9 @@ namespace ShivaQEviewer
         public ResolutionPage()
         {
             InitializeComponent();
+
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("Resolution");
 
             _bindings = this.Resources["ResolutionPageBindingsDataSource"] as ResolutionPageBindings;
             _bind_main = MainWindow.Bindings;

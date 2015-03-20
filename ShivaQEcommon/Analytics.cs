@@ -16,6 +16,18 @@ namespace ShivaQEcommon
         NameValueCollection _data;
         string _request_method = "POST";
 
+        private static readonly Analytics _instance = new Analytics();
+
+        private Analytics() { }
+
+        public static Analytics Instance
+        {
+            get
+            {
+                return _instance; 
+            }
+        }
+
         public void Init(string app_name, string app_version)
         {
             _data = new NameValueCollection();
@@ -26,7 +38,30 @@ namespace ShivaQEcommon
             _data["av"] = app_version;
         }
 
-        public void Event(string category, string action, string label, string value)
+        /// <summary>
+        /// send data to google analytics
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        private string sendTrace(NameValueCollection data)
+        {
+            string response = string.Empty;
+            using (var wb = new WebClient())
+            {
+                try
+                {
+                    byte[] responseBuffer = wb.UploadValues(_url, _request_method, data);
+                    response = Encoding.UTF8.GetString(responseBuffer, 0, responseBuffer.Length);
+                }
+                catch (WebException ex)
+                {
+                    log.Error("analytics event error " + ex.Status, ex);
+                }
+            }
+            return response;
+        }
+
+        public void Event(string category, string action, string label = null, string value = null)
         {
             if (SettingsManager.ReadSetting("analytics_status") != "true")
             {
@@ -34,25 +69,37 @@ namespace ShivaQEcommon
                 return;
             }
 
-            using (var wb = new WebClient())
+            var data = new NameValueCollection(_data);
+            data["t"] = "event";            //hit type
+            data["ec"] = category;         // Event Category. Required.
+            data["ea"] = action;           // Event Action. Required.
+            if (label != null)
             {
-                var data = new NameValueCollection(_data);
-                data["t"] = "event";            //hit type
-                data["ec"] = category;         // Event Category. Required.
-                data["ea"] = action;           // Event Action. Required.
                 data["el"] = label;            // Event label.
+            }
+            if (value != null)
+            {
                 data["ev"] = value;         // Event value.
-                try
-                {
-                    byte[] responseBuffer = wb.UploadValues(_url, _request_method, data);
-                    string response = Encoding.UTF8.GetString(responseBuffer, 0, responseBuffer.Length);
-                    log.Info(response);
-                }
-                catch (WebException ex)
-                {
-                    log.Error("analytics event error " + ex.Status, ex);
-                }
-            } 
+            }
+
+            string response = sendTrace(data);
+            log.Info(response);
+        }
+
+        public void PageView(string documentTitle)
+        {
+            if (SettingsManager.ReadSetting("analytics_status") != "true")
+            {
+                log.Info("analytics deactivated, pageview not sent");
+                return;
+            }
+
+            var data = new NameValueCollection(_data);
+            data["t"] = "pageview"; //hit type
+            data["dt"] = documentTitle; // Title of the page.
+
+            string response = sendTrace(data);
+            log.Info(response);
         }
 
         public void Exception(Exception exception)
@@ -65,24 +112,13 @@ namespace ShivaQEcommon
 
             string exceptionType = exception.GetType().Name;
 
-            using (var wb = new WebClient())
-            {
-                var data = new NameValueCollection(_data);
-                data["t"] = "exception"; //hit type
-                data["exd"] = exceptionType; // Exception description.
-                data["exf"] = (exceptionType == "Exception") ? "1" : "0";  // Exception is fatal?
+            var data = new NameValueCollection(_data);
+            data["t"] = "exception"; //hit type
+            data["exd"] = exceptionType; // Exception description.
+            data["exf"] = (exceptionType == "Exception") ? "1" : "0";  // Exception is fatal?
 
-                try
-                {
-                    byte[] responseBuffer = wb.UploadValues(_url, _request_method, data);
-                    string response = Encoding.UTF8.GetString(responseBuffer, 0, responseBuffer.Length);
-                    log.Info(response);
-                }
-                catch (WebException ex)
-                {
-                    log.Error("analytics exception error " + ex.Status, ex);
-                }
-            }
+            string response = sendTrace(data);
+            log.Info(response);
         }
     }
 }

@@ -67,15 +67,11 @@ namespace ShivaQEmaster
 
         public string SlaveListPath { get { return _slaveList_save_path; } }
 
-
-        public delegate void ErrorNotIdenticalEventHandler(string text, string serverName);
-        public event ErrorNotIdenticalEventHandler ErrorNotIdentical;
-
-        public delegate void ImageReceveidEvent(byte[] notifyIcon);
-        public event ImageReceveidEvent ImageReceveid;
-
         public delegate void DisconnectedEventHandler();
         public event DisconnectedEventHandler Disconnected;
+
+        public delegate Task IncomingEventHandler(string data, Slave slave, NetworkStream networkStream);
+        public event IncomingEventHandler Incoming;
 
 
         private static readonly SlaveManager _instance = new SlaveManager();
@@ -316,56 +312,7 @@ namespace ShivaQEmaster
                             _log.Info(string.Format("Received tcp says: {0}", data));
 
                             //action
-                            if (response.Contains("platform") && response.Contains("version"))
-                            { //if we have reconnected
-                                ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(data);
-                                slave.token = serverInfo.token;
-
-                                //send a empty request in order to update status of _slave.Connected
-                                await networkStream.WriteAsync(new byte[] { 1 }, 0, 1);
-                            }
-                            else if (response.Contains("method"))
-                            {
-                                try
-                                {
-                                    ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
-
-                                    switch (action.method)
-                                    {
-                                        case ActionType.Disconnect: //not used for disconnect when sent by slave..but to re-give token
-                                            slave.token = action.value;
-                                            break;
-                                        case ActionType.CheckIdentical:
-
-                                            ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(data);
-
-                                            byte[] result = receivedAction.value;
-
-                                            if (result != null)
-                                            {
-                                                ImageReceveid(result);
-                                            }
-                                            break;
-                                        default:
-                                            break;
-                                    }
-
-                                }
-                                catch (Exception ex)
-                                {
-                                    _log.Info("not an image: " + data, ex);
-                                }
-                            }
-                            else if (SettingsManager.ReadSetting("notification_status") == "true")
-                            {
-                                string[] responseTab = response.Replace("<EOF>", "").Split(':');
-                                string time = responseTab[0];
-                                string key = responseTab[1];
-
-                                response = string.Format("{0}: error on {1} at time {2}", slave.friendlyName, key, time);
-
-                                ErrorNotIdentical(response, slave.friendlyName);
-                            }
+                            await Incoming(data, slave, networkStream);
                             content = response.Remove(0, data.Length + eof_tag.Length).ToString();
                         }
                     }

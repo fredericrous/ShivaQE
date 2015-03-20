@@ -27,6 +27,9 @@ namespace ShivaQEmaster
 		{
 			this.InitializeComponent();
 
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("SettingsSync");
+
             _bindings = this.Resources["SettingsSyncPageBindingsDataSource"] as SettingsSyncPageBindings;
             _bindings.login = _currentLogin;
 

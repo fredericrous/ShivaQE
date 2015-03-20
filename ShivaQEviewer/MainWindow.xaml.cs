@@ -47,8 +47,8 @@ namespace ShivaQEviewer
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
 
-            //Analytics analytics = new Analytics("ShivaQE Viewer", "1.0");
-            //analytics.Exception(new IOException());
+            Analytics analytics = Analytics.Instance;
+            analytics.Init("ShivaQE Viewer", "1.0");
 
             Deployer.CmdLauncherExists();
 

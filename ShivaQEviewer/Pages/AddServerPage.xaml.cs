@@ -44,6 +44,9 @@ namespace ShivaQEviewer
         {
             InitializeComponent();
 
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("AddServer");
+
             _bindings = this.Resources["AddServerPageBindingsDataSource"] as AddServerPageBindings;
             _slaveManager = SlaveManager.Instance;
             _slaveList_save_path = _slaveManager.SlaveListPath;

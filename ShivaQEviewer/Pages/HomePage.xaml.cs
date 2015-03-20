@@ -37,6 +37,9 @@ namespace ShivaQEviewer
         {
             InitializeComponent();
 
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("Home");
+
             _bindings = this.Resources["HomePageBindingsDataSource"] as HomePageBindings;
             this.DataContext = this; //deadcode?
 

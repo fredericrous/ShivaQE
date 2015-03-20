@@ -23,6 +23,9 @@ namespace ShivaQEmaster
 		{
 			this.InitializeComponent();
 
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("Home");
+
             _bindings = this.Resources["HomePageBindingsDataSource"] as HomePageBindings;
             this._mouseNKeyListener = MouseNKeyListener.Instance;
             this._slaveManager = SlaveManager.Instance;

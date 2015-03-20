@@ -15,10 +15,14 @@ namespace ShivaQEmaster
         Storyboard _sb_beginRecord;
         Storyboard _sb_stopRecord;
         Recorder _recorder;
+        Analytics _analytics;
 
 		public RecorderFlyout()
 		{
 			this.InitializeComponent();
+
+            _analytics = Analytics.Instance;
+            _analytics.PageView("Recorder");
 
             _bindings = this.Resources["RecorderFlyoutBindingsDataSource"] as RecorderFlyoutBindings;
             _sb_beginRecord = this.FindResource("sb_beginRecord") as Storyboard;
@@ -44,6 +48,7 @@ namespace ShivaQEmaster
 
                 _recorder.Start();
 
+                _analytics.Event("Recorder", "start");
             }
             else
             {
@@ -71,7 +76,8 @@ namespace ShivaQEmaster
 		}
 
 		private void bt_load_Click(object sender, System.Windows.RoutedEventArgs e)
-		{
+        {
+            _analytics.Event("Recorder", "load");
             OpenFileDialog openFileDialog_Load = new OpenFileDialog();
             openFileDialog_Load.Filter = Languages.language_en_US.flyout_dialog_save_filter;
             openFileDialog_Load.FilterIndex = 1;
@@ -91,16 +97,19 @@ namespace ShivaQEmaster
 
 		private void bt_save_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
+            _analytics.Event("Recorder", "save");
             _recorder.Save();
 		}
 
 		private void bt_execute_Click(object sender, System.Windows.RoutedEventArgs e)
 		{
+            _analytics.Event("Recorder", "play");
             _recorder.Play();
 		}
 
 		private void bt_preview_Click(object sender, System.Windows.RoutedEventArgs e)
-		{
+        {
+            _analytics.Event("Recorder", "preview");
             _recorder.Preview();
 		}
 	}

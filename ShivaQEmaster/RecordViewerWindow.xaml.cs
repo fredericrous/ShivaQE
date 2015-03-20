@@ -16,6 +16,7 @@ using System.Timers;
 using log4net;
 using System.Reflection;
 using ShivaQEcommon.Eventdata;
+using ShivaQEcommon;
 
 namespace ShivaQEmaster
 {
@@ -31,6 +32,9 @@ namespace ShivaQEmaster
         public RecordViewerWindow()
 		{
 			this.InitializeComponent();
+
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("RecorderViewer");
 
             _bindings = this.Resources["RecordViewerWindowBindingsDataSource"] as RecordViewerWindowBindings;
 		}

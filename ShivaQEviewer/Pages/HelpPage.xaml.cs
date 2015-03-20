@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShivaQEcommon;
+using System;
 
 namespace ShivaQEviewer
 {
@@ -8,6 +9,9 @@ namespace ShivaQEviewer
 		public HelpPage()
 		{
 			this.InitializeComponent();
+
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("Help");
 		}
 
         private void bt_close_Click(object sender, System.Windows.RoutedEventArgs e)

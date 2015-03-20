@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ShivaQEcommon;
+using System;
 
 namespace ShivaQEmaster
 {
@@ -9,6 +10,9 @@ namespace ShivaQEmaster
 		public SettingsPage()
 		{
 			this.InitializeComponent();
+
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("Settings");
 
             _bindings = this.Resources["SettingsPageBindingsDataSource"] as SettingsPageBindings;
 		}

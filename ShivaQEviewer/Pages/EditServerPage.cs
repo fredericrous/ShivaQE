@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using ShivaQEcommon;
 using ShivaQEviewer.Languages;
 using System;
 using System.Collections.Generic;
@@ -17,6 +18,9 @@ namespace ShivaQEviewer
         public EditServerPage()
         {
             setLabels();
+
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("EditServer");
         }
 
         private void setLabels()

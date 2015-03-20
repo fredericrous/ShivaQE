@@ -18,10 +18,14 @@ namespace ShivaQEmaster
 
         AddServerPageBindings _bindings;
         SlaveManager _slaveManager;
+        Analytics _analytics;
 
 		public AddServerPage()
 		{
 			this.InitializeComponent();
+
+            _analytics = Analytics.Instance;
+            _analytics.PageView("AddServer");
 
             _bindings = this.Resources["AddServerPageBindingsDataSource"] as AddServerPageBindings;
             _slaveManager = SlaveManager.Instance;
@@ -151,6 +155,7 @@ namespace ShivaQEmaster
             try
             {
                 await _slaveManager.Add(hostname, port, friendlyname);
+                _analytics.Event("AddServer", "connected");
             }
             catch
             {

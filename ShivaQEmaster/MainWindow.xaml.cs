@@ -52,51 +52,104 @@ namespace ShivaQEmaster
 
         bool? _mouseCaptured = null;
 
+        private void ImageReceveid(byte[] notifyIcon)
+        {
+            if (notifyIcon != null && _notifyWindow != null)
+            {
+                try
+                {
+                    _notifyWindow.NotifyIcon = notifyIcon;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.Message);
+                }
+            }
+            else
+            {
+                _log.Error("can't get compared image");
+            }
+        }
+
+        private void ErrorNotIdentical(string error_msg, string hostname)
+        {
+            try
+            {
+                if (_notifyWindow != null && _notifyWindow.IsLoaded)
+                {
+                    _notifyWindow.Hide();
+                }
+            }
+            catch { } // isloaded may return an exception
+
+            _notifyWindow.tb_warning.Text = error_msg;
+            _notifyWindow.Show();
+        }
+
         public MainWindow()
         {
             InitializeComponent();
 
-            //Analytics analytics = new Analytics();
-            //analytics.Init("ShivaQE Viewer", "1.0");
-            //analytics.Event("", "");
+            Analytics analytics = Analytics.Instance;
+            analytics.Init("ShivaQE Master", "1.0");
+
 
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
 
             _slaveManager = SlaveManager.Instance;
 
-            _slaveManager.ErrorNotIdentical += (error_msg, hostname) =>
+            _slaveManager.Incoming += async (data, slave, networkStream) =>
                 {
-                    try
-                    {
-                        if (_notifyWindow != null && _notifyWindow.IsLoaded)
-                        {
-                            _notifyWindow.Hide();
-                        }
+                    if (data.Contains("platform") && data.Contains("version"))
+                    { //if we have reconnected
+                        ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(data);
+                        slave.token = serverInfo.token;
+
+                        //send a empty request in order to update status of _slave.Connected
+                        await networkStream.WriteAsync(new byte[] { 1 }, 0, 1);
                     }
-                    catch { } // isloaded may return an exception
-
-                    _notifyWindow.tb_warning.Text = error_msg;
-                    _notifyWindow.Show();
-                };
-
-
-            _slaveManager.ImageReceveid += (notifyIcon) =>
-                {
-                    if (notifyIcon != null && _notifyWindow != null)
+                    else if (data.Contains("method"))
                     {
                         try
                         {
-                            _notifyWindow.NotifyIcon = notifyIcon;
+                            ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
+
+                            switch (action.method)
+                            {
+                                case ActionType.Disconnect: //not used for disconnect when sent by slave..but to re-give token
+                                    slave.token = action.value;
+                                    break;
+                                case ActionType.CheckIdentical:
+
+                                    ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(data);
+
+                                    byte[] result = receivedAction.value;
+
+                                    if (result != null)
+                                    {
+                                        ImageReceveid(result);
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine(ex.Message);
+                            _log.Info("not an image: " + data, ex);
                         }
                     }
-                    else
+                    else if (SettingsManager.ReadSetting("notification_status") == "true")
                     {
-                        _log.Error("can't get compared image");
+                        string[] responseTab = data.Replace("<EOF>", "").Split(':');
+                        string time = responseTab[0];
+                        string key = responseTab[1];
+
+                        data = string.Format("{0}: error on {1} at time {2}", slave.friendlyName, key, time);
+
+                        ErrorNotIdentical(data, slave.friendlyName);
                     }
                 };
             
@@ -376,45 +429,6 @@ namespace ShivaQEmaster
                     }
                 };
         }
-
-        ///// <summary>
-        ///// get slave's image that has been compared with master's one
-        ///// this func is not perfect because a different result could come before this one
-        ///// </summary>
-        ///// <param name="hostname"></param>
-        ///// <returns></returns>
-        //private async Task<byte[]> getImageComparedOnSlave(string hostname)
-        //{
-        //    byte[] result = null;
-
-        //    ActionMethod action = new ActionMethod()
-        //    {
-        //        method = ActionType.CheckIdentical
-        //    };
-
-        //    try
-        //    {
-        //        string response = await _slaveManager.Send<ActionMethod>(action, hostname);
-
-        //        if (!string.IsNullOrEmpty(response))
-        //        {
-        //            ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(response);
-        //            result = receivedAction.value;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        _log.Error("error send window created", ex);
-        //    }
-
-        //    return result;
-        //}
-
-        //private bool isWindowClicked(int x, int y, Window window)
-        //{
-        //    return (x > window.Left && x < window.Left + window.Width)
-        //        && (y > window.Top && y < window.Top + window.Height);
-        //}
 
         private void UpdateSendErrorIfThereIs(List<string> error_hosts)
         {
