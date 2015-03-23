@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         xmlns:local="clr-namespace:ShivaQEmaster" mc:Ignorable="d" x:Class="ShivaQEmaster.MainWindow"
-        Title="ShivaQE"
+        Title="ShivaQE Master"
 		Height="380" Width="725"
 		ResizeMode="CanMinimize"
 		BorderThickness="1" BorderBrush="DarkOrange" WindowTitleBrush="#FF020202" WindowTransitionsEnabled="False" MouseLeave="MetroWindow_MouseLeave" MouseEnter="MetroWindow_MouseEnter">
