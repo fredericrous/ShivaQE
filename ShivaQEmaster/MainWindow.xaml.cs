@@ -93,7 +93,6 @@ namespace ShivaQEmaster
             Analytics analytics = Analytics.Instance;
             analytics.Init("ShivaQE Master", "1.0");
 
-
             _bindings = this.Resources["MainWindowBindingsDataSource"] as MainWindowBindings;
             this.DataContext = this; //deadcode?
 

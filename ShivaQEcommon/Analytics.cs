@@ -55,7 +55,23 @@ namespace ShivaQEcommon
                 }
                 catch (WebException ex)
                 {
-                    log.Error("analytics event error " + ex.Status, ex);
+                    log.Error(string.Format("analytics event error {0}. Fallback to request with no default proxy selected.", ex.Status), ex);
+                    if (ex.InnerException.HResult == -2146232062) //if proxy configuration error
+                    {
+                        using (var wb2 = new WebClient())
+                        {
+                            WebRequest.DefaultWebProxy = null; //try by disabling proxy
+                            try
+                            {
+                                byte[] responseBuffer = wb2.UploadValues(_url, _request_method, data);
+                                response = Encoding.UTF8.GetString(responseBuffer, 0, responseBuffer.Length);
+                            }
+                            catch (WebException wex)
+                            {
+                                log.Error("Proxy error. analytics event error " + ex.Status, wex);
+                            }
+                        }
+                    }
                 }
             }
             return response;

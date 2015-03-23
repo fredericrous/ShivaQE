@@ -86,7 +86,8 @@ namespace ShivaQEmaster
 
         private void bt_close_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            this.Close();
+            //this.Close();
+            this.Hide();
         }
 
         //public ImageSource NotifyIconTest

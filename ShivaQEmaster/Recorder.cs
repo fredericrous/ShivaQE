@@ -206,7 +206,7 @@ namespace ShivaQEmaster
 
             try
             {
-                using (FileStream zipToOpen = new FileStream(scenarioName + ".zip", FileMode.Create))
+                using (FileStream zipToOpen = new FileStream(scenarioName + ".record.sqe", FileMode.Create))
                 {
                     using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                     {
@@ -299,13 +299,13 @@ namespace ShivaQEmaster
             }
         }
 
-        public void Preview()
+        public void Preview(bool execute = false)
         {
             try
             {
                 if (_eventList != null && _eventList.Count > 0)
                 {
-                    RecordViewerWindow recordViewer = new RecordViewerWindow();
+                    RecordViewerWindow recordViewer = new RecordViewerWindow(execute);
                     recordViewer.Show();
 
                     List<Task> taskList = new List<Task>();
@@ -317,6 +317,10 @@ namespace ShivaQEmaster
                             recordViewer.UpdateImg(ts, fileName,
                                 string.Format("{0:mm\\:ss\\.ff}: {1} ({2})", ts, _eventList[i].key, _eventList[i].keyData))
                         );
+                        if (i == _eventList.Count - 1)
+                        {
+                            recordViewer.AddTrace("Record Ends");
+                        }
                     }
                 }
                 else
@@ -381,7 +385,7 @@ namespace ShivaQEmaster
 
         public void Play()
         {
-            Preview();
+            Preview(true);
             SlaveManager slaveManager = SlaveManager.Instance;
             List<Task> tasklist = new List<Task>();
             if (_eventList != null && _eventList.Count > 0)

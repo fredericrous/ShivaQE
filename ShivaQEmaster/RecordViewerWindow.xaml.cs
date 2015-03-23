@@ -29,7 +29,7 @@ namespace ShivaQEmaster
 
         RecordViewerWindowBindings _bindings;
 
-        public RecordViewerWindow()
+        public RecordViewerWindow(bool execute = true)
 		{
 			this.InitializeComponent();
 
@@ -37,7 +37,22 @@ namespace ShivaQEmaster
             analytics.PageView("RecorderViewer");
 
             _bindings = this.Resources["RecordViewerWindowBindingsDataSource"] as RecordViewerWindowBindings;
+
+            if (execute)
+            {
+                AddTrace("Note: execution occurs only on slaves.");
+            }
+
+            AddTrace("Starting...");
 		}
+
+        public void AddTrace(string text)
+        {
+            TextBlock tb = new TextBlock();
+            tb.Text = text;
+            tb.Foreground = Brushes.White;
+            this.sp_events.Children.Add(tb);
+        }
 
         public async Task UpdateImg(TimeSpan timespan, string uriImage, string key)
         {
@@ -45,10 +60,7 @@ namespace ShivaQEmaster
             {
                 await Task.Delay(timespan);
                 _bindings.img_source = new Uri(uriImage, UriKind.Absolute);
-                TextBlock tb = new TextBlock();
-                tb.Text = key;
-                tb.Foreground = Brushes.White;
-                this.sp_events.Children.Add(tb);
+                AddTrace(key);
             }
             catch (TaskCanceledException)
             {

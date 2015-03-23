@@ -62,7 +62,7 @@ namespace ShivaQEslave
                     platform = "windows",
                     version = Environment.OSVersion.ToString(),
                     lang = MouseNKeySimulator.getKeyboardLang(),
-                    token = Guid.NewGuid().ToString()
+                    token = Guid.NewGuid().ToString().Substring(0, 8)
                 };
 
                 int port = _default_port;
