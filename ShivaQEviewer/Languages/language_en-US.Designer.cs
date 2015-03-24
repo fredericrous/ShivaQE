@@ -188,6 +188,15 @@ namespace ShivaQEviewer.Languages {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Log.
+        /// </summary>
+        public static string homepage_bt_log {
+            get {
+                return ResourceManager.GetString("homepage_bt_log", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove.
         /// </summary>
         public static string homepage_bt_remove {

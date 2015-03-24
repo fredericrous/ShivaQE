@@ -8,7 +8,7 @@
       xmlns:Languages="clr-namespace:ShivaQEviewer.Languages"
 	  x:Class="ShivaQEviewer.ResolutionPage" 
       mc:Ignorable="d" 
-      d:DesignHeight="342" d:DesignWidth="725"
+      d:DesignHeight="310" d:DesignWidth="725"
 	Title="ResolutionPage">
 
 	<Page.Resources>

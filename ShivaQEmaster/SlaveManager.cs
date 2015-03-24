@@ -317,6 +317,10 @@ namespace ShivaQEmaster
                         }
                     }
                 }
+                catch (ObjectDisposedException odex)
+                {
+                    _log.Warn("When slave is disconnected, it's normal that this function throw an exception", odex);
+                }
                 catch (Exception ex)
                 {
                     _log.Warn(string.Format("error read slave {0}'s incoming data", slave.hostname), ex);

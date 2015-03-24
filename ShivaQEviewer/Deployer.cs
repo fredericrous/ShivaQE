@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -45,6 +46,25 @@ namespace ShivaQEviewer
             TermServicesManager.GetNewSessionAbortDelay();
         }
 
+        public static bool PingHost(string nameOrAddress)
+        {
+            bool pingable = false;
+            Ping pinger = new Ping();
+
+            try
+            {
+                PingReply reply = pinger.Send(nameOrAddress);
+
+                pingable = reply.Status == IPStatus.Success;
+            }
+            catch (PingException)
+            {
+                // Discard PingExceptions and return false;
+            }
+
+            return pingable;
+        }
+
         /// <summary>
         /// run the deployment tasks. check if .net is present. open rdp. copy ShivaQEslave to distant computer that will become a slave. launch ShivaQEslave
         /// </summary>
@@ -52,9 +72,19 @@ namespace ShivaQEviewer
         public async Task<bool> Run()
         {
             string status;
+            bool result = true;
 
             status = string.Format("{0} : starting", _slave.hostname);
             UpdateStatus(status);
+
+            //is host reachable
+            status = string.Format("{0} : check if reachable, in order to deploy slave on it.", _slave.hostname);
+            UpdateStatus(status);
+            result = PingHost(_slave.hostname);
+            if (!result)
+            {
+                return result;
+            }
 
             //does slave has framework 4.5
             status = string.Format("{0} : check slave has 4.5 framework or + installed (trully only checking that 4.0 or supperior version is on because 4.5 overrides 4.0)", _slave.hostname);
@@ -63,6 +93,7 @@ namespace ShivaQEviewer
             bool isFrameworkInstalled = checkFrameworkExists(_slave);
             status = string.Format("{0} : 4.5 framework presence: {1}", _slave.hostname, isFrameworkInstalled ? "OK" : "Not found");
             UpdateStatus(status);
+            result = isFrameworkInstalled;
 
             List<TerminalSessionData> lastSessionList = TermServicesManager.ListSessions(_slave.ipAddress);
 
@@ -98,6 +129,7 @@ namespace ShivaQEviewer
             {
                 status = string.Format("Error while copying ShivaQEslave to {0}: {1}", _slave.hostname, ex.Message);
                 UpdateStatus(status);
+                result = false;
             }
 
             // wait rdp connection is done before executing psexec.
@@ -164,7 +196,7 @@ namespace ShivaQEviewer
             );
             UpdateStatus(status);
 
-            return true;
+            return result;
         }
 
         /// <summary>
@@ -318,7 +350,7 @@ namespace ShivaQEviewer
                 process.BeginErrorReadLine();
             }
 
-            process.WaitForExit();
+            process.WaitForExit(7000); //timeout 7sec
 
             //if (slave != null)
             //{
@@ -334,7 +366,9 @@ namespace ShivaQEviewer
         {
             if (!File.Exists(_path_cmd_launcher))
             {
-                MessageBox.Show(string.Format("ShivaQE Viewer requires {0}. Copy it in same folder as ShivaQEViewer.exe", _path_cmd_launcher));
+                string error_requierment = string.Format("ShivaQE Viewer requires {0}. Copy it in same folder as ShivaQEViewer.exe", _path_cmd_launcher);
+                _log.Info(error_requierment);
+                MessageBox.Show(error_requierment);
             }
         }
     }

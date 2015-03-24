@@ -159,6 +159,9 @@
   <data name="homepage_bt_edit" xml:space="preserve">
     <value>Edit</value>
   </data>
+  <data name="homepage_bt_log" xml:space="preserve">
+    <value>Log</value>
+  </data>
   <data name="homepage_bt_remove" xml:space="preserve">
     <value>Remove</value>
   </data>

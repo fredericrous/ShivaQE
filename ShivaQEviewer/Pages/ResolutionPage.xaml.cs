@@ -82,7 +82,17 @@ namespace ShivaQEviewer
                 }
 
                 Task.WaitAll(tasks.ToArray());
-                _bind_main.status += string.Format("{0} DONE !!!", Environment.NewLine);
+
+                int succededTasks = 0;
+                foreach (Task<bool> task in tasks)
+                {
+                    if (task.Result == true)
+                    {
+                        succededTasks++;
+                    }
+                }
+                string endStatus = string.Format("{0} DONE !!!{0}Total Executed: {1}. Success: {2}. Failed: {3}", Environment.NewLine, tasks.Count, succededTasks, tasks.Count - succededTasks);
+                UpdatesStatus(endStatus);
             });
 
         }

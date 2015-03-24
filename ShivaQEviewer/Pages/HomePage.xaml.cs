@@ -84,6 +84,11 @@ namespace ShivaQEviewer
             this.NavigationService.Navigate(page);
         }
 
+        private void bt_show_log_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+        	MainWindow.Bindings.flyout_log = true;
+        }
+
 
 	}
 }

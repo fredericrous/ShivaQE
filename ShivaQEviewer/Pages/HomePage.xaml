@@ -9,8 +9,8 @@
 	x:Name="Page"
 	WindowTitle="Page"
 	FlowDirection="LeftToRight"
-	Width="725" Height="342"
-	WindowWidth="725" WindowHeight="342">
+	Width="725" Height="310"
+	WindowWidth="725" WindowHeight="310">
 	
 	<Page.Resources>
 		<Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>
@@ -18,9 +18,9 @@
 	</Page.Resources>
 
     <Grid x:Name="LayoutRoot" Background="White" DataContext="{Binding Source={StaticResource HomePageBindingsDataSource}}">
-		<Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" x:Name="logo" Stretch="Uniform" Margin="27,24,564,162"><Canvas Name="Layer_1" Width="39.008" Height="32.458" Canvas.Left="0" Canvas.Top="0"><Canvas.RenderTransform><TranslateTransform X="0" Y="0"/></Canvas.RenderTransform><Canvas.Resources/><!--Unknown tag: metadata--><!--Unknown tag: sodipodi:namedview--><Ellipse xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="2" Canvas.Top="8" Width="15.7" Height="15.7" Name="circle3050" StrokeThickness="2" Stroke="#FF000000" StrokeMiterLimit="10"/><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path3052" Fill="#000000"><Path.Data><PathGeometry Figures="M38.996 15.743c-0.62-0.308-1.358-0.667-2.283-1.122c-2.341-3.812-11.28-8.647-16.139-11.258  C15.714 0.754 5.726 0.439 4.834 1.999C4.012 3.436 7.309 4.544 8.586 4.833c0.108 0.024 6.533 0.356 6.608 0.368  C13.577 4.43 2.653 2.844 3.613 5.68c0.686 2.027 6.863 2.146 6.863 2.146c0.001 0 2.609 0.263 4.587 1.083  c2.69 1.118 5.201 3.075 7.574 5.009c4.121 3.355 3.52 6.739 0.863 8.65c-3.333 0.661-7.979 1.464-7.979 1.464  s-9.054-1.582-8.354 1.51c3.022 4.232 20.283 1.61 23.049 2.304c2.765 0.693 3.27 1.622 3.27 1.622  c0.555 0.865 2.31 1.213 5.521 2.99" FillRule="NonZero"/></Path.Data></Path><Canvas Name="g3054"><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path3056" Fill="#000000"><Path.Data><PathGeometry Figures="M13.016 13.169c-0.194 0.439-0.63 0.747-1.141 0.747c-0.69 0-1.25-0.56-1.25-1.25c0-0.331 0.134-0.628 0.344-0.851   c-0.372-0.109-0.758-0.186-1.165-0.186c-2.304 0-4.171 1.867-4.171 4.171c0 2.303 1.867 4.17 4.171 4.17s4.17-1.867 4.17-4.17   C13.975 14.797 13.606 13.889 13.016 13.169z" FillRule="NonZero"/></Path.Data></Path></Canvas></Canvas></Viewbox>
-		<TextBlock HorizontalAlignment="Left" Margin="42,140,0,0" TextWrapping="Wrap" Text="ShivaQE" VerticalAlignment="Top" Foreground="Black" FontSize="26.667" FontWeight="Bold"/>
-		<TextBlock HorizontalAlignment="Left" Margin="42,180.47,0,0" TextWrapping="Wrap" Text="viewer" VerticalAlignment="Top" Foreground="Black" FontSize="18.667" FontWeight="Bold"/>
+		<Viewbox xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" x:Name="logo" Stretch="Uniform" Margin="27,0,564,154"><Canvas Name="Layer_1" Width="39.008" Height="32.458" Canvas.Left="0" Canvas.Top="0"><Canvas.RenderTransform><TranslateTransform X="0" Y="0"/></Canvas.RenderTransform><Canvas.Resources/><!--Unknown tag: metadata--><!--Unknown tag: sodipodi:namedview--><Ellipse xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Canvas.Left="2" Canvas.Top="8" Width="15.7" Height="15.7" Name="circle3050" StrokeThickness="2" Stroke="#FF000000" StrokeMiterLimit="10"/><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path3052" Fill="#000000"><Path.Data><PathGeometry Figures="M38.996 15.743c-0.62-0.308-1.358-0.667-2.283-1.122c-2.341-3.812-11.28-8.647-16.139-11.258  C15.714 0.754 5.726 0.439 4.834 1.999C4.012 3.436 7.309 4.544 8.586 4.833c0.108 0.024 6.533 0.356 6.608 0.368  C13.577 4.43 2.653 2.844 3.613 5.68c0.686 2.027 6.863 2.146 6.863 2.146c0.001 0 2.609 0.263 4.587 1.083  c2.69 1.118 5.201 3.075 7.574 5.009c4.121 3.355 3.52 6.739 0.863 8.65c-3.333 0.661-7.979 1.464-7.979 1.464  s-9.054-1.582-8.354 1.51c3.022 4.232 20.283 1.61 23.049 2.304c2.765 0.693 3.27 1.622 3.27 1.622  c0.555 0.865 2.31 1.213 5.521 2.99" FillRule="NonZero"/></Path.Data></Path><Canvas Name="g3054"><Path xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" Name="path3056" Fill="#000000"><Path.Data><PathGeometry Figures="M13.016 13.169c-0.194 0.439-0.63 0.747-1.141 0.747c-0.69 0-1.25-0.56-1.25-1.25c0-0.331 0.134-0.628 0.344-0.851   c-0.372-0.109-0.758-0.186-1.165-0.186c-2.304 0-4.171 1.867-4.171 4.171c0 2.303 1.867 4.17 4.171 4.17s4.17-1.867 4.17-4.17   C13.975 14.797 13.606 13.889 13.016 13.169z" FillRule="NonZero"/></Path.Data></Path></Canvas></Canvas></Viewbox>
+		<TextBlock HorizontalAlignment="Left" Margin="42,129,0,0" TextWrapping="Wrap" Text="ShivaQE" VerticalAlignment="Top" Foreground="Black" FontSize="26.667" FontWeight="Bold"/>
+		<TextBlock HorizontalAlignment="Left" Margin="42,169.47,0,0" TextWrapping="Wrap" Text="viewer" VerticalAlignment="Top" Foreground="Black" FontSize="18.667" FontWeight="Bold"/>
 
 		<ListView x:Name="lv_slaves" HorizontalAlignment="Left" Height="261.843" VerticalAlignment="Top" Width="373.002" ItemsSource="{Binding slaves, Mode=TwoWay, NotifyOnSourceUpdated=True, UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding slaveSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Margin="165.998,20.157,0,0" BorderBrush="#FFFBA92C" BorderThickness="1">
 			<ListView.View>
@@ -53,5 +53,14 @@
         <Button x:Name="bt_edit" Content="{Binding homepage_bt_edit, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,122.67,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" Click="bt_edit_Click" />
         <Button x:Name="bt_remove" Content="{Binding homepage_bt_remove, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,184.97,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_remove_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
 		<Button x:Name="bt_add" Content="{Binding homepage_bt_add, Mode=OneWay, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="566,245.17,0,0" VerticalAlignment="Top" Width="121" FontWeight="Bold" Background="#FF020202" Cursor="Hand" Click="bt_add_Click" Foreground="White" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" />
+		<Button x:Name="bt_show_log" HorizontalAlignment="Left" Margin="1,265.532,0,0" VerticalAlignment="Top" Width="120.333" Height="44.001" BorderBrush="#FFFBA92C" Background="#00000000" Cursor="Hand" BorderThickness="0,1,1,0" Click="bt_show_log_Click">
+			<Grid Height="34.001" Width="136.172">
+				<TextBlock HorizontalAlignment="Left" TextWrapping="Wrap" Text="{Binding homepage_bt_log, Source={StaticResource language_en_USDataSource}}" VerticalAlignment="Top" FontSize="18.667" FontWeight="Bold" Margin="46.998,4.629,0,0"/>
+				<Ellipse HorizontalAlignment="Left" Height="30.962" Margin="4.339,1.332,0,-0.168" VerticalAlignment="Top" Width="30.962" Stroke="#FFFBA92C" StrokeThickness="2"/>
+				<Canvas xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" x:Name="appbar_arrow_up" Width="38.75" Height="34" Clip="F1 M 0,0L 76,0L 76,76L 0,76L 0,0" Margin="0,0,97.422,-1.874">
+					<Path Width="16" Height="22.429" Canvas.Left="11.75" Canvas.Top="4.5" Stretch="Fill" Fill="#FF000000" Data="F1 M 34,57L 42,57L 42,32.25L 52,42.25L 52,31.75L 38,17.75L 24,31.75L 24,42.25L 34,32.25L 34,57 Z "/>
+				</Canvas>
+			</Grid>
+		</Button>
 	</Grid>
 </Page>

@@ -9,8 +9,8 @@
 	x:Name="Page"
 	WindowTitle="Page"
 	FlowDirection="LeftToRight"
-	Width="725" Height="342"
-	WindowWidth="725" WindowHeight="342">
+	Width="725" Height="310"
+	WindowWidth="725" WindowHeight="310">
 
 	<Page.Resources>
 		<Languages:language_en_US x:Key="language_en_USDataSource" d:IsDataSource="True"/>

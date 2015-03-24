@@ -51,6 +51,8 @@ namespace ShivaQEmaster
         private static NotifyWindow _notifyWindow = new NotifyWindow();
 
         bool? _mouseCaptured = null;
+        bool? _keyCaptured = null;
+        bool? _windowCaptured = null;
 
         private void ImageReceveid(byte[] notifyIcon)
         {
@@ -89,7 +91,7 @@ namespace ShivaQEmaster
         public MainWindow()
         {
             InitializeComponent();
-
+            
             Analytics analytics = Analytics.Instance;
             analytics.Init("ShivaQE Master", "1.0");
 
@@ -199,6 +201,31 @@ namespace ShivaQEmaster
                 }
             };
 
+            this.GotFocus += (s, e) =>
+            {
+                _windowCaptured = true;
+            };
+
+            this.LostFocus += (s, e) =>
+            {
+                _windowCaptured = false;
+            };
+
+            App.KeyCaptured += (status) =>
+            {
+                _keyCaptured = status;
+            };
+
+            _notifyWindow.MouseEnter += (s, e) =>
+            {
+                _mouseCaptured = true;
+            };
+
+            _notifyWindow.MouseLeave += (s, e) =>
+            {
+                _mouseCaptured = false;
+            };
+
             _mouseNKeyListener = MouseNKeyListener.Instance;
 
             _mouseNKeyListener.Active();
@@ -207,9 +234,16 @@ namespace ShivaQEmaster
                 
                 Task.Run( async () =>
                     {
+                        // if (isWindowClicked(ev.position_x, ev.position_y, Application.Current.MainWindow))
+                        if (_mouseCaptured == true)
+                        {
+                            _log.Info(string.Format("wont transmit {0} click {1} done on master window", ev.key, ev.keyData));
+                            return;
+                        }
+
                         bool isLeftClickDown = ev.key == "Left" && ev.keyData == "down";
                         //send winpos before click down
-                        if (_mouseCaptured != true && isLeftClickDown)
+                        if (isLeftClickDown)
                         {
                             try
                             {
@@ -227,13 +261,6 @@ namespace ShivaQEmaster
                                 sendWindowPos(_activeWindowInfo);
                                 ev.windowPos = _activeWindowInfo.Item1 + "." + String.Join(".", _activeWindowInfo.Item2);
                             }
-                        }
-
-                        // if (isWindowClicked(ev.position_x, ev.position_y, Application.Current.MainWindow))
-                        if (_mouseCaptured == true)
-                        {
-                            _log.Info(string.Format("wont transmit {0} click {1} done on master window", ev.key, ev.keyData));
-                            return;
                         }
 
                         try
@@ -373,7 +400,7 @@ namespace ShivaQEmaster
                         await _slaveManager.Send<ActionMethod>(action);
 
                     }
-                    else if (_mouseNKeyListener != null && _mouseNKeyListener.isActive)
+                    else if (_mouseNKeyListener != null && _mouseNKeyListener.isActive && _keyCaptured != true)
                     {
                         //record
                         _recorder.Write(ev);
@@ -409,6 +436,11 @@ namespace ShivaQEmaster
 
             ClipboardNotification.ClipboardUpdate += async (s, e) =>
                 {
+                    if (_windowCaptured == true)
+                    {
+                        _log.Info("won't send copy/past because key was captured inside shivaqe window");
+                        return;
+                    }
                     ActionType actionMethod = ActionType.None;
                     string actionValue = null;
 
