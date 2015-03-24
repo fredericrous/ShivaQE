@@ -35,7 +35,7 @@ namespace ShivaQEviewer
             this._resolution_width = resolution_width;
         }
 
-        public delegate void UpdateStatusEvent(string status);
+        public delegate void UpdateStatusEvent(string status, bool newStart = false);
         public event UpdateStatusEvent UpdateStatus;
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace ShivaQEviewer
             bool result = true;
 
             status = string.Format("{0} : starting", _slave.hostname);
-            UpdateStatus(status);
+            UpdateStatus(status, true);
 
             //is host reachable
             status = string.Format("{0} : check if reachable, in order to deploy slave on it.", _slave.hostname);

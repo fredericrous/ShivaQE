@@ -31,6 +31,12 @@ namespace ShivaQEmaster
             _slaveManager = SlaveManager.Instance;
 		}
 
+        public AddServerPageBindings Bindings
+        {
+            get { return _bindings; }
+            set { _bindings = value; }
+        }
+
         private void tb_host_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -150,7 +156,7 @@ namespace ShivaQEmaster
         public delegate void errorEventHandler(string text);
         public static event errorEventHandler ErrorMsg;
 
-        private async void AddServer(string hostname, int port, string friendlyname)
+        public virtual async void AddServer(string hostname, int port, string friendlyname)
         {
             try
             {

@@ -34,6 +34,9 @@ namespace ShivaQEviewer
             //set text on labels and buttons
             setLabels();
 
+            Analytics analytics = Analytics.Instance;
+            analytics.PageView("EditServer");
+
             //keep original slave we are editing
             _oldSlave = slave;
 

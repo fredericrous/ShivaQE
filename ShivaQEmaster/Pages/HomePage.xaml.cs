@@ -47,6 +47,14 @@ namespace ShivaQEmaster
                 });
             };
 
+            EditServerPage.ErrorEditMsg += (str) => //couldnt make work binding so doing it old fashion
+            {
+                this.Dispatcher.Invoke(() =>
+                {
+                    this.lb_error.Text = str;
+                });
+            };
+
             //update toggleswitch when broadcast is activate or deactivated
             MainWindow.UpdateBroadcastStatus += (status) =>
                 {
@@ -158,6 +166,39 @@ namespace ShivaQEmaster
             this.NavigationService.Navigate(new AddServerPage());
 
             _analytics.Event("HomePage", "Add");
+        }
+
+        /// <summary>
+        /// navigate to the edit slave form
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void bt_edit_Click(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Slave firstSlave = null;
+            int slavesCount = 0;
+            foreach (Slave slave in _bindings.selectedSlaves)
+            {
+                firstSlave = slave;
+                slavesCount++;
+                if (slavesCount > 1)
+                {
+                    break;
+                }
+            }
+
+            if (firstSlave == null)
+            {
+                return;
+            }
+            if (slavesCount > 1)
+            {
+                _bindings.error_msg = "Only one slave can be edited at a time";
+                return;
+            }
+            this.NavigationService.Navigate(new EditServerPage(firstSlave));
+
+            _analytics.Event("HomePage", "Edit");
         }
 
         /// <summary>

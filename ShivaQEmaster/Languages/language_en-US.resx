@@ -135,6 +135,12 @@
   <data name="addserverpage_tb_name" xml:space="preserve">
     <value>mypc</value>
   </data>
+  <data name="editpage_bt_edit" xml:space="preserve">
+    <value>Apply</value>
+  </data>
+  <data name="editpage_header" xml:space="preserve">
+    <value>EDIT COMPUTER</value>
+  </data>
   <data name="flyout_dialog_save_filter" xml:space="preserve">
     <value>Recorded Scenario|*.zip|All Files|*.*</value>
   </data>
@@ -167,6 +173,9 @@
   </data>
   <data name="homepage_bt_disconnect" xml:space="preserve">
     <value>Disconnect</value>
+  </data>
+  <data name="homepage_bt_edit" xml:space="preserve">
+    <value>Edit</value>
   </data>
   <data name="homepage_bt_reconnect" xml:space="preserve">
     <value>Reconnect</value>

@@ -101,7 +101,7 @@ namespace ShivaQEmaster
         public string friendlyName
         {
             get { return _friendlyName ; }
-            set { _friendlyName = friendlyName; }
+            set { _friendlyName = value; }
         }
 
         private string _hostname;
@@ -109,7 +109,7 @@ namespace ShivaQEmaster
         public string hostname
         {
             get { return _hostname; }
-            set { _hostname = hostname; }
+            set { _hostname = value; }
         }
 
         [JsonProperty]

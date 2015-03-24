@@ -51,7 +51,7 @@ namespace ShivaQEviewer
             this.NavigationService.Navigate(new Uri("Pages/HomePage.xaml", UriKind.Relative));
         }
 
-        public delegate void updateEventHandler(string text);
+        public delegate void updateEventHandler(string text, bool newStart = false);
         public static event updateEventHandler UpdatesStatus;
 
         static List<Deployer> _deployers;
@@ -72,10 +72,10 @@ namespace ShivaQEviewer
                 foreach (var slave in _slaveManager.slaveList)
                 {
                     var deploy = new Deployer(slave, _bindings.height, _bindings.width);
-                    
-                    deploy.UpdateStatus += (status) =>
+
+                    deploy.UpdateStatus += (status, newStart) =>
                     {
-                        UpdatesStatus(status);
+                        UpdatesStatus(status, newStart);
                     };
                     tasks.Add(deploy.Run());
                     _deployers.Add(deploy);

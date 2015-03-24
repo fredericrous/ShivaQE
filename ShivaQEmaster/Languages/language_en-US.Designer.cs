@@ -29,7 +29,8 @@ namespace ShivaQEmaster.Languages {
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        public language_en_US() {
+        public language_en_US()
+        {
         }
         
         /// <summary>
@@ -111,6 +112,24 @@ namespace ShivaQEmaster.Languages {
         public static string addserverpage_tb_name {
             get {
                 return ResourceManager.GetString("addserverpage_tb_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Apply.
+        /// </summary>
+        public static string editpage_bt_edit {
+            get {
+                return ResourceManager.GetString("editpage_bt_edit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EDIT COMPUTER.
+        /// </summary>
+        public static string editpage_header {
+            get {
+                return ResourceManager.GetString("editpage_header", resourceCulture);
             }
         }
         
@@ -210,6 +229,15 @@ namespace ShivaQEmaster.Languages {
         public static string homepage_bt_disconnect {
             get {
                 return ResourceManager.GetString("homepage_bt_disconnect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Edit.
+        /// </summary>
+        public static string homepage_bt_edit {
+            get {
+                return ResourceManager.GetString("homepage_bt_edit", resourceCulture);
             }
         }
         

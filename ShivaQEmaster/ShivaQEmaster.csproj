@@ -122,6 +122,7 @@
       <DependentUpon>NotifyWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="NullImageConverter.cs" />
+    <Compile Include="Pages\EditServerPage.cs" />
     <Compile Include="Pages\SettingsSyncPageBindings.cs" />
     <Compile Include="Pages\HomePageBindings.cs" />
     <Compile Include="Pages\SettingsSyncPage.xaml.cs">

@@ -134,6 +134,16 @@ namespace ShivaQEmaster
 
         List<string> readingList = new List<string>();
 
+        public void Add(Slave slave)
+        {
+            //add slave to list
+            slaveList.Add(slave);
+
+            //save list to file to be reloaded at next startup
+            string slaveListJson = JsonConvert.SerializeObject(slaveList, Formatting.Indented);
+            File.WriteAllText(_slaveList_save_path, slaveListJson);
+        }
+
         /// <summary>
         /// Connect to a server and add it to slaveList
         /// </summary>
@@ -399,40 +409,6 @@ namespace ShivaQEmaster
             return errorList;
         }
 
-        //private async Task IsResultOK(NetworkStream networkStream, string serverName)
-        //{
-        //    //read server's response
-        //    var buffer = new byte[4096];
-        //    var byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
-        //    var response = Encoding.UTF8.GetString(buffer, 0, byteCount);
-
-        //    _log.Info(string.Format("[Master] Slave response was {0}", response));
-
-        //    string content = response.ToString();
-        //    if (content.IndexOf(eof_tag) > -1)
-        //    {
-        //        while (content.IndexOf(eof_tag) > -1) //for double click for instance, packets seems to be concatenated
-        //        {
-        //            string data = content.Substring(0, content.IndexOf(eof_tag));
-
-        //            _log.Info(string.Format("Received tcp says: {0}", data));
-
-        //            //action
-        //            if (!(response.Contains("platform") && response.Contains("version") || response.Contains("method"))) //not supra efficient long term
-        //            {
-        //                string[] responseTab = response.Replace("<EOF>", "").Split(':');
-        //                string time = responseTab[0];
-        //                string key = responseTab[1];
-
-        //                response = string.Format("{0}: error on {1} at time {2}", serverName, key, time);
-
-        //                ErrorNotIdentical(response, serverName);
-        //            }
-        //            content = response.Remove(0, data.Length + eof_tag.Length).ToString();
-        //        }
-        //    }
-        //}
-
         public void Remove(IEnumerable<Slave> slaves)
         {
             List<Task> tasks = new List<Task>();
@@ -450,6 +426,23 @@ namespace ShivaQEmaster
                 _log.Error("Error while removing slave");
             }
 
+            //save list to file to be reloaded at next startup
+            string slaveListJson = JsonConvert.SerializeObject(slaveList);
+            File.WriteAllText(_slaveList_save_path, slaveListJson);
+        }
+
+
+        /// <summary>
+        /// Disconnect a slave and remove it from the list
+        /// </summary>
+        /// <param name="slave"></param>
+        /// <returns></returns>
+        public async Task Remove(Slave slave)
+        {
+            await Disconnect(slave);
+            slaveList.Remove(slave);
+
+            //save list to file to be reloaded at next startup
             string slaveListJson = JsonConvert.SerializeObject(slaveList);
             File.WriteAllText(_slaveList_save_path, slaveListJson);
         }
