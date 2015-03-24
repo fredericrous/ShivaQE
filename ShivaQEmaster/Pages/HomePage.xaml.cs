@@ -55,6 +55,11 @@ namespace ShivaQEmaster
                 });
             };
 
+            SettingsSyncPage.SyncDone += () =>
+            {
+                _slaveManager.Init();
+            };
+
             //update toggleswitch when broadcast is activate or deactivated
             MainWindow.UpdateBroadcastStatus += (status) =>
                 {

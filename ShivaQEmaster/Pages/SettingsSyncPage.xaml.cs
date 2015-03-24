@@ -23,6 +23,9 @@ namespace ShivaQEmaster
         SettingsSyncPageBindings _bindings;
         SlaveManager _slaveManager;
 
+        public delegate void SyncDoneEventHandler();
+        public static event SyncDoneEventHandler SyncDone;
+
 		public SettingsSyncPage()
 		{
 			this.InitializeComponent();
@@ -86,8 +89,7 @@ namespace ShivaQEmaster
             {
                 CopyOverNetwork.UpdateStatus += (status) =>
                 {
-                    _bindings.error_msg = status;
-                    // UpdateStatus(_status);
+                    _bindings.error_msg = status.Contains("success") ? "success" : status.Substring(status.IndexOf(":") + 1) ;
                 };
                 string destination_path = System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().GetName().CodeBase).Replace("file:\\", "");
                 if (login == string.Empty || login == _currentLogin)
@@ -104,7 +106,7 @@ namespace ShivaQEmaster
                 _bindings.error_msg = string.Format("Copy error: {0}", ex.Message);
                 _log.Error(_bindings.error_msg);
             }
-            bt_close_Click(null, null);
+            SyncDone();
 		}
 	}
 }
