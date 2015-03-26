@@ -304,7 +304,7 @@ namespace ShivaQEviewer
             if (slave != null)
             {
                 process.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-                process.StartInfo.Arguments = string.Format("/generic:TERMSRV/{0} /user:{1}{2}", slave.ipAddress, slave.login, slave.password ?? " /pass:" + _slave.password);
+                process.StartInfo.Arguments = string.Format("/generic:{0} /user:{1}{2}", slave.ipAddress, slave.login, slave.password ?? " /pass:" + _slave.password);
                 process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 process.StartInfo.CreateNoWindow = true;
                 process.Start();
@@ -350,7 +350,7 @@ namespace ShivaQEviewer
                 process.BeginErrorReadLine();
             }
 
-            process.WaitForExit(7000); //timeout 7sec
+            process.WaitForExit(12000); //timeout 12sec
 
             //if (slave != null)
             //{

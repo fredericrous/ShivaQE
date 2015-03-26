@@ -26,11 +26,9 @@ namespace ShivaQEviewer
         public Slave(string hostname)
         {
             IPAddress ipAddress = null;
-            if (hostname.Count(x => x == '.') == 3) //if it's an ip
-            {
-                ipAddress = IPAddress.Parse(hostname);
-            }
-            else // else it's a host
+
+            bool isIpAddress = IPAddress.TryParse(hostname, out ipAddress);
+            if (!isIpAddress) //if it isn't an ip
             {
                 IPHostEntry ipHostInfo;
                 try

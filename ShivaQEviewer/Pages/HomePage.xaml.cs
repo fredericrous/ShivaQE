@@ -61,7 +61,7 @@ namespace ShivaQEviewer
         {
             _slaveManager.Remove(_bindings.slaveSelected);
             string slaveListJson = JsonConvert.SerializeObject(_slaveManager.slaveList, Formatting.Indented);
-            File.WriteAllText(AddServerPage._slaveList_save_path, slaveListJson);
+            File.WriteAllText(_slaveManager.SlaveListPath, slaveListJson);
         }
 
         private void bt_view_Click(object sender, System.Windows.RoutedEventArgs e)

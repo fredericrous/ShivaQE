@@ -40,7 +40,8 @@ namespace ShivaQEmaster
             _oldSlave = slave;
 
             //set slave informations already registered
-            this.Bindings.newSlaveIP = slave.hostname;
+            string port = (slave.port == Int32.Parse(SettingsManager.ReadSetting("port"))) ? string.Empty : ":" + slave.port;
+            this.Bindings.newSlaveIP = slave.hostname + port;
             this.Bindings.newSlaveName = slave.friendlyName;
 
             _slaveManager = SlaveManager.Instance;

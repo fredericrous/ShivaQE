@@ -285,7 +285,16 @@ namespace ShivaQEviewer.TerminalServices
             TerminalSessionData newSession = null;
             _timeoutLimit = timeoutLimit;
 
-            while (lastSessionList.Count == CountSessions(hostname)) //when number of active session changes
+            int lastActiveSessionsCount = 0;
+            foreach (var session in lastSessionList)
+            {
+                if (session.ConnectionState == WTS_CONNECTSTATE_CLASS.Active)
+                {
+                    lastActiveSessionsCount++;
+                }
+            }
+
+            while (lastActiveSessionsCount == CountActiveSessions(hostname)) //when number of active session changes
             {
                 await Task.Delay(1000); //wait 1sec
                 if (_timeoutCounter >= timeoutLimit)
@@ -334,7 +343,7 @@ namespace ShivaQEviewer.TerminalServices
             return null;
         }
 
-        public static int CountSessions(String ServerName)
+        public static int CountActiveSessions(String ServerName)
         {
             IntPtr server = IntPtr.Zero;
             int ret = 0;

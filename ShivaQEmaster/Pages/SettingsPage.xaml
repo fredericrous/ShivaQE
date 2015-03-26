@@ -41,6 +41,5 @@
 			</Grid>
 		</Grid>
 		<CheckBox x:Name="cb_match_notifications" Content="{Binding settingspage_cb_match_notification, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10.666,204.931,0,0" VerticalAlignment="Top" IsChecked="{Binding match_notification}"/>
-		<TextBlock x:Name="lb_error" HorizontalAlignment="Left" Margin="390,274,0,0" TextWrapping="Wrap" Text="{Binding error_msg}" VerticalAlignment="Top" TextAlignment="Right" Width="281.672" Foreground="#FFFBA92C"/>
 	</Grid>
 </Page>

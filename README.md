@@ -96,6 +96,15 @@ For the audience of your demo it will be as if you were streaming your screen.
 Another idea is to administrate a park of computers graphically.
 
 
+
+
+Known Issues
+--------
+International Keyboard Layouts are treated as normal ones.
+It means if you use a keyboard layout like US-International, it will not allow you to create characters like “ é ” with the combination key “ ‘e ”
+
+
+
 Who uses it
 -----------
 

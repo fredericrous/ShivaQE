@@ -51,11 +51,22 @@ namespace ShivaQEviewer
         //apply edit
         public override void bt_add_add_Click(object sender, System.Windows.RoutedEventArgs e)
         {
-            Slave slave = new Slave(this.Bindings.add_hostname)
+            string hostname = this.Bindings.add_hostname;
+            int port = _oldSlave.port;
+
+            int portInHostname = getPortFromHostname(hostname);
+            if (portInHostname > 0)
+            {
+                port = portInHostname;
+                hostname = hostname.Substring(0, hostname.LastIndexOf(':'));
+            }
+
+            Slave slave = new Slave(hostname)
             {
                 friendlyName =  this.Bindings.add_friendlyname,
                 login = this.Bindings.add_login,
             };
+
             if (pb_add_password.Password != null && pb_add_password.Password.Trim() != string.Empty)
             {
                 slave.password = pb_add_password.Password;
@@ -64,6 +75,9 @@ namespace ShivaQEviewer
             {
                 slave.password = _oldSlave.password;
             }
+
+            slave.port = port;
+
             _slaveManager.Remove(_oldSlave);
             _slaveManager.Add(slave);
 

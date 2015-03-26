@@ -38,7 +38,7 @@ namespace ShivaQEviewer
 
         AddServerPageBindings _bindings;
         SlaveManager _slaveManager;
-        public static string _slaveList_save_path;
+        internal static string _slaveList_save_path;
 
         public AddServerPage()
         {
@@ -78,7 +78,7 @@ namespace ShivaQEviewer
             }
 
             int portInHostname = getPortFromHostname(hostname);
-            if (portInHostname != -1)
+            if (portInHostname > 0)
             {
                 port = portInHostname;
                 hostname = hostname.Substring(0, hostname.LastIndexOf(':'));
@@ -118,7 +118,7 @@ namespace ShivaQEviewer
         }
 
         // this function is a doublon with AddServerPage from ShivaQEmaster
-        private int getPortFromHostname(string hostname)
+        internal int getPortFromHostname(string hostname)
         {
             int port = -1;
 

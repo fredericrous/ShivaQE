@@ -229,6 +229,7 @@ namespace ShivaQEslave
                         return;
                     }
 
+                    //all action that are not click, key are handled here: setWindowPosition, Disconnection
                     if (data.StartsWith(@"{""method"":"))
                     {
                         ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
@@ -299,9 +300,20 @@ namespace ShivaQEslave
                     MouseNKeySimulator.SimulateAction(mouseNkey);
 
                 }
-                catch (Exception e)
+                catch (Exception ex)
                 {
-                    _log.Error("tcp received", e);
+                    if (ex.Message.Contains("User Interface Privacy Isolation"))
+                    {
+                        _log.Warn("Can't simulate action click/key because of Windows protection : User Interface Privacy Isolation.", ex);
+
+                        //try to wait for a graphical session
+                        Microsoft.Win32.SystemEvents.SessionSwitch -= SystemEvents_SessionSwitch;
+                        Microsoft.Win32.SystemEvents.SessionSwitch += SystemEvents_SessionSwitch;
+                    }
+                    else
+                    {
+                        _log.Error("tcp received", ex);
+                    }
                 }
             };
 
@@ -315,24 +327,35 @@ namespace ShivaQEslave
                 try
                 {
                     //if token is ok, get data, else return empty string
-                    data = disociateDataFromToken(data);
+                    string dataFormated = disociateDataFromToken(data);
 
                     //if no token, no action
-                    if (data == string.Empty)
+                    if (dataFormated == string.Empty)
                     {
                         return;
                     }
 
-                    MouseNKeyEventArgs mouseNkey = JsonConvert.DeserializeObject<MouseNKeyEventArgs>(data);
+                    MouseNKeyEventArgs mouseNkey = JsonConvert.DeserializeObject<MouseNKeyEventArgs>(dataFormated);
 
                     //set mouse curstor to position X, Y
                     MouseNKeySimulator.setMousePosition(mouseNkey);
                 }
                 catch (Exception ex)
                 {
-                    _log.Error("udp received", ex);
+                    _log.Error(String.Format("udp received: {0}. Exception:", data), ex);
                 }
             };
+        }
+
+        static void SystemEvents_SessionSwitch(object sender, Microsoft.Win32.SessionSwitchEventArgs e)
+        {
+            //if a rdp session opens
+            if (e.Reason == Microsoft.Win32.SessionSwitchReason.RemoteConnect)
+            {
+                _log.Info("app restarted because a rdp session was opened");
+                //restart app
+                Application.Restart();
+            }
         }
 
         private static void handleAction(ActionMethod action, NetworkStream networkStream)
@@ -343,7 +366,7 @@ namespace ShivaQEslave
                     MouseNKeySimulator.setKeyboardLang(action.value);
                     break;
                 case ActionType.SetWindowPos:
-                    string[] windowPos = action.value.Split('.');
+                    string[] windowPos = action.value.Split('*');
                     int Left = int.Parse(windowPos[1]);
                     int Top = int.Parse(windowPos[2]);
                     int Width = int.Parse(windowPos[3]);

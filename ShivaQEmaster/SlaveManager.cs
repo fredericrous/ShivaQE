@@ -227,76 +227,9 @@ namespace ShivaQEmaster
 
         private static readonly string eof_tag = "<EOF>";
 
-        //public async Task<string> Send<T>(T data, string hostname)
-        //{
-        //    string receivedData = null;
-        //    byte[] byteData;
-        //    string json = null;
-        //    StringBuilder sb = new StringBuilder();
-
-        //    json = JsonConvert.SerializeObject(data);
-        //    json += "<EOF>"; //used serverside to know string has been received entirely
-
-        //    byteData = Encoding.UTF8.GetBytes(json);
-
-        //    NetworkStream networkStream = this.slaveList.Where(x => x.hostname == hostname).First().client.GetStream();
-        //    await networkStream.WriteAsync(byteData, 0, byteData.Length);
-
-        //    ActionType? expectedAction = null;
-        //    if (typeof(T) == typeof(ActionType))
-        //    {
-        //        expectedAction = data as ActionType?;
-        //    }
-
-        //    //keep waiting for data untill cancellation token is fired
-        //    while (true)
-        //    {
-        //        var buffer = new byte[4096];
-
-        //        //wait for data transmitted
-        //        int byteCount = 0;
-        //        try
-        //        {
-        //            byteCount = await networkStream.ReadAsync(buffer, 0, buffer.Length);
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            _log.Warn("Error reading answer", e);
-        //            break;
-        //        }
-
-        //        //read result
-        //        if (byteCount > 0)
-        //        {
-        //            sb.Append(Encoding.UTF8.GetString(buffer, 0, byteCount));
-
-        //            string content = sb.ToString();
-        //            if (content.IndexOf(eof_tag) > -1)
-        //            {
-        //                if (expectedAction != null)
-        //                {
-        //                    int actionNumber = 0;
-        //                    Int32.TryParse(content.Substring(content.IndexOf("action:\""), 2), out actionNumber);
-        //                    if ((ActionType)actionNumber == expectedAction)
-        //                    {
-        //                        receivedData = content.Substring(0, content.IndexOf(eof_tag));
-        //                        break;
-        //                    }
-        //                }
-        //                else
-        //                {
-        //                    receivedData = content.Substring(0, content.IndexOf(eof_tag));
-        //                    break;
-        //                }
-        //            }
-        //        }
-        //    }
-        //    return receivedData;
-        //}
-
         private async Task ReadSlaveIncoming(Slave slave)
         {
-            if (slave != null && slave.status == "Connected")
+            if (slave != null && slave.client.Connected)
             {
                 try
                 {
@@ -346,6 +279,52 @@ namespace ShivaQEmaster
             }
         }
 
+        public async Task<string> Send<T>(T data, Slave slave)
+        {
+            string error_msg = null;
+            var networkStream = slave.client.GetStream();
+
+            if (slave.token == null)
+            {
+                //TODO
+                //ActionMethod action = new ActionMethod()
+                //{
+                //    method = ActionType
+                //}
+                //await networkStream.WriteAsync(byteData, 0, byteData.Length);
+            }
+
+            string json = JsonConvert.SerializeObject(data);
+            json = string.Format("{0}:{1}<EOF>", slave.token, json);
+
+            byte[] byteData = Encoding.UTF8.GetBytes(json);
+
+            
+            _log.Info(string.Format("[Master] Writing request {0}", json));
+            try
+            {
+                await networkStream.WriteAsync(byteData, 0, byteData.Length);
+            }
+            catch (SocketException sex)
+            {
+                _log.Info("Slave closed the connection!?", sex);
+                //if (sex.ErrorCode == 10054)
+                //{
+                Disconnect(slave);
+                //}
+            }
+            catch (Exception ex)
+            {
+                error_msg = string.Format("Error writing request tcp to {0}", slave.ipAddress);
+                _log.Error(error_msg, ex);
+                //slaveList.Where(x => x.ipAddress == slave.ipAddress).First().client.Close();
+                // throw;
+            }
+
+            _log.Info("[Master] Written");
+            return error_msg;
+        }
+
         /// <summary>
         /// Send data as JSON to slaves contained in slaveList
         /// </summary>
@@ -354,56 +333,17 @@ namespace ShivaQEmaster
         public async Task<List<string>> Send<T>(T data)
         {
             List<string> errorList = new List<string>();
-            byte[] byteData;
-            string json = null;
-
+            string error_msg;
             // send data to all remote devices
             foreach (Slave slave in slaveList)
             {
-                if (slave.status == "Connected")
+                if (slave.client.Connected)
                 {
-                    json = JsonConvert.SerializeObject(data);
-                    json = string.Format("{0}:{1}<EOF>", slave.token, json);
-
-                    byteData = Encoding.UTF8.GetBytes(json);
-
-                    var networkStream = slave.client.GetStream();
-                    _log.Info(string.Format("[Master] Writing request {0}", json));
-                    try
+                    error_msg = await Send(data, slave);
+                    if (error_msg != null)
                     {
-                        await networkStream.WriteAsync(byteData, 0, byteData.Length);
-                    }
-                    catch (SocketException sex)
-                    {
-                        _log.Info("Slave closed the connection!?", sex);
-                        //if (sex.ErrorCode == 10054)
-                        //{
-                           Disconnect(slave);
-                        //}
-                    }
-                    catch (Exception ex)
-                    {
-                        string error_msg = string.Format("Error writing request tcp to {0}", slave.ipAddress);
-                        _log.Error(error_msg, ex);
-                        //slaveList.Where(x => x.ipAddress == slave.ipAddress).First().client.Close();
                         errorList.Add(error_msg);
-                        // throw;
                     }
-
-                    //if (compareON && SettingsManager.ReadSetting("notification_status") == "true")
-                    //{
-                    //    try
-                    //    {
-                    //        await IsResultOK(networkStream, slave.hostname);
-                    //    }
-                    //    catch (Exception ex)
-                    //    {
-                    //        string error_msg = string.Format("Error writing request tcp to {0}", slave.ipAddress);
-                    //        _log.Error(error_msg, ex);
-                    //        //errorList.Add(error_msg);
-                    //    }
-                    //}
-                    _log.Info("[Master] Written");
                 }
             }
             return errorList;
@@ -473,7 +413,7 @@ namespace ShivaQEmaster
                 try
                 {
                     slave.Renew();
-                    await slave.client.ConnectAsync(IPAddress.Parse(slave.ipAddress), slave.port);
+                    await slave.client.ConnectAsync(slave.ipAddress, slave.port);
                     _log.Info("[Client] re-Connected to server");
 
                     bool isAlreadyReading = (from r in readingList where r == slave.hostname select r).Count() > 0;
@@ -482,6 +422,21 @@ namespace ShivaQEmaster
                         Task task = ReadSlaveIncoming(slave);
                         readingList.Add(slave.hostname);
                     }
+                }
+                catch (SocketException sex)
+                {
+                    string error;
+                    if (sex.ErrorCode == 10049)
+                    {
+                        error = "Exception. Try to launch slave on another port";
+                    }
+                    else
+                    {
+                        error = "Exception while reconnecting (could be timeout)";
+                    }
+                    _log.Error(error, sex);
+                    //"Can't reconnect {0}, maybe slave is not launched or has been terminated!?")
+                    throw new InvalidOperationException(error);
                 }
                 catch (Exception ex)
                 {
