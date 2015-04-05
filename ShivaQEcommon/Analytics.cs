@@ -55,9 +55,10 @@ namespace ShivaQEcommon
                 }
                 catch (WebException ex)
                 {
-                    log.Warn(string.Format("analytics event error {0}. Fallback to request with no default proxy selected.", ex.Status), ex);
-                    if (ex.InnerException.HResult == -2146232062) //if proxy configuration error
+                    log.Warn(string.Format("analytics event error {0}.", ex.Status), ex);
+                    if (ex.InnerException != null && ex.InnerException.HResult == -2146232062) //if proxy configuration error
                     {
+                        log.Info("Fallback to request with no default proxy selected.");
                         using (var wb2 = new WebClient())
                         {
                             WebRequest.DefaultWebProxy = null; //try by disabling proxy

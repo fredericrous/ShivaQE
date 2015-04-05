@@ -35,13 +35,13 @@
     </Page.Resources>
 
     <Grid x:Name="LayoutRoot" DataContext="{Binding Source={StaticResource RecorderFlyoutBindingsDataSource}}">
-        <Button x:Name="bt_load" Content="Load" HorizontalAlignment="Left" Height="36.83" Margin="10,99.663,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Click="bt_load_Click"/>
-        <Button x:Name="bt_preview" Content="Preview" HorizontalAlignment="Left" Height="36.83" Margin="449.47,99.663,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Click="bt_preview_Click"/>
-        <Custom:ToggleSwitch x:Name="ts_record" Margin="10,44.333,407,114.667" SwitchForeground="#FFFBA92C" Cursor="Hand" IsChecked="{Binding checked_record, Mode=TwoWay}" Content="{Binding checked_record_txt}" Foreground="White" IsCheckedChanged="ts_record_IsCheckedChanged" />
-        <TextBlock x:Name="tb_time_init" HorizontalAlignment="Left" Margin="222,27,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="16" Text="00:00"/>
-        <TextBlock x:Name="tb_time_max" HorizontalAlignment="Left" Margin="541.99,26.663,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="15.96" Text="{Binding time_elapsed, StringFormat={}{0:mm}:{0:ss}}" />
-        <Rectangle x:Name="rec_time_bar" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="26" Margin="236,50.663,0,0" Stroke="Black" VerticalAlignment="Top" Width="320" MouseDown="rec_time_bar_MouseDown"/>
-        <Rectangle x:Name="rect_time_slider" Fill="#FFFBA92C" HorizontalAlignment="Left" Height="23.942" Margin="237,51.689,0,0" VerticalAlignment="Top" Width="11.01" RenderTransformOrigin="0.5,0.5" Cursor="SizeWE">
+        <Button x:Name="bt_load" Content="Load" HorizontalAlignment="Left" Height="36.83" Margin="10,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Click="bt_load_Click"/>
+        <Button x:Name="bt_preview" Content="Preview" HorizontalAlignment="Left" Height="36.83" Margin="307.333,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Click="bt_preview_Click"/>
+        <Custom:ToggleSwitch x:Name="ts_record" Margin="10,16.377,407,142.623" SwitchForeground="#FFFBA92C" Cursor="Hand" IsChecked="{Binding checked_record, Mode=TwoWay}" Content="{Binding checked_record_txt}" Foreground="White" IsCheckedChanged="ts_record_IsCheckedChanged" />
+        <TextBlock x:Name="tb_time_init" HorizontalAlignment="Left" Margin="115.976,70.334,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="16" Text="00:00"/>
+        <TextBlock x:Name="tb_time_max" HorizontalAlignment="Left" Margin="435.966,69.997,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Height="15.96" Text="{Binding time_elapsed, StringFormat={}{0:mm}:{0:ss}}" />
+        <Rectangle x:Name="rec_time_bar" Fill="#FFF4F4F5" HorizontalAlignment="Left" Height="26" Margin="130.011,93.997,0,0" Stroke="Black" VerticalAlignment="Top" Width="320" MouseDown="rec_time_bar_MouseDown"/>
+        <Rectangle x:Name="rect_time_slider" Fill="#FFFBA92C" HorizontalAlignment="Left" Height="23.942" Margin="131.011,95.023,0,0" VerticalAlignment="Top" Width="11.01" RenderTransformOrigin="0.5,0.5" Cursor="SizeWE">
             <Rectangle.RenderTransform>
                 <TransformGroup>
                     <ScaleTransform/>
@@ -52,9 +52,6 @@
             </Rectangle.RenderTransform>
         </Rectangle>
         <Button x:Name="bt_execute" Content="Execute" HorizontalAlignment="Left" Height="36.83" Margin="449.47,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Click="bt_execute_Click"/>
-        <Button Content="Override" HorizontalAlignment="Left" Height="36.83" Margin="10,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Visibility="Hidden"/>
-        <Button Content="Shrink" HorizontalAlignment="Left" Height="36.83" Margin="184.667,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Visibility="Hidden"/>
-        <Button Content="Edit" HorizontalAlignment="Left" Height="36.83" Margin="361.334,153.17,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Visibility="Hidden"/>
-        <TextBlock HorizontalAlignment="Left" Margin="236,99.663,0,0" TextWrapping="Wrap" Text="{Binding error_msg}" VerticalAlignment="Top" Foreground="#FFFF0707" Height="36.83" Width="200.46"/>
+        <Button x:Name="bt_edit" Content="Edit" HorizontalAlignment="Left" Height="36.83" Margin="449.47,13.807,0,0" VerticalAlignment="Top" Width="121" BorderBrush="#FFFBA92C" BorderThickness="1" FontSize="18.667" FontWeight="Bold" Cursor="Hand" Visibility="Collapsed"/>
     </Grid>
 </Page>

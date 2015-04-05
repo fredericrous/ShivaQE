@@ -103,7 +103,7 @@ namespace ShivaQEviewer
             //open rdp
             executeCmd(Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\mstsc.exe"),
                 string.Format("/v:{0} /h:{1} /w:{2}",
-                _slave.hostname, _resolution_height, _resolution_width), false, false, _slave);
+                _slave.ipAddress, _resolution_height, _resolution_width), false, false, _slave);
 
             status = string.Format("{0} : copying slave to this server", _slave.hostname);
             UpdateStatus(status);
@@ -304,7 +304,9 @@ namespace ShivaQEviewer
             if (slave != null)
             {
                 process.StartInfo.FileName = Environment.ExpandEnvironmentVariables(@"%SystemRoot%\system32\cmdkey.exe");
-                process.StartInfo.Arguments = string.Format("/generic:{0} /user:{1}{2}", slave.ipAddress, slave.login, slave.password ?? " /pass:" + _slave.password);
+                string keyPassword = slave.password == null ? string.Empty : " /pass:" + _slave.password;
+                //this should be the exact same ip as the one provided to mstsc
+                process.StartInfo.Arguments = string.Format("/generic:{0} /user:{1}{2}", slave.ipAddress, slave.login, keyPassword);
                 process.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 process.StartInfo.CreateNoWindow = true;
                 process.Start();
