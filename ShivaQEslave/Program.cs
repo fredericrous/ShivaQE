@@ -247,6 +247,12 @@ namespace ShivaQEslave
 
                     MouseNKeyEventArgs mouseNkey = JsonConvert.DeserializeObject<MouseNKeyEventArgs>(data);
 
+                    if (mouseNkey.windowPos != null)
+                    {
+                        setWindowPos(mouseNkey.windowPos);
+                        Thread.Sleep(100); // wait the window to resize
+                    }
+
                     if (mouseNkey.screenshotBytes != null)
                     {
                         _log.Info("received a png image to compare");
@@ -358,6 +364,23 @@ namespace ShivaQEslave
             }
         }
 
+        private static void setWindowPos(string windowPosString)
+        {
+            string[] windowPos = windowPosString.Split('*');
+            int Left = int.Parse(windowPos[1]);
+            int Top = int.Parse(windowPos[2]);
+            int Width = int.Parse(windowPos[3]);
+            int Heigh = int.Parse(windowPos[4]);
+
+            IntPtr foregroundWindow = GetForegroundWindow();
+
+            string windowName = GetProcessByHandle(foregroundWindow).ProcessName;
+            if (windowName == windowPos[0])
+            {
+                SetWindowPos(foregroundWindow, HWND_TOP, Left, Top, Width, Heigh, SWP_ASYNCWINDOWPOS);
+            }
+        }
+
         private static void handleAction(ActionMethod action, NetworkStream networkStream)
         {
             switch (action.method)
@@ -366,19 +389,7 @@ namespace ShivaQEslave
                     MouseNKeySimulator.setKeyboardLang(action.value);
                     break;
                 case ActionType.SetWindowPos:
-                    string[] windowPos = action.value.Split('*');
-                    int Left = int.Parse(windowPos[1]);
-                    int Top = int.Parse(windowPos[2]);
-                    int Width = int.Parse(windowPos[3]);
-                    int Heigh = int.Parse(windowPos[4]);
-
-                    IntPtr foregroundWindow = GetForegroundWindow();
-
-                    string windowName = GetProcessByHandle(foregroundWindow).ProcessName;
-                    if (windowName == windowPos[0])
-                    {
-                        SetWindowPos(foregroundWindow, HWND_TOP, Left, Top, Width, Heigh, SWP_ASYNCWINDOWPOS);
-                    }
+                    setWindowPos(action.value);
                     break;
                 case ActionType.UpdateClipboard:
                     IDataObject clipboardObject = JsonConvert.DeserializeObject<IDataObject>(action.value);

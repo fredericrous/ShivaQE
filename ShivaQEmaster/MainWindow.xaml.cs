@@ -216,7 +216,7 @@ namespace ShivaQEmaster
                             {
                                 //send window's position
                                 //should be raised by windowcreated event but it doesn't work weel so it's a workaround...
-                                sendWindowPos(_activeWindowInfo);
+                                //sendWindowPos(_activeWindowInfo);
                                 string activeWindowSeparator = "*";
                                 //separator is a star because Item1 contains the name of the window. a program can't(at least shouldnt) have a star in it's name in windows
                                 ev.windowPos = _activeWindowInfo.Item1 + activeWindowSeparator + String.Join(activeWindowSeparator, _activeWindowInfo.Item2);
@@ -469,7 +469,7 @@ namespace ShivaQEmaster
                     _log.Warn("error getting active window info", ex);
                     return null;
                 }
-                action.value = activeWindowInfo.Item1 + "." + String.Join(".", activeWindowInfo.Item2);
+                action.value = activeWindowInfo.Item1 + "*" + String.Join("*", activeWindowInfo.Item2);
             }
             //hide or show the window of the master
             else if (keyData == key_window_hide_toggle)
@@ -566,28 +566,28 @@ namespace ShivaQEmaster
             catch { return null; }
         }
 
-        /// <summary>
-        /// send to slaves the position, size and name of the active window
-        /// </summary>
-        /// <param name="activeWindowInfo">the window to modify the size: [name, { rct.Left, rct.Top, width, height }]</param>
-        private async void sendWindowPos(Tuple<string, int[]> activeWindowInfo)
-        {
-            ActionMethod action = new ActionMethod()
-            {
-                method = ActionType.SetWindowPos,
-                value = activeWindowInfo.Item1 + "." + String.Join(".", activeWindowInfo.Item2)
-            };
-            try
-            {
-                await _slaveManager.Send<ActionMethod>(action);
-                activeWindowInfo = null;
-                await Task.Delay(1000); //await position is set before sending click
-            }
-            catch (Exception ex)
-            {
-                _log.Error("error send window created", ex);
-            }
-        }
+        ///// <summary>
+        ///// send to slaves the position, size and name of the active window
+        ///// </summary>
+        ///// <param name="activeWindowInfo">the window to modify the size: [name, { rct.Left, rct.Top, width, height }]</param>
+        //private async void sendWindowPos(Tuple<string, int[]> activeWindowInfo)
+        //{
+        //    ActionMethod action = new ActionMethod()
+        //    {
+        //        method = ActionType.SetWindowPos,
+        //        value = activeWindowInfo.Item1 + "*" + String.Join("*", activeWindowInfo.Item2)
+        //    };
+        //    try
+        //    {
+        //        await _slaveManager.Send<ActionMethod>(action);
+        //        activeWindowInfo = null;
+        //        await Task.Delay(1000); //await position is set before sending click
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        _log.Error("error send window created", ex);
+        //    }
+        //}
 
         /// <summary>
         /// open help window

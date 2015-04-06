@@ -46,6 +46,10 @@ namespace ShivaQEmaster
             AddTrace("Starting...");
 		}
 
+        /// <summary>
+        /// Write text to the list of action at the right of the preview screen
+        /// </summary>
+        /// <param name="text"></param>
         public void AddTrace(string text)
         {
             TextBlock tb = new TextBlock();
@@ -54,7 +58,15 @@ namespace ShivaQEmaster
             this.sp_events.Children.Add(tb);
         }
 
-        public async Task UpdateImg(TimeSpan timespan, string uriImage, string key)
+        /// <summary>
+        /// Update text and image on the preview window at time given by 'timestamp'
+        /// </summary>
+        /// <param name="timespan">when to update preview screen</param>
+        /// <param name="uriImage">image to display</param>
+        /// <param name="key">text to display</param>
+        /// <param name="endline">if true write a message to indicate record ended</param>
+        /// <returns></returns>
+        public async Task UpdateImg(TimeSpan timespan, string uriImage, string key, bool endline)
         {
             try
             {
@@ -71,6 +83,11 @@ namespace ShivaQEmaster
             {
                 _log.Error("error display delayed img", ex);
                 throw new InvalidOperationException("error display delayed img");
+            }
+
+            if (endline)
+            {
+                AddTrace("...Record Ends");
             }
         }
     }

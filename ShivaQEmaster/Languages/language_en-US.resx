@@ -142,7 +142,7 @@
     <value>EDIT COMPUTER</value>
   </data>
   <data name="flyout_dialog_save_filter" xml:space="preserve">
-    <value>Recorded Scenario|*.zip|All Files|*.*</value>
+    <value>Recorded Scenario|*.sqerecord|All Files|*.*</value>
   </data>
   <data name="flyout_dialog_save_title" xml:space="preserve">
     <value>Save a record</value>

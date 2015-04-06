@@ -68,6 +68,9 @@ namespace ShivaQEmaster
             _timerRecording.Interval = 1;
         }
 
+        /// <summary>
+        /// Start the record
+        /// </summary>
         public void Start()
         {
             string filename = string.Empty;
@@ -102,21 +105,10 @@ namespace ShivaQEmaster
             _timerRecording.Start();
         }
 
-        private ImageCodecInfo GetEncoder(ImageFormat format)
-        {
-
-            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
-
-            foreach (ImageCodecInfo codec in codecs)
-            {
-                if (codec.FormatID == format.Guid)
-                {
-                    return codec;
-                }
-            }
-            return null;
-        }
-
+        /// <summary>
+        /// record an key or mouse press
+        /// </summary>
+        /// <param name="ev"></param>
         public void Write(MouseNKeyEventArgs ev)
         {
             if (!_isActive)
@@ -127,6 +119,10 @@ namespace ShivaQEmaster
             string screenName = string.Format("record.{0}.jpg", ev.timestamp);
             string file_path = _sourceDirectory + "\\" + screenName;
 
+            //remove small picture from left click
+            ev.screenshotBytes = null;
+
+            //take full screenshot 70%
             try
             {
                 Bitmap screenCapture = ScreenCapturePInvoke.CaptureFullScreen(true);
@@ -160,6 +156,32 @@ namespace ShivaQEmaster
             }
         }
 
+        /// <summary>
+        /// Get the codec to save a capture
+        /// </summary>
+        /// <param name="format">the format of the image to save. ie: jpg</param>
+        /// <returns>return codec or null</returns>
+        private ImageCodecInfo GetEncoder(ImageFormat format)
+        {
+            ImageCodecInfo[] codecs = ImageCodecInfo.GetImageDecoders();
+
+            foreach (ImageCodecInfo codec in codecs)
+            {
+                if (codec.FormatID == format.Guid)
+                {
+                    return codec;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// resize original image bmp
+        /// </summary>
+        /// <param name="original">the bitmap image to resize</param>
+        /// <param name="reducedWidth">output width</param>
+        /// <param name="reducedHeight">output height</param>
+        /// <returns></returns>
         private Bitmap ReduceBitmap(Bitmap original, int reducedWidth, int reducedHeight)
         {
             var reduced = new Bitmap(reducedWidth, reducedHeight);
@@ -173,6 +195,10 @@ namespace ShivaQEmaster
             return reduced;
         }
 
+        /// <summary>
+        /// Save the record to a *.sqerecord
+        /// </summary>
+        /// <param name="scenarioName"></param>
         public void Save(string scenarioName = "default")
         {
             if (_timerRecording.Enabled) //just in case
@@ -206,7 +232,7 @@ namespace ShivaQEmaster
 
             try
             {
-                using (FileStream zipToOpen = new FileStream(scenarioName + ".record.sqe", FileMode.Create))
+                using (FileStream zipToOpen = new FileStream(scenarioName + ".sqerecord", FileMode.Create))
                 {
                     using (ZipArchive archive = new ZipArchive(zipToOpen, ZipArchiveMode.Update))
                     {
@@ -231,6 +257,10 @@ namespace ShivaQEmaster
             }
         }
 
+        /// <summary>
+        /// Load a record to play
+        /// </summary>
+        /// <param name="scenarioName">path to zip file containing the record to play</param>
         public void Load(string scenarioName = "default")
         {
             if (_isActive)
@@ -299,6 +329,10 @@ namespace ShivaQEmaster
             }
         }
 
+        /// <summary>
+        /// Display a preview window with image of the clicks recorded
+        /// </summary>
+        /// <param name="execute">used by ExecuteEvent to put a warning in RecordViewerWindow</param>
         public void Preview(bool execute = false)
         {
             try
@@ -315,12 +349,8 @@ namespace ShivaQEmaster
                         TimeSpan ts = TimeSpan.FromMilliseconds(_eventList[i].timestamp);
                         taskList.Add(
                             recordViewer.UpdateImg(ts, fileName,
-                                string.Format("{0:mm\\:ss\\.ff}: {1} ({2})", ts, _eventList[i].key, _eventList[i].keyData))
+                                string.Format("{0:mm\\:ss\\.ff}: {1} ({2})", ts, _eventList[i].key, _eventList[i].keyData), i == _eventList.Count - 1)
                         );
-                        if (i == _eventList.Count - 1)
-                        {
-                            recordViewer.AddTrace("Record Ends");
-                        }
                     }
                 }
                 else
@@ -338,6 +368,11 @@ namespace ShivaQEmaster
 
         }
 
+        /// <summary>
+        /// send to each slaves the recorded key/click. execute the recorded action at time specified by ev.timestamp parameter
+        /// </summary>
+        /// <param name="ev"></param>
+        /// <returns></returns>
         private async Task<bool> ExecuteEvent(MouseNKeyEventArgs ev)
         {
             SlaveManager slaveManager = SlaveManager.Instance;
@@ -346,25 +381,25 @@ namespace ShivaQEmaster
             try
             {
                 await Task.Delay((int)ev.timestamp);
-                if (ev.windowPos != null)
-                {
-                    ActionMethod action = new ActionMethod()
-                    {
-                        method = ActionType.SetWindowPos,
-                        value = ev.windowPos
-                    };
-                    try
-                    {
-                        await slaveManager.Send<ActionMethod>(action);
-                        await Task.Delay(1000); //await position is set before sending click
-                    }
-                    catch (Exception ex)
-                    {
-                        string error_msg = "error send window created";
-                        _log.Error(error_msg, ex);
-                        throw new InvalidOperationException(error_msg);
-                    }
-                }
+                //if (ev.windowPos != null)
+                //{
+                //    ActionMethod action = new ActionMethod()
+                //    {
+                //        method = ActionType.SetWindowPos,
+                //        value = ev.windowPos
+                //    };
+                //    try
+                //    {
+                //        await slaveManager.Send<ActionMethod>(action);
+                //        await Task.Delay(1000); //await position is set before sending click
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        string error_msg = "error send window created";
+                //        _log.Error(error_msg, ex);
+                //        throw new InvalidOperationException(error_msg);
+                //    }
+                //}
 
                 await slaveManager.Send<MouseNKeyEventArgs>(ev);
                 
@@ -383,6 +418,9 @@ namespace ShivaQEmaster
             return result;
         }
 
+        /// <summary>
+        /// play a record
+        /// </summary>
         public void Play()
         {
             Preview(true);
@@ -392,10 +430,7 @@ namespace ShivaQEmaster
             {
                 foreach (MouseNKeyEventArgs mnk_event in _eventList)
                 {
-                    foreach (Slave slave in slaveManager.slaveList)
-                    {
                         tasklist.Add(ExecuteEvent(mnk_event));
-                    }
                 }
             }
             else
@@ -407,7 +442,9 @@ namespace ShivaQEmaster
             //should wait
         }
 
-
+        /// <summary>
+        /// stop the recorder
+        /// </summary>
         public void Stop()
         {
             _timerRecording.Stop();

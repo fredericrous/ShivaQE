@@ -29,8 +29,7 @@ namespace ShivaQEmaster.Languages {
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        public language_en_US()
-        {
+        public language_en_US() {
         }
         
         /// <summary>
@@ -134,7 +133,7 @@ namespace ShivaQEmaster.Languages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Recorded Scenario|*.zip|All Files|*.*.
+        ///   Looks up a localized string similar to Recorded Scenario|*.sqerecord|All Files|*.*.
         /// </summary>
         public static string flyout_dialog_save_filter {
             get {
