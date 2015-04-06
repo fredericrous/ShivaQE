@@ -305,10 +305,6 @@ namespace ShivaQEmaster
                         {
                             await _slaveManager.Send<ActionMethod>(action);
                         }
-                        else
-                        {
-                            return;
-                        }
                     }
                     else
                     {
