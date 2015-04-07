@@ -250,7 +250,7 @@ namespace ShivaQEslave
                     if (mouseNkey.windowPos != null)
                     {
                         setWindowPos(mouseNkey.windowPos);
-                        Thread.Sleep(100); // wait the window to resize
+                        //Thread.Sleep(100); // wait the window to resize
                     }
 
                     if (mouseNkey.screenshotBytes != null)

@@ -381,25 +381,6 @@ namespace ShivaQEmaster
             try
             {
                 await Task.Delay((int)ev.timestamp);
-                //if (ev.windowPos != null)
-                //{
-                //    ActionMethod action = new ActionMethod()
-                //    {
-                //        method = ActionType.SetWindowPos,
-                //        value = ev.windowPos
-                //    };
-                //    try
-                //    {
-                //        await slaveManager.Send<ActionMethod>(action);
-                //        await Task.Delay(1000); //await position is set before sending click
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        string error_msg = "error send window created";
-                //        _log.Error(error_msg, ex);
-                //        throw new InvalidOperationException(error_msg);
-                //    }
-                //}
 
                 await slaveManager.Send<MouseNKeyEventArgs>(ev);
                 

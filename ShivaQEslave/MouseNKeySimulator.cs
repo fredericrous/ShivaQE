@@ -1,5 +1,6 @@
 ﻿using ShivaQEcommon.Eventdata;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using WindowsInput;
@@ -105,42 +106,59 @@ namespace ShivaQEslave
                     }
                     break;
                 default:
-                    if (mouseNkey.keyData.Contains(",") || !mouseNkey.keyData.Equals(mouseNkey.key))
-                    {
-                        List<VirtualKeyCode> modifierKey = new List<VirtualKeyCode>();
 
-                        if (mouseNkey.keyData.Contains("Control"))
-                        {
-                            modifierKey.Add(VirtualKeyCode.CONTROL);
-                        }
-                        if (mouseNkey.keyData.Contains("Alt") || mouseNkey.keyData.Contains("LMenu") || mouseNkey.keyData.Contains("RMenu"))
-                        {
-                            modifierKey.Add(VirtualKeyCode.MENU);
-                        }
-                        if (mouseNkey.keyData.Contains("Shift"))
-                        {
-                            modifierKey.Add(VirtualKeyCode.SHIFT);
-                        }
-                        if (mouseNkey.keyData.Contains("Sleep")) //not sure
-                        {
-                            modifierKey.Add(VirtualKeyCode.RWIN);
-                        }
-                        if (mouseNkey.keyData.Contains("LWin"))
-                        {
-                            modifierKey.Add(VirtualKeyCode.LWIN);
-                        }
-                        if (mouseNkey.keyData.Contains("RWin"))
-                        {
-                            modifierKey.Add(VirtualKeyCode.RWIN);
-                        }
+                    List<VirtualKeyCode> modifierKey = new List<VirtualKeyCode>();
+
+                    if (mouseNkey.keyData.Contains("Control"))
+                    {
+                        modifierKey.Add(VirtualKeyCode.CONTROL);
+                    }
+                    if (mouseNkey.keyData.Contains("Alt") || mouseNkey.keyData.Contains("LMenu") || mouseNkey.keyData.Contains("RMenu"))
+                    {
+                        modifierKey.Add(VirtualKeyCode.MENU);
+                    }
+                    if (mouseNkey.keyData.Contains("Shift"))
+                    {
+                        modifierKey.Add(VirtualKeyCode.SHIFT);
+                    }
+                    if (mouseNkey.keyData.Contains("Sleep")) //not sure
+                    {
+                        modifierKey.Add(VirtualKeyCode.RWIN);
+                    }
+                    if (mouseNkey.keyData.Contains("LWin"))
+                    {
+                        modifierKey.Add(VirtualKeyCode.LWIN);
+                    }
+                    if (mouseNkey.keyData.Contains("RWin"))
+                    {
+                        modifierKey.Add(VirtualKeyCode.RWIN);
+                    }
+
+                    if (key_is_text(mouseNkey.key, modifierKey))
+                    {
+                        inputSimulator.Keyboard.TextEntry(mouseNkey.key);
+                    }
+                    else if (modifierKey != null && modifierKey.Count > 0)
+                    {
                         inputSimulator.Keyboard.ModifiedKeyStroke(modifierKey, (VirtualKeyCode)mouseNkey.keyCode);
                     }
                     else
                     {
                         inputSimulator.Keyboard.KeyPress((VirtualKeyCode)mouseNkey.keyCode);
                     }
+
                     break;
             }
+        }
+
+
+        private static bool key_is_text(string key, List<VirtualKeyCode> modifierKey)
+        {
+            bool isOnlyShift = modifierKey.Count == 1 && modifierKey[0] == VirtualKeyCode.SHIFT;
+            bool isCtrlAlt = modifierKey.Count == 2 && modifierKey[0] == VirtualKeyCode.CONTROL && modifierKey[1] == VirtualKeyCode.MENU;
+
+            //ctrl+qlt ou shift
+            return key.Length == 1 && (modifierKey.Count == 0 || isOnlyShift || isCtrlAlt);
         }
     }
 }
