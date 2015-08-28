@@ -11,5 +11,8 @@ namespace ShivaQEcommon.Eventdata
         public string version { get; set; }
         public string lang { get; set; }
         public string token { get; set; }
+        public bool isAero { get; set; }
+        public bool isClassic { get; set; }
+        public string themeName { get; set; }
     }
 }

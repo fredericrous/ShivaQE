@@ -187,6 +187,7 @@ namespace ShivaQEmaster
                 File.WriteAllText(_slaveList_save_path, slaveListJson);
 
                 //set language on slave
+                string json = string.Empty;
 
                 if (serverInfo.lang != Lang)
                 {
@@ -195,10 +196,37 @@ namespace ShivaQEmaster
                         method = ActionType.SetLang,
                         value = Lang
                     };
-                    string json = JsonConvert.SerializeObject(action);
-                    json = string.Format("{0}:{1}<EOF>", serverInfo.token, json);
+
+                    json = string.Format("{0}:{1}<EOF>", serverInfo.token, JsonConvert.SerializeObject(action));
+                }
+
+                //test if theme is different than slave
+                if (serverInfo.isClassic != ThemeInfo.IsClassic || serverInfo.isAero != ThemeInfo.IsAero || serverInfo.themeName != ThemeInfo.Current.ThemeName)
+                {
+                    string isClassic = serverInfo.isClassic != ThemeInfo.IsClassic ? ThemeInfo.IsClassic.ToString().ToLower() : string.Empty;
+                    string isAero = serverInfo.isAero != ThemeInfo.IsAero ? ThemeInfo.IsAero.ToString().ToLower() : string.Empty;
+                    string themeName = serverInfo.themeName != ThemeInfo.Current.ThemeName ? ThemeInfo.Current.ThemeName.ToString() : string.Empty;
+
+                    //this action will tell slave to change theme
+                    ActionMethod<string[]> action = new ActionMethod<string[]>()
+                    {
+                        method = ActionType.UpdateTheme,
+                        value = new string[]
+                        {
+                            isClassic,
+                            isAero,
+                            themeName
+                        }
+                    };
+                    json += string.Format("{0}:{1}<EOF>", serverInfo.token, JsonConvert.SerializeObject(action));
+                }
+
+                if (serverInfo.lang != Lang ||
+                    serverInfo.isClassic != ThemeInfo.IsClassic || serverInfo.isAero != ThemeInfo.IsAero || serverInfo.themeName != ThemeInfo.Current.ThemeName)
+                {
+                    //slave will understand both actions because they are sep by <EOF> Tag
                     byte[] byteData = Encoding.UTF8.GetBytes(json);
-                    _log.Info(string.Format("[Master] Writing request {0}", byteData));
+                    _log.Info(string.Format("[Master] Writing request {0}: {1}", json, byteData));
                     try
                     {
                         await networkStream.WriteAsync(byteData, 0, byteData.Length);
@@ -209,7 +237,7 @@ namespace ShivaQEmaster
                         throw;
                     }
                 }
-
+                
                 //async func
                 Task task = ReadSlaveIncoming(slave);
                 readingList.Add(slave.hostname);

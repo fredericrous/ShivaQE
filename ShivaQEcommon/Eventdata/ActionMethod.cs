@@ -13,7 +13,8 @@ namespace ShivaQEcommon.Eventdata
         SetWindowPos = 2,
         SetLang = 3,
         CheckIdentical = 4,
-        UpdateClipboard = 5
+        UpdateClipboard = 5,
+        UpdateTheme = 6
     };
 
     /// <summary>

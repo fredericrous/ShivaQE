@@ -97,9 +97,9 @@ Another idea is to administrate a park of computers graphically.
 
 
 
-
 Known Issues
 --------
+
 International Keyboard Layouts are treated as normal ones.
 It means if you use a keyboard layout like US-International, it will not allow you to create characters like “ é ” with the combination key “ ‘e ”
 
@@ -113,6 +113,15 @@ I made this software on my spare time (holidays, weekends, evenings) to use it a
 I work on an old software that is in maintenance and rarely changes its UI.
 Some tests must be run manually and on different versions of the software (sometimes it can go up to 8 or +)
 ShivaQE makes me gain time to focus on other less repetitive and time expansive tasks.
+
+
+
+How to contribute
+-----------
+
+Download the solution, open it with visual studio.
+In the solution explorer window, right click on the name of the solution. Click on "Allow NuGet to download missing packages during build"
+You can now build the solution.
 
 
 

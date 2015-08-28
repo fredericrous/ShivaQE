@@ -356,19 +356,19 @@ namespace ShivaQEmaster
                     return;
                 }
                 ActionType actionMethod = ActionType.None;
-                string actionValue = null;
+                IDataObject actionValue = null;
 
                 actionMethod = ActionType.UpdateClipboard;
-                actionValue = JsonConvert.SerializeObject(Clipboard.GetDataObject());
+                actionValue = Clipboard.GetDataObject();
 
-                ActionMethod action = new ActionMethod()
+                ActionMethod<IDataObject> action = new ActionMethod<IDataObject>()
                 {
                     method = actionMethod,
                     value = actionValue
                 };
                 try
                 {
-                    await _slaveManager.Send<ActionMethod>(action);
+                    await _slaveManager.Send<ActionMethod<IDataObject>>(action);
                 }
                 catch (Exception ex)
                 {

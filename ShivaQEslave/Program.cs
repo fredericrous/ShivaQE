@@ -20,6 +20,8 @@ using System.Drawing;
 using ShivaQEcommon;
 using System.Threading;
 using System.IO.Pipes;
+using Newtonsoft.Json.Linq;
+using IconSystray;
 
 namespace ShivaQEslave
 {
@@ -62,7 +64,10 @@ namespace ShivaQEslave
                     platform = "windows",
                     version = Environment.OSVersion.ToString(),
                     lang = MouseNKeySimulator.getKeyboardLang(),
-                    token = Guid.NewGuid().ToString().Substring(0, 8)
+                    token = Guid.NewGuid().ToString().Substring(0, 8),
+                    isAero = ThemeInfo.IsAero,
+                    isClassic = ThemeInfo.IsClassic,
+                    themeName = ThemeInfo.IsClassic ? string.Empty : ThemeInfo.Current.ThemeName
                 };
 
                 int port = _default_port;
@@ -125,7 +130,23 @@ namespace ShivaQEslave
                 startServer(port);
 
                 //-- -- -- Add notification icon
+                NotifyIconSystray.setOnIcon("Connected", "shivaqe_logo_slave.ico");
+                NotifyIconSystray.setOffIcon("Disconnected", "shivaqe_logo_slave_off.ico");
                 NotifyIconSystray.addNotifyIcon("ShivaQE Slave");
+                NotifyIconSystray.OnQuit += () =>
+                {
+                    //reset aero to its original state
+                    if (Theming.isAero != null && Theming.isAero != ThemeInfo.IsAero)
+                    {
+                        Theming.setAero((bool)Theming.isAero);
+                    }
+
+                    //reset theme to its original state
+                    if (Theming.themeName != null && Theming.themeName != ThemeInfo.Current.ThemeFileName)
+                    {
+                        Theming.SwitchTheme(Theming.themeName);
+                    }
+                };
 
                 Application.Run();
             }
@@ -150,7 +171,7 @@ namespace ShivaQEslave
 
             if (!_serverInfo.token.Equals(token))
             {
-                _log.Info(string.Format("incorrect token: {0}. Expected was {1}", token, _serverInfo.token));
+                _log.Info(string.Format("incorrect token: {0}. Expected was {1} for data: {2}", token, _serverInfo.token, data));
                 return string.Empty;
             }
 
@@ -232,7 +253,7 @@ namespace ShivaQEslave
                     //all action that are not click, key are handled here: setWindowPosition, Disconnection
                     if (data.StartsWith(@"{""method"":"))
                     {
-                        ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
+                        ActionMethod<object> action = JsonConvert.DeserializeObject<ActionMethod<object>>(data);
                         try
                         {
                             handleAction(action, networkStream);
@@ -381,23 +402,41 @@ namespace ShivaQEslave
             }
         }
 
-        private static void handleAction(ActionMethod action, NetworkStream networkStream)
+        private static void handleAction(ActionMethod<object> action, NetworkStream networkStream)
         {
             switch (action.method)
             {
                 case ActionType.SetLang:
-                    MouseNKeySimulator.setKeyboardLang(action.value);
+                    MouseNKeySimulator.setKeyboardLang(action.value as string);
                     break;
                 case ActionType.SetWindowPos:
-                    setWindowPos(action.value);
+                    setWindowPos(action.value as string);
                     break;
                 case ActionType.UpdateClipboard:
-                    IDataObject clipboardObject = JsonConvert.DeserializeObject<IDataObject>(action.value);
+                    IDataObject clipboardObject = (action.value as JObject).ToObject<IDataObject>();
                     Clipboard.SetDataObject(clipboardObject);
                     break;
                 //case ActionType.CheckIdentical:
 
                 //    break;
+                case ActionType.UpdateTheme:
+                    string[] themeValue = (action.value as JArray).ToObject<string[]>();
+
+                    if (themeValue[0] == "true")
+                    {
+                        Theming.SwitchToClassicTheme();
+                    }
+
+                    if (themeValue[1] == "true")
+                    {
+                        Theming.setAero(true);
+                    }
+
+                    if (themeValue[2] != string.Empty)
+                    {
+                        Theming.SwitchTheme(themeValue[2]);
+                    }
+                    break;
                 case ActionType.Disconnect:
                     AsynchronousSlave.StopListening();
                     NotifyIconSystray.ChangeStatus(false);
