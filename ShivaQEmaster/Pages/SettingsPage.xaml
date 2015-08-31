@@ -41,5 +41,7 @@
 			</Grid>
 		</Grid>
 		<CheckBox x:Name="cb_match_notifications" Content="{Binding settingspage_cb_match_notification, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Left" Margin="10.666,204.931,0,0" VerticalAlignment="Top" IsChecked="{Binding match_notification}"/>
+		<Label x:Name="lb_thememode" Content="{Binding settingspage_lb_thememode, Source={StaticResource language_en_USDataSource}}" HorizontalAlignment="Right" Margin="0,240.951,529.137,0" VerticalAlignment="Top" Width="177.863"/>
+        <ComboBox x:Name="cb_thememode" DisplayMemberPath="Item1" SelectedValuePath="Item2" SelectedValue="none" HorizontalAlignment="Left" Margin="192.863,240.951,0,0" VerticalAlignment="Top" Width="135.39" ItemsSource="{Binding thememodeList, Mode=OneWay}" SelectedItem="{Binding thememodeSelected, Mode=TwoWay}"/>
 	</Grid>
 </Page>

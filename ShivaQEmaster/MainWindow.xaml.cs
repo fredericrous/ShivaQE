@@ -66,59 +66,11 @@ namespace ShivaQEmaster
 
             _slaveManager = SlaveManager.Instance;
 
+            //callback, after server is added & connected
+            _slaveManager.Connected += _slaveManager_Connected;
+
             //event fired every time master receive data from a slave
-            _slaveManager.Incoming += async (data, slave, networkStream) =>
-                {
-                    if (data.Contains("platform") && data.Contains("version"))
-                    { //if we have reconnected
-                        ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(data);
-                        slave.token = serverInfo.token;
-
-                        //send a empty request in order to update status of _slave.Connected
-                        await networkStream.WriteAsync(new byte[] { 1 }, 0, 1);
-                    }
-                    else if (data.Contains("method"))
-                    {
-                        try
-                        {
-                            ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
-
-                            switch (action.method)
-                            {
-                                case ActionType.Disconnect: //not used for disconnect when sent by slave..but to re-give token
-                                    slave.token = action.value;
-                                    break;
-                                //slave tells click was done on a element that wasn't exactly the same as master
-                                case ActionType.CheckIdentical:
-                                    //convert again received action because value is not a string but a table of bytes
-                                    ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(data);
-
-                                    byte[] result = receivedAction.value;
-                                    if (result != null)
-                                    {
-                                        ImageReceveid(result);
-                                    }
-                                    break;
-                                default:
-                                    break;
-                            }
-
-                        }
-                        catch (Exception ex)
-                        {
-                            _log.Info("not an image: " + data, ex);
-                        }
-                    }
-                    else if (SettingsManager.ReadSetting("notification_status") == "true")
-                    {
-                        string[] responseTab = data.Split(':');
-                        string key = responseTab[1];
-
-                        data = string.Format("{0}: error on {1}", slave.friendlyName, key);
-
-                        ErrorNotIdentical(data, slave.friendlyName);
-                    }
-                };
+            _slaveManager.Incoming += _slaveManager_Incoming;
 
             _slaveManager.Init();
 
@@ -160,6 +112,12 @@ namespace ShivaQEmaster
                     _mouseNKeyListener.DeactiveAll();
                     //_uichange = null;
                     _mouseNKeyListener = null;
+
+                    //reset theme if it was changed
+                    if (Theming.themeName != null)
+                    {
+                        Theming.SwitchTheme(Theming.themeName);
+                    }
 
                     Application.Current.Shutdown(); // Force close because NotifyWindow is opened
                 }
@@ -377,6 +335,135 @@ namespace ShivaQEmaster
             };
         }
 
+        async Task _slaveManager_Incoming(string data, Slave slave, NetworkStream networkStream)
+        {
+            if (data.Contains("platform") && data.Contains("version"))
+            { //if we have reconnected
+                ServerInfo serverInfo = JsonConvert.DeserializeObject<ServerInfo>(data);
+                slave.token = serverInfo.token;
+
+                //send a empty request in order to update status of _slave.Connected
+                await _slaveManager_Connected(serverInfo, networkStream);
+            }
+            else if (data.Contains("method"))
+            {
+                try
+                {
+                    ActionMethod action = JsonConvert.DeserializeObject<ActionMethod>(data);
+
+                    switch (action.method)
+                    {
+                        case ActionType.Disconnect: //not used for disconnect when sent by slave..but to re-give token
+                            slave.token = action.value;
+                            break;
+                        //slave tells click was done on a element that wasn't exactly the same as master
+                        case ActionType.CheckIdentical:
+                            //convert again received action because value is not a string but a table of bytes
+                            ActionMethod<byte[]> receivedAction = JsonConvert.DeserializeObject<ActionMethod<byte[]>>(data);
+
+                            byte[] result = receivedAction.value;
+                            if (result != null)
+                            {
+                                ImageReceveid(result);
+                            }
+                            break;
+                        default:
+                            break;
+                    }
+
+                }
+                catch (Exception ex)
+                {
+                    _log.Info("not an image: " + data, ex);
+                }
+            }
+            else if (SettingsManager.ReadSetting("notification_status") == "true")
+            {
+                string[] responseTab = data.Split(':');
+                string key = responseTab[1];
+
+                data = string.Format("{0}: error on {1}", slave.friendlyName, key);
+
+                ErrorNotIdentical(data, slave.friendlyName);
+            }
+        }
+
+        async Task _slaveManager_Connected(ServerInfo serverInfo, NetworkStream networkStream)
+        {
+            //set language on slave
+            string json = string.Empty;
+
+            if (serverInfo.lang != Lang)
+            {
+                ActionMethod action = new ActionMethod()
+                {
+                    method = ActionType.SetLang,
+                    value = Lang
+                };
+
+                json = string.Format("{0}:{1}<EOF>", serverInfo.token, JsonConvert.SerializeObject(action));
+            }
+
+            //test if theme is different than slave
+            if (SettingsManager.ReadSetting("theme_mode").ToLower() == "mimic" &&
+                (serverInfo.isClassic != ThemeInfo.IsClassic || serverInfo.isAero != ThemeInfo.IsAero || serverInfo.themeName != ThemeInfo.Current.ThemeName))
+            {
+                string isClassic = serverInfo.isClassic != ThemeInfo.IsClassic ? ThemeInfo.IsClassic.ToString().ToLower() : string.Empty;
+                string isAero = serverInfo.isAero != ThemeInfo.IsAero ? ThemeInfo.IsAero.ToString().ToLower() : string.Empty;
+                string themeName = serverInfo.themeName != ThemeInfo.Current.ThemeName ? ThemeInfo.Current.ThemeName.ToString() : string.Empty;
+
+                //this action will tell slave to change theme
+                ActionMethod<string[]> action = new ActionMethod<string[]>()
+                {
+                    method = ActionType.UpdateTheme,
+                    value = new string[]
+                        {
+                            isClassic,
+                            isAero,
+                            themeName
+                        }
+                };
+                json += string.Format("{0}:{1}<EOF>", serverInfo.token, JsonConvert.SerializeObject(action));
+            }
+            else if (SettingsManager.ReadSetting("theme_mode").ToLower() == "classic" && !serverInfo.isClassic)
+            {
+                //this action will tell slave to go classic
+                ActionMethod<string[]> action = new ActionMethod<string[]>()
+                {
+                    method = ActionType.UpdateTheme,
+                    value = new string[]
+                            {
+                                true.ToString(),
+                                string.Empty,
+                                string.Empty
+                            }
+                };
+                json += string.Format("{0}:{1}<EOF>", serverInfo.token, JsonConvert.SerializeObject(action));
+            }
+
+            if (serverInfo.lang != Lang ||
+                serverInfo.isClassic != ThemeInfo.IsClassic || serverInfo.isAero != ThemeInfo.IsAero || serverInfo.themeName != ThemeInfo.Current.ThemeName)
+            {
+                //slave will understand both actions because they are sep by <EOF> Tag
+                byte[] byteData = Encoding.UTF8.GetBytes(json);
+                _log.Info(string.Format("[Master] Writing request {0}: {1}", json, byteData));
+                try
+                {
+                    await networkStream.WriteAsync(byteData, 0, byteData.Length);
+                }
+                catch (Exception ex)
+                {
+                    _log.Error("Error writting request", ex);
+                    throw;
+                }
+
+                if (SettingsManager.ReadSetting("theme_mode").ToLower() == "classic")
+                {
+                    Theming.SwitchToClassicTheme();
+                }
+            }
+        }
+
         /// <summary>
         /// set image received on notification window
         /// </summary>
@@ -581,5 +668,19 @@ namespace ShivaQEmaster
             _NavigationFrame.Navigate(new SettingsPage());
         }
 
+
+        const int KL_NAMELENGTH = 9;
+        [DllImport("user32.dll")]
+        public static extern long GetKeyboardLayoutName(StringBuilder pwszKLID);
+
+        private string Lang
+        {
+            get
+            {
+                StringBuilder name = new StringBuilder(KL_NAMELENGTH);
+                GetKeyboardLayoutName(name);
+                return name.ToString();
+            }
+        }
     }
 }

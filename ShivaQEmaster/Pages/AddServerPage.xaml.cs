@@ -3,8 +3,6 @@ using ShivaQEcommon;
 using System;
 using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
-using System.Windows;
 using System.Windows.Input;
 using System.Linq;
 
@@ -160,6 +158,7 @@ namespace ShivaQEmaster
         {
             try
             {
+                //add server and connect
                 await _slaveManager.Add(hostname, port, friendlyname);
                 _analytics.Event("AddServer", "connected");
             }

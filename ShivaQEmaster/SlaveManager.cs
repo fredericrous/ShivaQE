@@ -3,18 +3,13 @@ using System.Net.Sockets;
 using System.Text;
 using Newtonsoft.Json;
 using System.Collections.ObjectModel;
-using System.Windows;
-using System.Runtime.InteropServices;
 using System.Linq;
 using System.Threading.Tasks;
 using ShivaQEcommon.Eventdata;
 using System.IO;
-using System.Net;
 using System.Collections.Generic;
-using ShivaQEcommon;
 using log4net;
 using System.Reflection;
-using System.Threading;
 
 namespace ShivaQEmaster
 {
@@ -41,21 +36,6 @@ namespace ShivaQEmaster
 
         private static readonly ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
-        const int KL_NAMELENGTH = 9;
-
-        [DllImport("user32.dll")]
-        public static extern long GetKeyboardLayoutName(System.Text.StringBuilder pwszKLID);
-
-        private string Lang
-        {
-            get
-            {
-                System.Text.StringBuilder name = new System.Text.StringBuilder(KL_NAMELENGTH);
-                GetKeyboardLayoutName(name);
-                return name.ToString();
-            }
-        }
-
         // The response from the remote device.
         private String response = String.Empty;
 
@@ -66,6 +46,9 @@ namespace ShivaQEmaster
         private static readonly string _slaveList_save_path = "slavelist.json";
 
         public string SlaveListPath { get { return _slaveList_save_path; } }
+
+        public delegate Task ConnectedEventHandler(ServerInfo serverInfo, NetworkStream networkStream);
+        public event ConnectedEventHandler Connected;
 
         public delegate void DisconnectedEventHandler();
         public event DisconnectedEventHandler Disconnected;
@@ -186,57 +169,7 @@ namespace ShivaQEmaster
                 string slaveListJson = JsonConvert.SerializeObject(slaveList, Formatting.Indented);
                 File.WriteAllText(_slaveList_save_path, slaveListJson);
 
-                //set language on slave
-                string json = string.Empty;
-
-                if (serverInfo.lang != Lang)
-                {
-                    ActionMethod action = new ActionMethod()
-                    {
-                        method = ActionType.SetLang,
-                        value = Lang
-                    };
-
-                    json = string.Format("{0}:{1}<EOF>", serverInfo.token, JsonConvert.SerializeObject(action));
-                }
-
-                //test if theme is different than slave
-                if (serverInfo.isClassic != ThemeInfo.IsClassic || serverInfo.isAero != ThemeInfo.IsAero || serverInfo.themeName != ThemeInfo.Current.ThemeName)
-                {
-                    string isClassic = serverInfo.isClassic != ThemeInfo.IsClassic ? ThemeInfo.IsClassic.ToString().ToLower() : string.Empty;
-                    string isAero = serverInfo.isAero != ThemeInfo.IsAero ? ThemeInfo.IsAero.ToString().ToLower() : string.Empty;
-                    string themeName = serverInfo.themeName != ThemeInfo.Current.ThemeName ? ThemeInfo.Current.ThemeName.ToString() : string.Empty;
-
-                    //this action will tell slave to change theme
-                    ActionMethod<string[]> action = new ActionMethod<string[]>()
-                    {
-                        method = ActionType.UpdateTheme,
-                        value = new string[]
-                        {
-                            isClassic,
-                            isAero,
-                            themeName
-                        }
-                    };
-                    json += string.Format("{0}:{1}<EOF>", serverInfo.token, JsonConvert.SerializeObject(action));
-                }
-
-                if (serverInfo.lang != Lang ||
-                    serverInfo.isClassic != ThemeInfo.IsClassic || serverInfo.isAero != ThemeInfo.IsAero || serverInfo.themeName != ThemeInfo.Current.ThemeName)
-                {
-                    //slave will understand both actions because they are sep by <EOF> Tag
-                    byte[] byteData = Encoding.UTF8.GetBytes(json);
-                    _log.Info(string.Format("[Master] Writing request {0}: {1}", json, byteData));
-                    try
-                    {
-                        await networkStream.WriteAsync(byteData, 0, byteData.Length);
-                    }
-                    catch (Exception ex)
-                    {
-                        _log.Error("Error writting request", ex);
-                        throw;
-                    }
-                }
+                await Connected(serverInfo, networkStream);
                 
                 //async func
                 Task task = ReadSlaveIncoming(slave);
@@ -415,14 +348,6 @@ namespace ShivaQEmaster
             File.WriteAllText(_slaveList_save_path, slaveListJson);
         }
 
-        //public async void reconnectAll()
-        //{
-        //    foreach (var slave in slaveList)
-        //    {
-        //        reconnect(slave);
-        //    }
-        //}
-
         public void DisconnectAll()
         {
             foreach (var slave in slaveList)
@@ -450,6 +375,8 @@ namespace ShivaQEmaster
                         Task task = ReadSlaveIncoming(slave);
                         readingList.Add(slave.hostname);
                     }
+
+                    //Reconnection msg is trapped by Incomming event
                 }
                 catch (SocketException sex)
                 {

@@ -210,6 +210,15 @@
   <data name="settingspage_cb_match_notification" xml:space="preserve">
     <value>activate notification feedback for non matching UI</value>
   </data>
+  <data name="settingspage_cb_thememode_classic" xml:space="preserve">
+    <value>Classic</value>
+  </data>
+  <data name="settingspage_cb_thememode_mimic" xml:space="preserve">
+    <value>Mimic</value>
+  </data>
+  <data name="settingspage_cb_thememode_none" xml:space="preserve">
+    <value>None</value>
+  </data>
   <data name="settingspage_cb_trace" xml:space="preserve">
     <value>enable trace log</value>
   </data>
@@ -233,6 +242,9 @@
   </data>
   <data name="settingspage_lb_shortcuts" xml:space="preserve">
     <value>Shortcuts</value>
+  </data>
+  <data name="settingspage_lb_thememode" xml:space="preserve">
+    <value>Choose a theming mode</value>
   </data>
   <data name="settingspage_wm_key" xml:space="preserve">
     <value>key</value>

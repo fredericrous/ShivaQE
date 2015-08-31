@@ -87,6 +87,7 @@
     <Compile Include="ScreenCapturePInvoke.cs" />
     <Compile Include="SettingsManager.cs" />
     <Compile Include="ThemeInfo.cs" />
+    <Compile Include="Theming.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

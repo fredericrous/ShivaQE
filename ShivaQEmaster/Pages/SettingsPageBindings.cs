@@ -1,4 +1,7 @@
 ﻿using ShivaQEcommon;
+using System;
+using System.Linq;
+using System.Collections.ObjectModel;
 
 namespace ShivaQEmaster
 {
@@ -98,5 +101,53 @@ namespace ShivaQEmaster
                 }
             }
         }
+
+        private string _theme_mode = SettingsManager.ReadSetting("theme_mode").Trim().ToLower();
+        public string theme_mode
+        {
+            get { return _theme_mode; }
+            set
+            {
+                if (value != _theme_mode)
+                {
+                    SettingsManager.AddUpdateAppSettings("theme_mode", value);
+                    _theme_mode = value;
+                    NotifyPropertyChanged("theme_mode");
+                }
+            }
+        }
+
+        private ObservableCollection<Tuple<string, string>> _thememodeList = new ObservableCollection<Tuple<string, string>>()
+        {
+            new Tuple<string, string>(Languages.language_en_US.settingspage_cb_thememode_none, "none"),
+            new Tuple<string, string>(Languages.language_en_US.settingspage_cb_thememode_mimic, "mimic"),
+            new Tuple<string, string>(Languages.language_en_US.settingspage_cb_thememode_classic, "classic")
+        };
+
+        public ObservableCollection<Tuple<string, string>> thememodeList
+        {
+            get { return _thememodeList; }
+        }
+
+        private Tuple<string, string> _thememodeSelected;
+        public Tuple<string, string> thememodeSelected
+        {
+            get
+            {
+                string theme_mode = SettingsManager.ReadSetting("theme_mode").Trim().ToLower();
+                var t = from x in _thememodeList where theme_mode == x.Item2 select x;
+                return t.Count() > 0 ? t.First() :_thememodeSelected;
+            }
+            set
+            {
+                if (value != _thememodeSelected)
+                {
+                    SettingsManager.AddUpdateAppSettings("theme_mode", value.Item2);
+                    _thememodeSelected = value;
+                    NotifyPropertyChanged("thememodeSelected");
+                }
+            }
+        }
+
     }
 }
