@@ -135,17 +135,7 @@ namespace ShivaQEslave
                 NotifyIconSystray.addNotifyIcon("ShivaQE Slave");
                 NotifyIconSystray.OnQuit += () =>
                 {
-                    //reset aero to its original state
-                    if (Theming.isAero != null && Theming.isAero != ThemeInfo.IsAero)
-                    {
-                        Theming.setAero((bool)Theming.isAero);
-                    }
-
-                    //reset theme to its original state
-                    if (Theming.themeName != null && Theming.themeName != ThemeInfo.Current.ThemeFileName)
-                    {
-                        Theming.SwitchTheme(Theming.themeName);
-                    }
+                    Theming.Restore();
                 };
 
                 Application.Run();
@@ -422,12 +412,12 @@ namespace ShivaQEslave
                 case ActionType.UpdateTheme:
                     string[] themeValue = (action.value as JArray).ToObject<string[]>();
 
-                    if (themeValue[0] == "true")
+                    if (themeValue[0] == "True")
                     {
                         Theming.SwitchToClassicTheme();
                     }
 
-                    if (themeValue[1] == "true")
+                    if (themeValue[1] == "True")
                     {
                         Theming.setAero(true);
                     }

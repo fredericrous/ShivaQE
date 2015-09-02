@@ -98,12 +98,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="shivaqe_logo_slave.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="shivaqe_logo_slave_off.ico">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <EmbeddedResource Include="shivaqe_logo_slave.ico" />
+    <EmbeddedResource Include="shivaqe_logo_slave_off.ico" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ShivaQEcommon\ShivaQEcommon.csproj">

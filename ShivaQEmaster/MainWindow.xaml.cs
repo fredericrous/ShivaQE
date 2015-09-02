@@ -116,7 +116,7 @@ namespace ShivaQEmaster
                     //reset theme if it was changed
                     if (Theming.themeName != null)
                     {
-                        Theming.SwitchTheme(Theming.themeName);
+                        Theming.Restore();
                     }
 
                     Application.Current.Shutdown(); // Force close because NotifyWindow is opened

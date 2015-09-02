@@ -87,7 +87,8 @@ namespace ShivaQEcommon
 
         public static Boolean SwitchTheme(string themePath)
         {
-            themeName = themePath;
+            themeName = ThemeInfo.IsClassic ? "classic" : ThemeInfo.Current.ThemeFileName;
+            isAero = ThemeInfo.IsAero;
             try
             {
                 /// Set the theme
@@ -115,22 +116,35 @@ namespace ShivaQEcommon
 
         public static Boolean SwitchToClassicTheme()
         {
-            string themePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Windows) + @"\Resources\Ease of Access Themes\basic.theme";
-            themeName = themePath;
+            string themePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Windows) + @"\Resources\Ease of Access Themes\classic.theme";
             return SwitchTheme(themePath);
         }
 
         public static Boolean SwitchToAeroTheme()
         {
             string themePath = System.Environment.GetFolderPath(Environment.SpecialFolder.Windows) + @"\Resources\Themes\aero.theme";
-            themeName = themePath;
             return SwitchTheme(themePath);
         }
 
         public static void setAero(bool activate)
         {
-            isAero = activate;
+            isAero = ThemeInfo.IsAero;
             DwmEnableComposition(activate);
+        }
+
+        public static void Restore()
+        {
+            //reset theme to its original state
+            if (themeName != null && (ThemeInfo.IsClassic || themeName != ThemeInfo.Current.ThemeFileName))
+            {
+                SwitchTheme(themeName);
+            }
+
+            //reset aero to its original state
+            if (isAero != null && isAero != ThemeInfo.IsAero)
+            {
+                Theming.setAero((bool)Theming.isAero);
+            }
         }
     }
 }

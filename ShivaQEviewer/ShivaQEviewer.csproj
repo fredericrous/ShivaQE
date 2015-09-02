@@ -179,16 +179,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\ShivaQEslave\bin\Debug\shivaqe_logo_slave.ico">
-      <Link>slave\shivaqe_logo_slave.ico</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Include="..\ShivaQEslave\bin\Debug\shivaqe_logo_slave_off.ico">
-      <Link>slave\shivaqe_logo_slave_off.ico</Link>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\ShivaQEslave\bin\Debug\Newtonsoft.Json.dll">
       <Link>slave\Newtonsoft.Json.dll</Link>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
